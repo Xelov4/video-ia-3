@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ToolAnalysis } from '../page'
+import { ToolAnalysis } from '@/src/types'
 
 interface ResultsDisplayProps {
   results: ToolAnalysis

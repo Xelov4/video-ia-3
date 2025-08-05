@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "es6"],
+    "target": "es2015",
+    "lib": ["dom", "dom.iterable", "es6", "es2015"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -18,10 +18,14 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/src/*": ["./src/*"],
+      "@/app/*": ["./app/*"],
+      "@/public/*": ["./public/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "scripts/**/*", "src/components/ui/ResultsDisplay.tsx", "src/lib/database/supabase.ts"]
 } 
