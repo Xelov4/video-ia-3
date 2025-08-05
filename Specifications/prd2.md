@@ -153,6 +153,7 @@ interface Tool {
   targetUsers: string[]          // Target audiences
   pricing: string                // Pricing model
   tags: string[]                 // Search tags
+  logoUrl?: string               // Extracted logo URL
   socialLinks?: {                // Social networks
     // Professional Networks
     linkedin?: string              // LinkedIn company page

@@ -198,7 +198,8 @@ CREATE TABLE categories (
     "metaDescription": "Transformez votre flux de travail avec l'Outil IA Exemple...",
     "pricingSummary": "Modèle freemium avec niveau gratuit et plans premium à partir de 10€/mois"
   },
-  "screenshotUrl": "/screenshots/screenshot_example_1234567890.png"
+  "screenshotUrl": "/screenshots/screenshot_example_1234567890.webp",
+  "logoUrl": "/logos/logo_example_1234567890.webp"
 }
 ```
 
@@ -281,9 +282,19 @@ CREATE TABLE categories (
 
 ### 3. Screenshot System
 - **Storage**: Local file system
-- **Format**: PNG
+- **Format**: WebP (optimized for performance)
+- **Resolution**: 1920x1080 (16:9 aspect ratio)
 - **Location**: `public/screenshots/`
-- **Naming**: `screenshot_{url_slug}_{timestamp}.png`
+- **Naming**: `screenshot_{url_slug}_{timestamp}.webp`
+- **Optimization**: 85% quality, optimized for speed
+
+### 4. Logo Extraction System
+- **Storage**: Local file system
+- **Format**: WebP (preserves original format when possible)
+- **Location**: `public/logos/`
+- **Naming**: `logo_{url_slug}_{timestamp}.webp`
+- **Detection**: Multiple selectors and meta tags
+- **Fallback**: Open Graph, Twitter, favicon
 
 ### 4. Translation System
 - **Languages**: English → French

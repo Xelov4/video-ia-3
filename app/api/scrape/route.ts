@@ -53,6 +53,8 @@ interface ScrapingResult {
   features: string[]
   /** URL to the captured screenshot (optional) */
   screenshotUrl?: string
+  /** URL to the extracted logo (optional) */
+  logoUrl?: string
 }
 
 /**
@@ -193,6 +195,8 @@ interface ToolAnalysis {
   affiliateInfo: AffiliateInfo
   /** French translation of all content (optional) */
   translations?: FrenchTranslation
+  /** URL to the extracted logo (optional) */
+  logoUrl?: string
 }
 
 interface PricingDetails {
@@ -266,14 +270,22 @@ async function scrapeWebsite(url: string): Promise<ScrapingResult> {
     // Wait for content to load
     await page.waitForTimeout(3000)
 
-    // Capture screenshot
+    // Set viewport to 1920x1080 for optimal desktop screenshot
+    await page.setViewport({ width: 1920, height: 1080 })
+    
+    // Capture screenshot with optimized settings for performance
     const screenshot = await page.screenshot({
-      fullPage: true,
-      type: 'png'
+      fullPage: false, // Capture only viewport for better performance
+      type: 'webp', // WebP format for better compression and performance
+      quality: 85, // Good quality with reasonable file size
+      optimizeForSpeed: true
     })
 
     // Save screenshot locally
     const screenshotUrl = await saveScreenshot(screenshot, url)
+
+    // Extract logo from the website
+    const logoUrl = await extractLogo(page, url)
 
     // Extract content
     const content = await page.evaluate(() => {
@@ -396,7 +408,8 @@ async function scrapeWebsite(url: string): Promise<ScrapingResult> {
       contactInfo,
       pricing: pricing.slice(0, 10),
       features: features.slice(0, 20),
-      screenshotUrl
+      screenshotUrl,
+      logoUrl
     }
 
   } catch (error) {
@@ -409,7 +422,7 @@ async function scrapeWebsite(url: string): Promise<ScrapingResult> {
  * Saves a screenshot to the local file system
  * 
  * Creates a unique filename based on the URL and timestamp,
- * saves the screenshot as a PNG file, and returns the public URL.
+ * saves the screenshot as a WebP file, and returns the public URL.
  * 
  * @param screenshot - Buffer containing the screenshot data
  * @param url - Original URL for filename generation
@@ -426,7 +439,7 @@ async function saveScreenshot(screenshot: Buffer, url: string): Promise<string> 
     // Generate unique filename
     const timestamp = Date.now()
     const urlSlug = url.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50)
-    const filename = `screenshot_${urlSlug}_${timestamp}.png`
+    const filename = `screenshot_${urlSlug}_${timestamp}.webp`
     const filepath = path.join(screenshotsDir, filename)
 
     // Save screenshot to file
@@ -436,6 +449,118 @@ async function saveScreenshot(screenshot: Buffer, url: string): Promise<string> 
     return `/screenshots/${filename}`
   } catch (error) {
     console.error('Screenshot save error:', error)
+    return ''
+  }
+}
+
+/**
+ * Extracts logo from a website
+ * 
+ * Searches for common logo selectors and meta tags to find the best logo image.
+ * Prioritizes high-quality logos and saves them locally.
+ * 
+ * @param page - Puppeteer page object
+ * @param url - Original URL for filename generation
+ * @returns Promise<string> - Public URL to the saved logo or empty string if not found
+ */
+async function extractLogo(page: any, url: string): Promise<string> {
+  try {
+    // Common logo selectors to try
+    const logoSelectors = [
+      'img[src*="logo"]',
+      'img[alt*="logo" i]',
+      'img[alt*="brand" i]',
+      '.logo img',
+      '.brand img',
+      '.header img',
+      '.navbar img',
+      'header img',
+      'nav img',
+      'img[src*="brand"]',
+      'img[src*="logo"]',
+      'link[rel="icon"][sizes="32x32"]',
+      'link[rel="icon"][sizes="16x16"]',
+      'link[rel="apple-touch-icon"]',
+      'link[rel="shortcut icon"]',
+      'link[rel="icon"]'
+    ]
+
+    let logoUrl = ''
+
+    // Try to find logo using selectors
+    for (const selector of logoSelectors) {
+      try {
+        const element = await page.$(selector)
+        if (element) {
+          const src = await element.getAttribute('src')
+          if (src) {
+            logoUrl = src
+            break
+          }
+        }
+      } catch (error) {
+        // Continue to next selector
+        continue
+      }
+    }
+
+    // If no logo found via selectors, try meta tags
+    if (!logoUrl) {
+      logoUrl = await page.evaluate(() => {
+        // Check for Open Graph image
+        const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content')
+        if (ogImage) return ogImage
+
+        // Check for Twitter image
+        const twitterImage = document.querySelector('meta[name="twitter:image"]')?.getAttribute('content')
+        if (twitterImage) return twitterImage
+
+        // Check for favicon
+        const favicon = document.querySelector('link[rel="icon"]')?.getAttribute('href')
+        if (favicon) return favicon
+
+        return ''
+      })
+    }
+
+    // If logo found, download and save it
+    if (logoUrl) {
+      // Make URL absolute if it's relative
+      if (logoUrl.startsWith('/')) {
+        const baseUrl = new URL(url)
+        logoUrl = `${baseUrl.protocol}//${baseUrl.host}${logoUrl}`
+      } else if (logoUrl.startsWith('./')) {
+        const baseUrl = new URL(url)
+        logoUrl = `${baseUrl.protocol}//${baseUrl.host}${logoUrl.substring(1)}`
+      } else if (!logoUrl.startsWith('http')) {
+        const baseUrl = new URL(url)
+        logoUrl = `${baseUrl.protocol}//${baseUrl.host}/${logoUrl}`
+      }
+
+      // Download logo
+      const response = await fetch(logoUrl)
+      if (response.ok) {
+        const logoBuffer = Buffer.from(await response.arrayBuffer())
+        
+        // Save logo locally
+        const logosDir = path.join(process.cwd(), 'public', 'logos')
+        if (!fs.existsSync(logosDir)) {
+          fs.mkdirSync(logosDir, { recursive: true })
+        }
+
+        const timestamp = Date.now()
+        const urlSlug = url.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50)
+        const filename = `logo_${urlSlug}_${timestamp}.webp`
+        const filepath = path.join(logosDir, filename)
+
+        fs.writeFileSync(filepath, logoBuffer)
+        return `/logos/${filename}`
+      }
+    }
+
+    return ''
+  } catch (error) {
+    console.error('Logo extraction error:', error)
     return ''
   }
 }
@@ -509,6 +634,7 @@ function analyzeWithFallback(scrapingData: ScrapingResult): ToolAnalysis {
     recommendedActions: ['Verify tool name and features', 'Check pricing details', 'Confirm target audience'],
     socialLinks: scrapingData.socialLinks,
     contactInfo: scrapingData.contactInfo,
+    logoUrl: scrapingData.logoUrl,
     pricingDetails: {
       model: pricingModel,
       plans: [],
@@ -870,9 +996,10 @@ Important guidelines:
       throw new Error('AI analysis missing required fields')
     }
 
-    // Add social links and contact info
+    // Add social links, contact info, and logo
     analysis.socialLinks = scrapingData.socialLinks
     analysis.contactInfo = scrapingData.contactInfo
+    analysis.logoUrl = scrapingData.logoUrl
 
     // Generate slug and pricing summary
     analysis.slug = generateSlug(analysis.toolName)

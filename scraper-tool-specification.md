@@ -49,7 +49,8 @@ The Video-IA.net Scraper Tool is an intelligent web scraping and AI analysis sys
 - `pricing_details`: JSONB field for structured pricing data
 - `free_tier_available`: Boolean
 - `paid_plans_available`: Boolean
-- `screenshot_url`: Local screenshot file path
+- `screenshot_url`: Local screenshot file path (WebP format, 1920x1080)
+- `logo_url`: Local logo file path (extracted from website)
 - `translations`: JSONB field for multi-language content (FR initially)
 - `affiliate_program_url`: Direct affiliate program link
 - `affiliate_contact_email`: Contact email for affiliate inquiries

@@ -38,19 +38,42 @@ export default function ResultsDisplay({ results }: ResultsDisplayProps) {
         </div>
       </div>
 
-      {/* Screenshot */}
-      {results.screenshotUrl && (
-        <div className="card">
-          <h4 className="text-lg font-medium text-gray-900 mb-3">Website Screenshot</h4>
-          <div className="relative">
-            <img 
-              src={results.screenshotUrl} 
-              alt={`Screenshot of ${results.toolName}`}
-              className="w-full rounded-lg border border-gray-200 shadow-sm"
-            />
+      {/* Screenshot and Logo */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {results.screenshotUrl && (
+          <div className="card">
+            <h4 className="text-lg font-medium text-gray-900 mb-3">Website Screenshot (1920x1080)</h4>
+            <div className="relative">
+              <img 
+                src={results.screenshotUrl} 
+                alt={`Screenshot of ${results.toolName}`}
+                className="w-full rounded-lg border border-gray-200 shadow-sm"
+                style={{ aspectRatio: '16/9' }}
+              />
+              <div className="mt-2 text-xs text-gray-500">
+                Format: WebP | Optimized for performance
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {results.logoUrl && (
+          <div className="card">
+            <h4 className="text-lg font-medium text-gray-900 mb-3">Tool Logo</h4>
+            <div className="relative">
+              <img 
+                src={results.logoUrl} 
+                alt={`Logo of ${results.toolName}`}
+                className="w-full max-w-xs mx-auto rounded-lg border border-gray-200 shadow-sm"
+                style={{ maxHeight: '200px', objectFit: 'contain' }}
+              />
+              <div className="mt-2 text-xs text-gray-500 text-center">
+                Extracted from website
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Basic Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
