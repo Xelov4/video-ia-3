@@ -154,9 +154,71 @@ interface Tool {
   pricing: string                // Pricing model
   tags: string[]                 // Search tags
   socialLinks?: {                // Social networks
-    twitter?: string
-    github?: string
-    linkedin?: string
+    // Professional Networks
+    linkedin?: string              // LinkedIn company page
+    xing?: string                  // Xing business profile
+    
+    // Social Media Platforms
+    twitter?: string               // Twitter/X profile
+    facebook?: string              // Facebook page
+    instagram?: string             // Instagram profile
+    tiktok?: string               // TikTok account
+    snapchat?: string              // Snapchat profile
+    pinterest?: string             // Pinterest board/profile
+    reddit?: string                // Reddit community/subreddit
+    
+    // Video Platforms
+    youtube?: string               // YouTube channel
+    vimeo?: string                 // Vimeo channel
+    twitch?: string                // Twitch channel
+    dailymotion?: string           // Dailymotion channel
+    
+    // Developer/Technical Platforms
+    github?: string                // GitHub repository/organization
+    gitlab?: string                // GitLab repository
+    bitbucket?: string             // Bitbucket repository
+    stackoverflow?: string         // Stack Overflow company tag
+    devpost?: string               // Devpost hackathon projects
+    
+    // Business Platforms
+    crunchbase?: string            // Crunchbase company profile
+    angellist?: string             // AngelList startup profile
+    producthunt?: string           // Product Hunt listing
+    
+    // Professional Communities
+    discord?: string               // Discord server
+    slack?: string                 // Slack workspace
+    telegram?: string              // Telegram channel
+    whatsapp?: string              // WhatsApp business
+    
+    // Content Platforms
+    medium?: string                // Medium blog
+    substack?: string              // Substack newsletter
+    behance?: string               // Behance portfolio
+    dribbble?: string              // Dribbble portfolio
+    
+    // Regional Platforms
+    weibo?: string                 // Weibo (China)
+    wechat?: string                // WeChat official account
+    qq?: string                    // QQ space
+    vk?: string                    // VKontakte (Russia)
+    odnoklassniki?: string         // Odnoklassniki (Russia)
+    
+    // Specialized Platforms
+    mastodon?: string              // Mastodon instance
+    bluesky?: string               // Bluesky profile
+    threads?: string               // Threads profile
+    tumblr?: string                // Tumblr blog
+    
+    // Additional Platforms
+    flickr?: string                // Flickr photostream
+    deviantart?: string            // DeviantArt gallery
+    artstation?: string            // ArtStation portfolio
+    soundcloud?: string            // SoundCloud profile
+    spotify?: string               // Spotify artist/playlist
+    apple?: string                 // Apple App Store
+    google?: string                // Google Play Store
+    microsoft?: string             // Microsoft Store
   }
   featured: boolean              // Featured tool
   verified: boolean              // Verified tool
@@ -1181,13 +1243,71 @@ interface ScrapingResult {
   
   // Structured data
   socialLinks: {
-    linkedin?: string
-    twitter?: string
-    instagram?: string
-    facebook?: string
-    github?: string
-    youtube?: string
-    tiktok?: string
+    // Professional Networks
+    linkedin?: string              // LinkedIn company page
+    xing?: string                  // Xing business profile
+    
+    // Social Media Platforms
+    twitter?: string               // Twitter/X profile
+    facebook?: string              // Facebook page
+    instagram?: string             // Instagram profile
+    tiktok?: string               // TikTok account
+    snapchat?: string              // Snapchat profile
+    pinterest?: string             // Pinterest board/profile
+    reddit?: string                // Reddit community/subreddit
+    
+    // Video Platforms
+    youtube?: string               // YouTube channel
+    vimeo?: string                 // Vimeo channel
+    twitch?: string                // Twitch channel
+    dailymotion?: string           // Dailymotion channel
+    
+    // Developer/Technical Platforms
+    github?: string                // GitHub repository/organization
+    gitlab?: string                // GitLab repository
+    bitbucket?: string             // Bitbucket repository
+    stackoverflow?: string         // Stack Overflow company tag
+    devpost?: string               // Devpost hackathon projects
+    
+    // Business Platforms
+    crunchbase?: string            // Crunchbase company profile
+    angellist?: string             // AngelList startup profile
+    producthunt?: string           // Product Hunt listing
+    
+    // Professional Communities
+    discord?: string               // Discord server
+    slack?: string                 // Slack workspace
+    telegram?: string              // Telegram channel
+    whatsapp?: string              // WhatsApp business
+    
+    // Content Platforms
+    medium?: string                // Medium blog
+    substack?: string              // Substack newsletter
+    behance?: string               // Behance portfolio
+    dribbble?: string              // Dribbble portfolio
+    
+    // Regional Platforms
+    weibo?: string                 // Weibo (China)
+    wechat?: string                // WeChat official account
+    qq?: string                    // QQ space
+    vk?: string                    // VKontakte (Russia)
+    odnoklassniki?: string         // Odnoklassniki (Russia)
+    
+    // Specialized Platforms
+    mastodon?: string              // Mastodon instance
+    bluesky?: string               // Bluesky profile
+    threads?: string               // Threads profile
+    tumblr?: string                // Tumblr blog
+    
+    // Additional Platforms
+    flickr?: string                // Flickr photostream
+     DeviantArt?: string           // DeviantArt gallery
+    artstation?: string            // ArtStation portfolio
+    soundcloud?: string            // SoundCloud profile
+    spotify?: string               // Spotify artist/playlist
+    apple?: string                 // Apple App Store
+    google?: string                // Google Play Store
+    microsoft?: string             // Microsoft Store
   }
   
   // Pricing information

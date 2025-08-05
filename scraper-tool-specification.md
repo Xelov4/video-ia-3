@@ -35,7 +35,17 @@ The Video-IA.net Scraper Tool is an intelligent web scraping and AI analysis sys
 - `contact_email`: Extracted email address
 - `contact_form_url`: Contact form URL
 - `support_url`: Support page URL
-- `social_links`: JSONB field for social media links
+- `social_links`: JSONB field for comprehensive social media links including:
+  - Professional Networks (LinkedIn, Xing)
+  - Social Media Platforms (Twitter, Facebook, Instagram, TikTok, Snapchat, Pinterest, Reddit)
+  - Video Platforms (YouTube, Vimeo, Twitch, Dailymotion)
+  - Developer Platforms (GitHub, GitLab, Bitbucket, Stack Overflow, Devpost)
+  - Business Platforms (Crunchbase, AngelList, Product Hunt)
+  - Professional Communities (Discord, Slack, Telegram, WhatsApp)
+  - Content Platforms (Medium, Substack, Behance, Dribbble)
+  - Regional Platforms (Weibo, WeChat, QQ, VK, Odnoklassniki)
+  - Specialized Platforms (Mastodon, Bluesky, Threads, Tumblr)
+  - Additional Platforms (Flickr, DeviantArt, ArtStation, SoundCloud, Spotify, App Stores)
 - `pricing_details`: JSONB field for structured pricing data
 - `free_tier_available`: Boolean
 - `paid_plans_available`: Boolean
