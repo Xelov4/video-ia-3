@@ -1,3 +1,15 @@
+/**
+ * Video-IA.net Tool Scraper API
+ * 
+ * This module provides comprehensive web scraping and AI analysis functionality
+ * for AI tools. It extracts information from tool websites, analyzes content
+ * using Google Gemini AI, and provides structured data for the Video-IA.net platform.
+ * 
+ * @author Video-IA Developer
+ * @version 2.0
+ * @since 2024
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenAI } from '@google/genai'
 import * as cheerio from 'cheerio'
@@ -5,28 +17,48 @@ import puppeteer from 'puppeteer'
 import fs from 'fs'
 import path from 'path'
 
-// Initialize Gemini AI
+/**
+ * Initialize Google Gemini AI client
+ * Uses environment variable for API key with fallback for development
+ */
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || 'AIzaSyB5Jku7K8FwTM0LcC3Iihfo4btAJ6IgCcA'
 })
 
+/**
+ * Raw scraping result from website analysis
+ * Contains all extracted data before AI processing
+ */
 interface ScrapingResult {
+  /** The URL that was scraped */
   url: string
+  /** Page title from HTML */
   title: string
+  /** Extracted text content from the page */
   content: string
+  /** SEO metadata extracted from HTML head */
   metadata: {
     description: string
     keywords: string[]
     ogTitle: string
     ogDescription: string
   }
+  /** Social media links found on the page */
   socialLinks: SocialLinks
+  /** Contact information extracted from the page */
   contactInfo: ContactInfo
+  /** Pricing-related text found on the page */
   pricing: string[]
+  /** Feature-related text found on the page */
   features: string[]
+  /** URL to the captured screenshot (optional) */
   screenshotUrl?: string
 }
 
+/**
+ * Social media links extracted from the website
+ * All fields are optional as not all tools have social presence
+ */
 interface SocialLinks {
   linkedin?: string
   twitter?: string
@@ -40,34 +72,67 @@ interface SocialLinks {
   reddit?: string
 }
 
+/**
+ * Contact information extracted from the website
+ * Includes various ways users can contact the tool provider
+ */
 interface ContactInfo {
+  /** Email address found on the website */
   email?: string
+  /** URL to contact form page */
   contactFormUrl?: string
+  /** URL to support/help page */
   supportUrl?: string
+  /** Phone number found on the website */
   phone?: string
+  /** Physical address if available */
   address?: string
 }
 
+/**
+ * Complete tool analysis result after AI processing
+ * This is the main data structure returned by the API
+ */
 interface ToolAnalysis {
+  /** Name of the AI tool */
   toolName: string
+  /** URL-friendly slug for routing */
   slug: string
+  /** Primary function/purpose of the tool */
   primaryFunction: string
+  /** Key features and capabilities */
   keyFeatures: string[]
+  /** Target user groups and audiences */
   targetAudience: string[]
+  /** Pricing model (Free, Freemium, Paid, etc.) */
   pricingModel: string
+  /** Tool category (AI Assistant, Content Creation, etc.) */
   category: string
+  /** SEO-optimized HTML description */
   description: string
+  /** SEO meta title (50-60 characters) */
   metaTitle: string
+  /** SEO meta description (150-160 characters) */
   metaDescription: string
+  /** Search tags for discoverability */
   tags: string[]
+  /** AI analysis confidence score (0-100) */
   confidence: number
+  /** Data completeness score (0-100) */
   dataCompleteness: number
+  /** Recommended actions for data improvement */
   recommendedActions: string[]
+  /** Social media links */
   socialLinks: SocialLinks
+  /** Contact information */
   contactInfo: ContactInfo
+  /** Detailed pricing information */
   pricingDetails: PricingDetails
+  /** Human-readable pricing summary */
   pricingSummary: string
+  /** Affiliate program information */
   affiliateInfo: AffiliateInfo
+  /** French translation of all content (optional) */
   translations?: FrenchTranslation
 }
 
@@ -106,9 +171,23 @@ interface FrenchTranslation {
   pricingSummary: string
 }
 
+/**
+ * Scrapes a website and extracts comprehensive information
+ * 
+ * This function uses Puppeteer to launch a headless browser, navigate to the URL,
+ * capture a screenshot, and extract various types of information including:
+ * - Page content and metadata
+ * - Social media links
+ * - Contact information
+ * - Pricing and feature mentions
+ * 
+ * @param url - The website URL to scrape
+ * @returns Promise<ScrapingResult> - Raw scraping data
+ * @throws Error if scraping fails
+ */
 async function scrapeWebsite(url: string): Promise<ScrapingResult> {
   try {
-    // Launch browser
+    // Launch headless browser with security settings
     const browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -267,6 +346,16 @@ async function scrapeWebsite(url: string): Promise<ScrapingResult> {
   }
 }
 
+/**
+ * Saves a screenshot to the local file system
+ * 
+ * Creates a unique filename based on the URL and timestamp,
+ * saves the screenshot as a PNG file, and returns the public URL.
+ * 
+ * @param screenshot - Buffer containing the screenshot data
+ * @param url - Original URL for filename generation
+ * @returns Promise<string> - Public URL to the saved screenshot
+ */
 async function saveScreenshot(screenshot: Buffer, url: string): Promise<string> {
   try {
     // Create screenshots directory if it doesn't exist
@@ -292,6 +381,16 @@ async function saveScreenshot(screenshot: Buffer, url: string): Promise<string> 
   }
 }
 
+/**
+ * Provides fallback analysis when AI analysis fails
+ * 
+ * This function performs basic content analysis without AI to ensure
+ * the API always returns structured data, even when the AI service
+ * is unavailable or fails.
+ * 
+ * @param scrapingData - Raw scraping data
+ * @returns ToolAnalysis - Basic analysis with lower confidence scores
+ */
 function analyzeWithFallback(scrapingData: ScrapingResult): ToolAnalysis {
   // Extract tool name from title or URL
   const toolName = scrapingData.title || scrapingData.url.split('/').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'Unknown Tool'
@@ -377,6 +476,15 @@ function analyzeWithFallback(scrapingData: ScrapingResult): ToolAnalysis {
   }
 }
 
+/**
+ * Generates a URL-friendly slug from a tool name
+ * 
+ * Converts the tool name to lowercase, removes special characters,
+ * replaces spaces with hyphens, and ensures proper formatting.
+ * 
+ * @param toolName - The original tool name
+ * @returns string - URL-friendly slug
+ */
 function generateSlug(toolName: string): string {
   return toolName
     .toLowerCase()
@@ -386,6 +494,15 @@ function generateSlug(toolName: string): string {
     .trim()
 }
 
+/**
+ * Generates a human-readable pricing summary
+ * 
+ * Creates a concise, user-friendly description of the pricing model
+ * including information about free tiers, paid plans, and enterprise options.
+ * 
+ * @param pricingDetails - Detailed pricing information
+ * @returns string - Human-readable pricing summary
+ */
 function generatePricingSummary(pricingDetails: PricingDetails): string {
   const { model, plans, freeTier, paidPlans, enterpriseAvailable } = pricingDetails
   
@@ -411,6 +528,19 @@ function generatePricingSummary(pricingDetails: PricingDetails): string {
   return summary
 }
 
+/**
+ * Generates SEO-optimized HTML description
+ * 
+ * Creates a comprehensive, SEO-friendly HTML description with proper structure,
+ * including H2/H3 headings and strategic content organization. The description
+ * is designed to be at least 500 words and include key information about the tool.
+ * 
+ * @param toolName - Name of the AI tool
+ * @param category - Tool category
+ * @param features - Key features array
+ * @param pricingModel - Pricing model type
+ * @returns string - SEO-optimized HTML description
+ */
 function generateSEODescription(toolName: string, category: string, features: string[], pricingModel: string): string {
   return `
 <h2>What is ${toolName}?</h2>
@@ -784,10 +914,27 @@ Return ONLY this JSON structure with French translations:
   }
 }
 
+/**
+ * Main API endpoint for tool analysis
+ * 
+ * This endpoint orchestrates the complete analysis workflow:
+ * 1. Validates the input URL
+ * 2. Scrapes the website for raw data
+ * 3. Analyzes pricing information using AI
+ * 4. Detects affiliate program information
+ * 5. Performs comprehensive AI analysis
+ * 6. Generates French translation
+ * 7. Returns structured analysis data
+ * 
+ * @param request - NextRequest containing the URL to analyze
+ * @returns NextResponse with ToolAnalysis or error
+ */
 export async function POST(request: NextRequest) {
   try {
+    // Extract URL from request body
     const { url } = await request.json()
 
+    // Validate that URL is provided
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 })
     }
