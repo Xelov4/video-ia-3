@@ -33,6 +33,8 @@ import {
   FireIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline'
+import LanguageSwitcher from '@/src/components/i18n/LanguageSwitcher'
+import { SupportedLocale } from '@/middleware'
 
 interface Category {
   id: number
@@ -44,9 +46,10 @@ interface Category {
 
 interface HeaderProps {
   totalToolsCount?: number
+  currentLanguage: SupportedLocale
 }
 
-export default function Header({ totalToolsCount = 16763 }: HeaderProps) {
+export default function Header({ totalToolsCount = 16763, currentLanguage }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -300,6 +303,15 @@ export default function Header({ totalToolsCount = 16763 }: HeaderProps) {
               </div>
             </form>
 
+            {/* Language Switcher - Desktop */}
+            <div className="hidden md:block">
+              <LanguageSwitcher 
+                currentLanguage={currentLanguage}
+                variant="header"
+                showLabel={true}
+              />
+            </div>
+
             {/* Enhanced Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -377,6 +389,20 @@ export default function Header({ totalToolsCount = 16763 }: HeaderProps) {
                       </Link>
                     ))}
                   </div>
+                </div>
+
+                {/* Language Switcher - Mobile */}
+                <div className="border-t border-white/10 pt-6 mt-6">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
+                    <span>🌐</span>
+                    <span>Langue / Language</span>
+                  </h3>
+                  <LanguageSwitcher 
+                    currentLanguage={currentLanguage}
+                    variant="mobile"
+                    showLabel={true}
+                    className="w-full"
+                  />
                 </div>
               </nav>
             </div>

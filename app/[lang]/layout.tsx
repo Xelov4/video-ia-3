@@ -12,6 +12,7 @@ import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware
 
 import Header from '@/src/components/layout/Header'
 import Footer from '@/src/components/layout/Footer'
+import { I18nProvider } from '@/src/lib/i18n/context'
 import '../globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -225,18 +226,19 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        {/* Header avec contexte langue */}
-        <Header currentLanguage={lang} />
-        
-        {/* Contenu principal avec context provider */}
-        <main className="min-h-screen">
-          <LanguageProvider currentLanguage={lang}>
+        {/* Context Provider Global */}
+        <I18nProvider currentLanguage={lang}>
+          {/* Header avec contexte langue */}
+          <Header currentLanguage={lang} />
+          
+          {/* Contenu principal */}
+          <main className="min-h-screen">
             {children}
-          </LanguageProvider>
-        </main>
-        
-        {/* Footer avec contexte langue */}
-        <Footer currentLanguage={lang} />
+          </main>
+          
+          {/* Footer avec contexte langue */}
+          <Footer currentLanguage={lang} />
+        </I18nProvider>
         
         {/* Analytics et scripts de tracking */}
         {process.env.NODE_ENV === 'production' && (
@@ -271,16 +273,3 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
   )
 }
 
-/**
- * Context Provider pour langue courante
- */
-function LanguageProvider({ 
-  children, 
-  currentLanguage 
-}: {
-  children: React.ReactNode
-  currentLanguage: SupportedLocale
-}) {
-  // Pour l'instant simple prop drilling, on peut ajouter React Context plus tard si nécessaire
-  return <div data-language={currentLanguage}>{children}</div>
-}
