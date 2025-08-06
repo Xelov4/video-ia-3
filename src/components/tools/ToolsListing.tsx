@@ -21,7 +21,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Tool, Category } from '@prisma/client'
+import { Category } from '@prisma/client'
+import { DatabaseTool } from '@/src/lib/database/services/tools'
 import { 
   MagnifyingGlassIcon, 
   FunnelIcon, 
@@ -37,7 +38,7 @@ import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolsListingProps {
-  initialTools: Tool[]
+  initialTools: DatabaseTool[]
   initialCategories: Category[]
   totalCount: number
   currentPage: number
@@ -65,7 +66,7 @@ export default function ToolsListing({
   const searchParams = useSearchParams()
   
   // State
-  const [tools, setTools] = useState<Tool[]>(initialTools)
+  const [tools, setTools] = useState<DatabaseTool[]>(initialTools)
   const [categories] = useState<Category[]>(initialCategories)
   const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState(initialSearchParams.search)
@@ -75,6 +76,42 @@ export default function ToolsListing({
   const [sortOrder, setSortOrder] = useState(initialSearchParams.order)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
+
+  /**
+   * Load tools from API
+   */
+  const loadTools = async (params: {
+    search?: string;
+    category?: string;
+    featured?: boolean;
+    sort?: string;
+    order?: 'asc' | 'desc';
+    page?: number;
+  }) => {
+    setIsLoading(true);
+    try {
+      const searchParams = new URLSearchParams();
+      
+      if (params.search) searchParams.set('search', params.search);
+      if (params.category) searchParams.set('category', params.category);
+      if (params.featured) searchParams.set('featured', 'true');
+      if (params.sort) searchParams.set('sort', params.sort);
+      if (params.order) searchParams.set('order', params.order);
+      if (params.page && params.page > 1) searchParams.set('page', String(params.page));
+      
+      const response = await fetch(`/api/tools?${searchParams.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTools(data.tools || []);
+      } else {
+        console.error('Failed to load tools');
+      }
+    } catch (error) {
+      console.error('Error loading tools:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   /**
    * Update URL with current filters
@@ -114,6 +151,42 @@ export default function ToolsListing({
   }, [searchQuery])
 
   /**
+   * Load tools when URL parameters change
+   */
+  useEffect(() => {
+    const currentSearch = searchParams.get('search') || '';
+    const currentCategory = searchParams.get('category') || '';
+    const currentFeatured = searchParams.get('featured') === 'true';
+    const currentSort = searchParams.get('sort') || 'created_at';
+    const currentOrder = (searchParams.get('order') as 'asc' | 'desc') || 'desc';
+    const currentPage = parseInt(searchParams.get('page') || '1');
+
+    // Only reload if parameters actually changed
+    if (
+      currentSearch !== searchQuery ||
+      currentCategory !== selectedCategory ||
+      currentFeatured !== showFeaturedOnly ||
+      currentSort !== sortBy ||
+      currentOrder !== sortOrder
+    ) {
+      setSearchQuery(currentSearch);
+      setSelectedCategory(currentCategory);
+      setShowFeaturedOnly(currentFeatured);
+      setSortBy(currentSort);
+      setSortOrder(currentOrder);
+      
+      loadTools({
+        search: currentSearch,
+        category: currentCategory,
+        featured: currentFeatured,
+        sort: currentSort,
+        order: currentOrder,
+        page: currentPage
+      });
+    }
+  }, [searchParams]);
+
+  /**
    * Handle filter changes
    */
   const handleFilterChange = (filterType: string, value: any) => {
@@ -144,7 +217,18 @@ export default function ToolsListing({
         break
     }
 
+    // Update URL and reload data
     updateURL(updates)
+    
+    // Reload tools with new filters
+    loadTools({
+      search: updates.search,
+      category: updates.category,
+      featured: updates.featured,
+      sort: updates.sort,
+      order: updates.order,
+      page: 1 // Reset to first page when filters change
+    })
   }
 
   /**
@@ -165,10 +249,10 @@ export default function ToolsListing({
   /**
    * Render tool card
    */
-  const renderToolCard = (tool: Tool) => {
-    const hasImage = tool.imageUrl && tool.imageUrl.length > 0
-    const viewCount = tool.viewCount || 0
-    const qualityScore = tool.qualityScore || 0
+  const renderToolCard = (tool: DatabaseTool) => {
+    const hasImage = tool.image_url && tool.image_url.length > 0
+    const viewCount = tool.view_count || 0
+    const qualityScore = tool.quality_score || 0
 
     return (
       <div
@@ -179,15 +263,15 @@ export default function ToolsListing({
         <div className="relative h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
           {hasImage ? (
             <img
-              src={tool.imageUrl!}
-              alt={`${tool.toolName} logo`}
+              src={tool.image_url!}
+              alt={`${tool.tool_name} logo`}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
               loading="lazy"
             />
           ) : (
             <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center">
               <span className="text-xl font-bold text-white">
-                {tool.toolName.charAt(0).toUpperCase()}
+                {tool.tool_name.charAt(0).toUpperCase()}
               </span>
             </div>
           )}
@@ -205,11 +289,11 @@ export default function ToolsListing({
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
-                {tool.toolName}
+                {tool.tool_name}
               </h3>
-              {tool.toolCategory && (
+              {tool.tool_category && (
                 <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  {tool.toolCategory}
+                  {tool.tool_category}
                 </span>
               )}
             </div>
@@ -231,7 +315,7 @@ export default function ToolsListing({
 
           {/* Description */}
           <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-            {tool.overview || tool.toolDescription?.substring(0, 100) + '...' || 'Outil d\'intelligence artificielle innovant.'}
+            {tool.overview || tool.tool_description?.substring(0, 100) + '...' || 'Outil d\'intelligence artificielle innovant.'}
           </p>
 
           {/* Stats */}
@@ -249,14 +333,13 @@ export default function ToolsListing({
               Voir détails
             </Link>
             
-            {tool.toolLink && (
+            {tool.tool_link && (
               <a
-                href={tool.toolLink}
+                href={tool.tool_link}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => handleToolClick(tool.id)}
                 className="px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors flex items-center justify-center"
-                title="Visiter le site"
               >
                 <ArrowTopRightOnSquareIcon className="w-4 h-4" />
               </a>
@@ -375,11 +458,11 @@ export default function ToolsListing({
                   className="w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Toutes les catégories</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.name}>
-                      {category.name} ({category.toolCount})
-                    </option>
-                  ))}
+                                        {categories.map(category => (
+                        <option key={category.id} value={category.name}>
+                          {category.name} ({category.toolCount || 0})
+                        </option>
+                      ))}
                 </select>
               </div>
 

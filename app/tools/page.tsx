@@ -105,7 +105,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
       {/* Tools Listing Section */}
       <Suspense fallback={<ToolsListingLoading />}>
         <ToolsListing 
-          initialTools={[]}
+          initialTools={toolsResult.tools}
           initialCategories={categories}
           totalCount={toolsResult.totalCount}
           currentPage={toolsResult.currentPage}

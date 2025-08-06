@@ -8,7 +8,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeftIcon, SaveIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon, CheckIcon, TrashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 
 interface Tool {
@@ -198,7 +198,7 @@ export default function AdminToolEditPage({ params }: { params: { id: string } }
               disabled={saving}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              <SaveIcon className="w-4 h-4 mr-2" />
+                              <CheckIcon className="w-4 h-4 mr-2" />
               {saving ? 'Sauvegarde...' : 'Sauvegarder'}
             </button>
           </div>

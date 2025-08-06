@@ -248,8 +248,7 @@ export async function DELETE(
 
     // Soft delete by setting is_active to false
     const deletedTool = await toolsService.updateTool(toolId, {
-      is_active: false,
-      updated_at: new Date()
+      is_active: false
     })
     
     if (!deletedTool) {
