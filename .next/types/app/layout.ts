@@ -1,4 +1,4 @@
-// File: C:\Users\McGrady\Desktop\scraper\video-ia-3\app\layout.tsx
+// File: /root/video-ia.net/app/layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -1,0 +1,690 @@
+{
+  "metadata": {
+    "importDate": "2025-08-06T14:08:39.822Z",
+    "version": "1.0",
+    "source": "database-export-template",
+    "description": "Template pour l'import de données"
+  },
+  "importConfig": {
+    "mode": "insert",
+    "skipExisting": true,
+    "validateData": true,
+    "batchSize": 100
+  },
+  "data": {
+    "admin_activity_log": {
+      "structure": [
+        {
+          "column": "id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('admin_activity_log_id_seq'::regclass)",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "user_id",
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "action",
+          "type": "character varying",
+          "nullable": false,
+          "default": null,
+          "maxLength": 100,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "resource_type",
+          "type": "character varying",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "resource_id",
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "details",
+          "type": "jsonb",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "ip_address",
+          "type": "inet",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "user_agent",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        }
+      ],
+      "records": [
+        {
+          "id": 0,
+          "user_id": 0,
+          "action": "",
+          "resource_type": "",
+          "resource_id": 0,
+          "details": null,
+          "ip_address": null,
+          "user_agent": "",
+          "created_at": "2025-08-06T14:08:39.822Z"
+        }
+      ],
+      "count": 1
+    },
+    "admin_sessions": {
+      "structure": [
+        {
+          "column": "id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('admin_sessions_id_seq'::regclass)",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "user_id",
+          "type": "integer",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "session_token",
+          "type": "character varying",
+          "nullable": false,
+          "default": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "expires_at",
+          "type": "timestamp with time zone",
+          "nullable": false,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        }
+      ],
+      "records": [
+        {
+          "id": 0,
+          "user_id": 0,
+          "session_token": "",
+          "expires_at": "2025-08-06T14:08:39.822Z",
+          "created_at": "2025-08-06T14:08:39.822Z"
+        }
+      ],
+      "count": 1
+    },
+    "admin_users": {
+      "structure": [
+        {
+          "column": "id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('admin_users_id_seq'::regclass)",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "email",
+          "type": "character varying",
+          "nullable": false,
+          "default": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "password_hash",
+          "type": "character varying",
+          "nullable": false,
+          "default": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "name",
+          "type": "character varying",
+          "nullable": false,
+          "default": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "role",
+          "type": "character varying",
+          "nullable": true,
+          "default": "'editor'::character varying",
+          "maxLength": 50,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "avatar_url",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "created_at",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "updated_at",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "last_login_at",
+          "type": "timestamp with time zone",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        }
+      ],
+      "records": [
+        {
+          "id": 0,
+          "email": "",
+          "password_hash": "",
+          "name": "",
+          "role": "",
+          "avatar_url": "",
+          "is_active": false,
+          "created_at": "2025-08-06T14:08:39.822Z",
+          "updated_at": "2025-08-06T14:08:39.822Z",
+          "last_login_at": "2025-08-06T14:08:39.822Z"
+        }
+      ],
+      "count": 1
+    },
+    "categories": {
+      "structure": [
+        {
+          "column": "id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('categories_id_seq'::regclass)",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "name",
+          "type": "character varying",
+          "nullable": false,
+          "default": null,
+          "maxLength": 100,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "slug",
+          "type": "character varying",
+          "nullable": true,
+          "default": null,
+          "maxLength": 100,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "description",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "icon_name",
+          "type": "character varying",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "tool_count",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "is_featured",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        }
+      ],
+      "records": [
+        {
+          "id": 0,
+          "name": "",
+          "slug": "",
+          "description": "",
+          "icon_name": "",
+          "tool_count": 0,
+          "is_featured": false,
+          "created_at": "2025-08-06T14:08:39.822Z"
+        }
+      ],
+      "count": 1
+    },
+    "tags": {
+      "structure": [
+        {
+          "column": "id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('tags_id_seq'::regclass)",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "name",
+          "type": "character varying",
+          "nullable": false,
+          "default": null,
+          "maxLength": 50,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "slug",
+          "type": "character varying",
+          "nullable": true,
+          "default": null,
+          "maxLength": 50,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "usage_count",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        }
+      ],
+      "records": [
+        {
+          "id": 0,
+          "name": "",
+          "slug": "",
+          "usage_count": 0,
+          "created_at": "2025-08-06T14:08:39.822Z"
+        }
+      ],
+      "count": 1
+    },
+    "tools": {
+      "structure": [
+        {
+          "column": "id",
+          "type": "integer",
+          "nullable": false,
+          "default": "nextval('tools_id_seq'::regclass)",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "tool_name",
+          "type": "character varying",
+          "nullable": false,
+          "default": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "tool_category",
+          "type": "character varying",
+          "nullable": true,
+          "default": null,
+          "maxLength": 100,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "tool_link",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "overview",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "tool_description",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "target_audience",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "key_features",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "use_cases",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "tags",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "image_url",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "slug",
+          "type": "character varying",
+          "nullable": true,
+          "default": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "is_active",
+          "type": "boolean",
+          "nullable": true,
+          "default": "true",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "featured",
+          "type": "boolean",
+          "nullable": true,
+          "default": "false",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "quality_score",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "meta_title",
+          "type": "character varying",
+          "nullable": true,
+          "default": null,
+          "maxLength": 255,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "meta_description",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "seo_keywords",
+          "type": "text",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "view_count",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "click_count",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "favorite_count",
+          "type": "integer",
+          "nullable": true,
+          "default": "0",
+          "maxLength": null,
+          "precision": 32,
+          "scale": 0
+        },
+        {
+          "column": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "last_checked_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": "CURRENT_TIMESTAMP",
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        },
+        {
+          "column": "last_optimized_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "default": null,
+          "maxLength": null,
+          "precision": null,
+          "scale": null
+        }
+      ],
+      "records": [
+        {
+          "id": 0,
+          "tool_name": "",
+          "tool_category": "",
+          "tool_link": "",
+          "overview": "",
+          "tool_description": "",
+          "target_audience": "",
+          "key_features": "",
+          "use_cases": "",
+          "tags": "",
+          "image_url": "",
+          "slug": "",
+          "is_active": false,
+          "featured": false,
+          "quality_score": 0,
+          "meta_title": "",
+          "meta_description": "",
+          "seo_keywords": "",
+          "view_count": 0,
+          "click_count": 0,
+          "favorite_count": 0,
+          "created_at": "2025-08-06T14:08:39.822Z",
+          "updated_at": "2025-08-06T14:08:39.822Z",
+          "last_checked_at": "2025-08-06T14:08:39.822Z",
+          "last_optimized_at": "2025-08-06T14:08:39.822Z"
+        }
+      ],
+      "count": 1
+    }
+  }
+}
