@@ -1,150 +1,565 @@
 /**
- * Tools Database Service
- * 
- * Comprehensive service layer for AI tools data management.
- * Provides type-safe CRUD operations, advanced search, filtering,
- * and analytics tracking for the tools directory.
- * 
- * Features:
- * - Advanced search with full-text capabilities
- * - Category-based filtering
- * - Pagination with performance optimization
- * - Analytics tracking (views, clicks, favorites)
- * - SEO metadata management
- * - Content management operations
- * 
- * @author Video-IA.net Development Team
+ * Database service for tools management
+ * Handles CRUD operations for tools in the database
  */
 
-import { Tool, Prisma } from '@prisma/client'
-import { prisma } from '../client'
+import { Pool } from 'pg';
+import { ToolAnalysis } from '@/src/types/analysis';
 
-/**
- * Search and filtering parameters for tools
- */
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432'),
+  database: process.env.DB_NAME || 'video_ia_net',
+  user: process.env.DB_USER || 'video_ia_user',
+  password: process.env.DB_PASSWORD || 'video123',
+  ssl: false
+});
+
+export interface DatabaseTool {
+  id: number;
+  tool_name: string;
+  tool_category: string;
+  tool_link: string;
+  overview: string;
+  tool_description: string;
+  target_audience: string;
+  key_features: string;
+  use_cases: string;
+  tags: string;
+  image_url: string;
+  slug: string;
+  is_active: boolean;
+  featured: boolean;
+  quality_score: number;
+  meta_title: string;
+  meta_description: string;
+  seo_keywords: string;
+  view_count: number;
+  click_count: number;
+  favorite_count: number;
+  created_at: Date;
+  updated_at: Date;
+  last_checked_at: Date;
+  last_optimized_at?: Date;
+}
+
 export interface ToolsSearchParams {
-  query?: string
-  category?: string
-  featured?: boolean
-  isActive?: boolean
-  tags?: string[]
-  page?: number
-  limit?: number
-  sortBy?: 'toolName' | 'createdAt' | 'updatedAt' | 'viewCount' | 'qualityScore'
-  sortOrder?: 'asc' | 'desc'
-  excludeId?: number
+  query?: string;
+  category?: string;
+  featured?: boolean;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: string;
+  filter?: 'never_optimized' | 'needs_update' | 'all';
 }
 
-/**
- * Paginated tools response
- */
 export interface PaginatedToolsResponse {
-  tools: Tool[]
-  totalCount: number
-  totalPages: number
-  currentPage: number
-  hasNextPage: boolean
-  hasPreviousPage: boolean
-  hasMore: boolean
+  tools: DatabaseTool[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  hasMore: boolean;
 }
 
-/**
- * Tool creation/update data
- */
 export interface ToolData {
-  toolName: string
-  slug?: string
-  toolCategory?: string
-  toolLink?: string
-  overview?: string
-  toolDescription?: string
-  targetAudience?: string
-  keyFeatures?: string
-  useCases?: string
-  tags?: string
-  imageUrl?: string
-  isActive?: boolean
-  featured?: boolean
-  qualityScore?: number
-  metaTitle?: string
-  metaDescription?: string
-  seoKeywords?: string
+  tool_name: string;
+  tool_category: string;
+  tool_link: string;
+  overview: string;
+  tool_description: string;
+  target_audience: string;
+  key_features: string;
+  use_cases: string;
+  tags: string;
+  image_url: string;
 }
 
-/**
- * Tools Service Class
- * 
- * Encapsulates all database operations for AI tools.
- * Provides high-level methods for common operations while
- * maintaining performance and type safety.
- */
+export interface ToolUpdateData {
+  tool_name?: string;
+  tool_category?: string;
+  tool_link?: string;
+  overview?: string;
+  tool_description?: string;
+  target_audience?: string;
+  key_features?: string;
+  use_cases?: string;
+  tags?: string;
+  image_url?: string;
+  slug?: string;
+  is_active?: boolean;
+  featured?: boolean;
+  quality_score?: number;
+  meta_title?: string;
+  meta_description?: string;
+  seo_keywords?: string;
+  last_checked_at?: Date;
+  last_optimized_at?: Date;
+}
+
 export class ToolsService {
   /**
-   * Search and filter tools with advanced options
-   * 
-   * Supports full-text search, category filtering, pagination,
-   * and sorting. Optimized for performance with database indexes.
-   * 
-   * @param params Search and filtering parameters
-   * @returns Paginated tools response with metadata
+   * Get all tools with pagination
    */
-  static async searchTools(params: ToolsSearchParams = {}): Promise<PaginatedToolsResponse> {
-    const {
-      query,
-      category,
-      featured,
-      isActive = true,
-      tags = [],
-      page = 1,
-      limit = 12,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      excludeId
-    } = params
-
-    // Build where clause dynamically
-    const where: Prisma.ToolWhereInput = {
-      isActive,
-      ...(featured !== undefined && { featured }),
-      ...(category && { toolCategory: { contains: category, mode: 'insensitive' } }),
-      ...(excludeId && { id: { not: excludeId } }),
-      ...(query && {
-        OR: [
-          { toolName: { contains: query, mode: 'insensitive' } },
-          { overview: { contains: query, mode: 'insensitive' } },
-          { toolDescription: { contains: query, mode: 'insensitive' } },
-          { keyFeatures: { contains: query, mode: 'insensitive' } },
-          { tags: { contains: query, mode: 'insensitive' } }
-        ]
-      }),
-      ...(tags.length > 0 && {
-        OR: tags.map(tag => ({
-          tags: { contains: tag, mode: 'insensitive' }
-        }))
-      })
-    }
-
-    // Build order by clause
-    const orderBy: Prisma.ToolOrderByWithRelationInput = {
-      [sortBy]: sortOrder
-    }
-
-    // Calculate pagination
-    const skip = (page - 1) * limit
-
+  async getAllTools(page: number = 1, limit: number = 20, category?: string): Promise<{ tools: DatabaseTool[], total: number }> {
     try {
-      // Execute queries in parallel for performance
-      const [tools, totalCount] = await Promise.all([
-        prisma.tool.findMany({
-          where,
-          orderBy,
-          skip,
-          take: limit,
-        }),
-        prisma.tool.count({ where })
-      ])
+      let query = 'SELECT * FROM tools WHERE is_active = true';
+      const params: any[] = [];
+      let paramIndex = 1;
 
-      const totalPages = Math.ceil(totalCount / limit)
+      if (category) {
+        query += ` AND tool_category = $${paramIndex}`;
+        params.push(category);
+        paramIndex++;
+      }
+
+      // Get total count
+      const countQuery = query.replace('SELECT *', 'SELECT COUNT(*)');
+      const countResult = await pool.query(countQuery, params);
+      const total = parseInt(countResult.rows[0].count);
+
+      // Get paginated results
+      query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      params.push(limit, (page - 1) * limit);
+
+      const result = await pool.query(query, params);
+      
+      return {
+        tools: result.rows.map(row => ({
+          ...row,
+          created_at: new Date(row.created_at),
+          updated_at: new Date(row.updated_at),
+          last_checked_at: new Date(row.last_checked_at)
+        })),
+        total
+      };
+    } catch (error) {
+      console.error('Error getting tools:', error);
+      throw new Error('Failed to get tools from database');
+    }
+  }
+
+  /**
+   * Get tool by ID
+   */
+  async getToolById(id: number): Promise<DatabaseTool | null> {
+    try {
+      const result = await pool.query('SELECT * FROM tools WHERE id = $1', [id]);
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+
+      const row = result.rows[0];
+      return {
+        ...row,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        last_checked_at: new Date(row.last_checked_at)
+      };
+    } catch (error) {
+      console.error('Error getting tool by ID:', error);
+      throw new Error('Failed to get tool from database');
+    }
+  }
+
+  /**
+   * Get tool by slug
+   */
+  async getToolBySlug(slug: string): Promise<DatabaseTool | null> {
+    try {
+      const result = await pool.query('SELECT * FROM tools WHERE slug = $1', [slug]);
+      
+      if (result.rows.length === 0) {
+        return null;
+      }
+
+      const row = result.rows[0];
+      return {
+        ...row,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        last_checked_at: new Date(row.last_checked_at)
+      };
+    } catch (error) {
+      console.error('Error getting tool by slug:', error);
+      throw new Error('Failed to get tool from database');
+    }
+  }
+
+  /**
+   * Update tool with new analysis data
+   */
+  async updateTool(id: number, updateData: ToolUpdateData): Promise<DatabaseTool> {
+    try {
+      const fields = Object.keys(updateData).map((key, index) => `${key} = $${index + 2}`);
+      const values = Object.values(updateData);
+      
+      const query = `
+        UPDATE tools 
+        SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP, last_checked_at = CURRENT_TIMESTAMP
+        WHERE id = $1 
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [id, ...values]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Tool not found');
+      }
+
+      const row = result.rows[0];
+      return {
+        ...row,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        last_checked_at: new Date(row.last_checked_at)
+      };
+    } catch (error) {
+      console.error('Error updating tool:', error);
+      throw new Error('Failed to update tool in database');
+    }
+  }
+
+  /**
+   * Update specific fields of a tool
+   */
+  async updateToolFields(id: number, fields: Partial<ToolUpdateData>, updateOptimizedAt?: boolean): Promise<DatabaseTool> {
+    try {
+      const updateFields = Object.keys(fields).map((key, index) => `${key} = $${index + 2}`);
+      const values = Object.values(fields);
+      
+      // Add last_optimized_at update if requested
+      if (updateOptimizedAt) {
+        updateFields.push('last_optimized_at = CURRENT_TIMESTAMP');
+      }
+      
+      const query = `
+        UPDATE tools 
+        SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1 
+        RETURNING *
+      `;
+      
+      const result = await pool.query(query, [id, ...values]);
+      
+      if (result.rows.length === 0) {
+        throw new Error('Tool not found');
+      }
+
+      const row = result.rows[0];
+      return {
+        ...row,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        last_checked_at: new Date(row.last_checked_at),
+        last_optimized_at: row.last_optimized_at ? new Date(row.last_optimized_at) : null
+      };
+    } catch (error) {
+      console.error('Error updating tool fields:', error);
+      throw new Error('Failed to update tool fields in database');
+    }
+  }
+
+  /**
+   * Convert ToolAnalysis to database format
+   */
+  convertAnalysisToDatabase(analysis: ToolAnalysis): ToolUpdateData {
+    return {
+      tool_name: analysis.toolName,
+      tool_category: analysis.category,
+      tool_link: '', // URL will be set from database tool
+      overview: analysis.primaryFunction,
+      tool_description: analysis.description,
+      target_audience: analysis.targetAudience?.join(', ') || '',
+      key_features: analysis.keyFeatures?.join(', ') || '',
+      use_cases: '', // Not available in analysis
+      tags: analysis.tags?.join(', ') || '',
+      image_url: analysis.logoUrl || '',
+      slug: analysis.slug,
+      meta_title: analysis.metaTitle,
+      meta_description: analysis.metaDescription,
+      seo_keywords: analysis.tags?.join(', ') || '',
+      quality_score: analysis.confidence || 0,
+      last_checked_at: new Date()
+    };
+  }
+
+  /**
+   * Convert database tool to ToolAnalysis format
+   */
+  convertDatabaseToAnalysis(tool: DatabaseTool): ToolAnalysis {
+    return {
+      toolName: tool.tool_name,
+      slug: tool.slug,
+      primaryFunction: tool.overview || '',
+      keyFeatures: tool.key_features ? tool.key_features.split(', ') : [],
+      targetAudience: tool.target_audience ? tool.target_audience.split(', ') : [],
+      pricingModel: 'Unknown', // Not stored in database
+      category: tool.tool_category,
+      description: tool.tool_description || '',
+      metaTitle: tool.meta_title || '',
+      metaDescription: tool.meta_description || '',
+      tags: tool.tags ? tool.tags.split(', ') : [],
+      confidence: tool.quality_score,
+      dataCompleteness: 80, // Default value
+      recommendedActions: [],
+      socialLinks: {},
+      contactInfo: {},
+      logoUrl: tool.image_url || '',
+      pricingDetails: {
+        model: 'Unknown',
+        plans: [],
+        freeTier: false,
+        paidPlans: false,
+        enterpriseAvailable: false,
+        pricingNotes: 'Pricing information not available'
+      },
+      pricingSummary: 'Pricing information not available',
+      affiliateInfo: {
+        affiliateProgramUrl: undefined,
+        affiliateContactEmail: undefined,
+        affiliateContactForm: undefined,
+        hasAffiliateProgram: false,
+        notes: 'No affiliate information available'
+      }
+    };
+  }
+
+  /**
+   * Get tools that need updating (not checked recently)
+   */
+  async getToolsNeedingUpdate(limit: number = 10): Promise<DatabaseTool[]> {
+    try {
+      const query = `
+        SELECT * FROM tools 
+        WHERE is_active = true 
+        AND (last_checked_at IS NULL OR last_checked_at < NOW() - INTERVAL '7 days')
+        ORDER BY last_checked_at ASC NULLS FIRST
+        LIMIT $1
+      `;
+      
+      const result = await pool.query(query, [limit]);
+      
+      return result.rows.map(row => ({
+        ...row,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        last_checked_at: row.last_checked_at ? new Date(row.last_checked_at) : null
+      }));
+    } catch (error) {
+      console.error('Error getting tools needing update:', error);
+      throw new Error('Failed to get tools needing update');
+    }
+  }
+
+  /**
+   * Get featured tools for homepage display
+   */
+  async getFeaturedTools(limit: number = 8): Promise<DatabaseTool[]> {
+    try {
+      const query = `
+        SELECT * FROM tools 
+        WHERE is_active = true AND featured = true
+        ORDER BY quality_score DESC, view_count DESC
+        LIMIT $1
+      `;
+      
+      const result = await pool.query(query, [limit]);
+      
+      return result.rows.map(row => ({
+        ...row,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        last_checked_at: new Date(row.last_checked_at)
+      }));
+    } catch (error) {
+      console.error('Error getting featured tools:', error);
+      throw new Error('Failed to get featured tools');
+    }
+  }
+
+  /**
+   * Get tool statistics
+   */
+  async getToolStatistics(): Promise<{
+    totalTools: number;
+    activeTools: number;
+    featuredTools: number;
+    totalViews: number;
+    totalClicks: number;
+    categories: number;
+  }> {
+    try {
+      const [toolsResult, categoriesResult] = await Promise.all([
+        pool.query(`
+          SELECT 
+            COUNT(*) as total_tools,
+            COUNT(CASE WHEN is_active = true THEN 1 END) as active_tools,
+            COUNT(CASE WHEN featured = true THEN 1 END) as featured_tools,
+            COALESCE(SUM(view_count), 0) as total_views,
+            COALESCE(SUM(click_count), 0) as total_clicks
+          FROM tools
+        `),
+        pool.query('SELECT COUNT(DISTINCT tool_category) as categories FROM tools')
+      ]);
+
+      const stats = toolsResult.rows[0];
+      const categoryCount = categoriesResult.rows[0];
+
+      return {
+        totalTools: parseInt(stats.total_tools),
+        activeTools: parseInt(stats.active_tools),
+        featuredTools: parseInt(stats.featured_tools),
+        totalViews: parseInt(stats.total_views),
+        totalClicks: parseInt(stats.total_clicks),
+        categories: parseInt(categoryCount.categories)
+      };
+    } catch (error) {
+      console.error('Error getting tool statistics:', error);
+      throw new Error('Failed to get tool statistics');
+    }
+  }
+
+  /**
+   * Increment view count for a tool
+   */
+  async incrementViewCount(id: number): Promise<void> {
+    try {
+      await pool.query(
+        'UPDATE tools SET view_count = COALESCE(view_count, 0) + 1 WHERE id = $1',
+        [id]
+      );
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+      // Don't throw - this is a non-critical operation
+    }
+  }
+
+  /**
+   * Get related tools based on category and similarity
+   */
+  async getRelatedTools(toolId: number, category: string, limit: number = 4): Promise<DatabaseTool[]> {
+    try {
+      const result = await pool.query(`
+        SELECT * FROM tools 
+        WHERE tool_category = $1 
+          AND id != $2 
+          AND is_active = true
+        ORDER BY view_count DESC, created_at DESC
+        LIMIT $3
+      `, [category, toolId, limit]);
+
+      return result.rows.map(row => ({
+        ...row,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        last_checked_at: new Date(row.last_checked_at)
+      }));
+    } catch (error) {
+      console.error('Error getting related tools:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Search tools with advanced filtering (for compatibility with old interface)
+   */
+  async searchTools(params: {
+    query?: string;
+    category?: string;
+    featured?: boolean;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: string;
+    filter?: 'never_optimized' | 'needs_update' | 'all';
+  } = {}): Promise<{
+    tools: DatabaseTool[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    hasMore: boolean;
+  }> {
+    try {
+      const {
+        query,
+        category,
+        featured,
+        page = 1,
+        limit = 12,
+        sortBy = 'created_at',
+        sortOrder = 'desc',
+        filter
+      } = params;
+
+      let whereConditions = ['is_active = true'];
+      const queryParams: any[] = [];
+      let paramIndex = 1;
+
+      if (query) {
+        whereConditions.push(`(tool_name ILIKE $${paramIndex} OR tool_description ILIKE $${paramIndex} OR overview ILIKE $${paramIndex})`);
+        queryParams.push(`%${query}%`);
+        paramIndex++;
+      }
+
+      if (category) {
+        whereConditions.push(`tool_category = $${paramIndex}`);
+        queryParams.push(category);
+        paramIndex++;
+      }
+
+      if (featured !== undefined) {
+        whereConditions.push(`featured = $${paramIndex}`);
+        queryParams.push(featured);
+        paramIndex++;
+      }
+
+      if (filter) {
+        if (filter === 'never_optimized') {
+          whereConditions.push('last_optimized_at IS NULL');
+        } else if (filter === 'needs_update') {
+          whereConditions.push(`last_optimized_at IS NOT NULL AND last_optimized_at < NOW() - INTERVAL '30 days'`);
+        }
+        // 'all' filter doesn't add any conditions
+      }
+
+      const whereClause = whereConditions.join(' AND ');
+
+      // Get total count
+      const countQuery = `SELECT COUNT(*) FROM tools WHERE ${whereClause}`;
+      const countResult = await pool.query(countQuery, queryParams);
+      const totalCount = parseInt(countResult.rows[0].count);
+
+      // Get paginated results
+      const offset = (page - 1) * limit;
+      const orderBy = sortBy === 'createdAt' ? 'created_at' : 
+                     sortBy === 'updatedAt' ? 'updated_at' : 
+                     sortBy === 'viewCount' ? 'view_count' : 
+                     sortBy === 'qualityScore' ? 'quality_score' : 'created_at';
+      
+      const dataQuery = `
+        SELECT * FROM tools 
+        WHERE ${whereClause}
+        ORDER BY ${orderBy} ${sortOrder.toUpperCase()}
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+      
+      const result = await pool.query(dataQuery, [...queryParams, limit, offset]);
+      
+      const tools = result.rows.map(row => ({
+        ...row,
+        created_at: new Date(row.created_at),
+        updated_at: new Date(row.updated_at),
+        last_checked_at: new Date(row.last_checked_at),
+        last_optimized_at: row.last_optimized_at ? new Date(row.last_optimized_at) : null
+      }));
+
+      const totalPages = Math.ceil(totalCount / limit);
 
       return {
         tools,
@@ -154,424 +569,12 @@ export class ToolsService {
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1,
         hasMore: page < totalPages
-      }
+      };
     } catch (error) {
-      console.error('Error searching tools:', error)
-      throw new Error('Failed to search tools')
+      console.error('Error searching tools:', error);
+      throw new Error('Failed to search tools');
     }
-  }
-
-  /**
-   * Get a single tool by ID with analytics tracking
-   * 
-   * Retrieves tool details and optionally increments view count
-   * for analytics tracking.
-   * 
-   * @param id Tool ID
-   * @param incrementView Whether to increment view count
-   * @returns Tool data or null if not found
-   */
-  static async getToolById(id: number, incrementView: boolean = false): Promise<Tool | null> {
-    try {
-      const tool = await prisma.tool.findUnique({
-        where: { id }
-      })
-
-      // Increment view count if requested
-      if (tool && incrementView) {
-        await prisma.tool.update({
-          where: { id },
-          data: { viewCount: { increment: 1 } }
-        })
-        
-        // Return updated tool with new view count
-        return { ...tool, viewCount: (tool.viewCount || 0) + 1 }
-      }
-
-      return tool
-    } catch (error) {
-      console.error('Error getting tool by ID:', error)
-      throw new Error('Failed to retrieve tool')
-    }
-  }
-
-  /**
-   * Get a tool by slug with SEO optimization
-   * 
-   * Retrieves tool by URL slug for SEO-friendly URLs.
-   * Automatically increments view count for analytics.
-   * 
-   * @param slug Tool slug
-   * @returns Tool data or null if not found
-   */
-  static async getToolBySlug(slug: string): Promise<Tool | null> {
-    try {
-      const tool = await prisma.tool.findUnique({
-        where: { slug }
-      })
-
-      // Increment view count for public access
-      if (tool) {
-        await prisma.tool.update({
-          where: { slug },
-          data: { viewCount: { increment: 1 } }
-        })
-        
-        return { ...tool, viewCount: (tool.viewCount || 0) + 1 }
-      }
-
-      return tool
-    } catch (error) {
-      console.error('Error getting tool by slug:', error)
-      throw new Error('Failed to retrieve tool')
-    }
-  }
-
-  /**
-   * Get featured tools for homepage display
-   * 
-   * Retrieves high-quality featured tools for prominent display
-   * on the homepage and marketing materials.
-   * 
-   * @param limit Number of tools to return
-   * @returns Array of featured tools
-   */
-  static async getFeaturedTools(limit: number = 8): Promise<Tool[]> {
-    try {
-      return await prisma.tool.findMany({
-        where: {
-          featured: true,
-          isActive: true
-        },
-        orderBy: [
-          { qualityScore: 'desc' },
-          { viewCount: 'desc' },
-          { createdAt: 'desc' }
-        ],
-        take: limit
-      })
-    } catch (error) {
-      console.error('Error getting featured tools:', error)
-      throw new Error('Failed to retrieve featured tools')
-    }
-  }
-
-  /**
-   * Get tools by category with pagination
-   * 
-   * Retrieves tools filtered by category with pagination support.
-   * Used for category-specific directory pages.
-   * 
-   * @param category Category name
-   * @param page Page number
-   * @param limit Items per page
-   * @returns Paginated category tools
-   */
-  static async getToolsByCategory(
-    category: string, 
-    page: number = 1, 
-    limit: number = 12
-  ): Promise<PaginatedToolsResponse> {
-    return this.searchTools({
-      category,
-      page,
-      limit,
-      sortBy: 'viewCount',
-      sortOrder: 'desc'
-    })
-  }
-
-  /**
-   * Get popular tools based on engagement metrics
-   * 
-   * Retrieves tools with high engagement (views, clicks, favorites)
-   * for trending/popular sections.
-   * 
-   * @param limit Number of tools to return
-   * @param timeframe Optional time constraint
-   * @returns Array of popular tools
-   */
-  static async getPopularTools(limit: number = 10): Promise<Tool[]> {
-    try {
-      return await prisma.tool.findMany({
-        where: {
-          isActive: true
-        },
-        orderBy: [
-          { viewCount: 'desc' },
-          { clickCount: 'desc' },
-          { favoriteCount: 'desc' },
-          { qualityScore: 'desc' }
-        ],
-        take: limit
-      })
-    } catch (error) {
-      console.error('Error getting popular tools:', error)
-      throw new Error('Failed to retrieve popular tools')
-    }
-  }
-
-  /**
-   * Create a new tool
-   * 
-   * Adds a new AI tool to the directory with full validation
-   * and automatic slug generation.
-   * 
-   * @param data Tool creation data
-   * @returns Created tool
-   */
-  static async createTool(data: ToolData): Promise<Tool> {
-    try {
-      // Generate slug if not provided
-      const slug = data.slug || this.generateSlug(data.toolName)
-
-      return await prisma.tool.create({
-        data: {
-          ...data,
-          slug,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          lastCheckedAt: new Date()
-        }
-      })
-    } catch (error) {
-      console.error('Error creating tool:', error)
-      throw new Error('Failed to create tool')
-    }
-  }
-
-  /**
-   * Update an existing tool
-   * 
-   * Updates tool information with validation and automatic
-   * timestamp management.
-   * 
-   * @param id Tool ID
-   * @param data Update data
-   * @returns Updated tool
-   */
-  static async updateTool(id: number, data: Partial<ToolData>): Promise<Tool> {
-    try {
-      return await prisma.tool.update({
-        where: { id },
-        data: {
-          ...data,
-          updatedAt: new Date()
-        }
-      })
-    } catch (error) {
-      console.error('Error updating tool:', error)
-      throw new Error('Failed to update tool')
-    }
-  }
-
-  /**
-   * Delete a tool (soft delete by setting inactive)
-   * 
-   * Performs soft delete by setting isActive to false.
-   * Preserves data for analytics and potential recovery.
-   * 
-   * @param id Tool ID
-   * @returns Updated tool
-   */
-  static async deleteTool(id: number): Promise<Tool> {
-    try {
-      return await prisma.tool.update({
-        where: { id },
-        data: {
-          isActive: false,
-          updatedAt: new Date()
-        }
-      })
-    } catch (error) {
-      console.error('Error deleting tool:', error)
-      throw new Error('Failed to delete tool')
-    }
-  }
-
-  /**
-   * Track tool click for analytics
-   * 
-   * Increments click count when users visit tool's external link.
-   * Used for engagement analytics and popular tool detection.
-   * 
-   * @param id Tool ID
-   */
-  static async trackToolClick(id: number): Promise<void> {
-    try {
-      await prisma.tool.update({
-        where: { id },
-        data: {
-          clickCount: { increment: 1 }
-        }
-      })
-    } catch (error) {
-      console.error('Error tracking tool click:', error)
-      // Don't throw error for analytics tracking
-    }
-  }
-
-  /**
-   * Toggle tool favorite status
-   * 
-   * Manages tool favorite count for user engagement features.
-   * 
-   * @param id Tool ID
-   * @param increment Whether to increment (true) or decrement (false)
-   */
-  static async toggleToolFavorite(id: number, increment: boolean): Promise<void> {
-    try {
-      await prisma.tool.update({
-        where: { id },
-        data: {
-          favoriteCount: { increment: increment ? 1 : -1 }
-        }
-      })
-    } catch (error) {
-      console.error('Error toggling tool favorite:', error)
-      // Don't throw error for analytics tracking
-    }
-  }
-
-  /**
-   * Get tool statistics for admin dashboard
-   * 
-   * Retrieves comprehensive statistics about tools in the system.
-   * Used for admin dashboard and analytics.
-   * 
-   * @returns Tool statistics object
-   */
-  static async getToolStatistics(): Promise<{
-    totalTools: number
-    activeTools: number
-    featuredTools: number
-    categoriesCount: number
-    averageQualityScore: number
-    totalViews: number
-    totalClicks: number
-  }> {
-    try {
-      const [
-        totalTools,
-        activeTools,
-        featuredTools,
-        categories,
-        avgQuality,
-        viewStats,
-        clickStats
-      ] = await Promise.all([
-        prisma.tool.count(),
-        prisma.tool.count({ where: { isActive: true } }),
-        prisma.tool.count({ where: { featured: true, isActive: true } }),
-        prisma.tool.groupBy({
-          by: ['toolCategory'],
-          where: { isActive: true, toolCategory: { not: null } }
-        }),
-        prisma.tool.aggregate({
-          where: { isActive: true },
-          _avg: { qualityScore: true }
-        }),
-        prisma.tool.aggregate({
-          where: { isActive: true },
-          _sum: { viewCount: true }
-        }),
-        prisma.tool.aggregate({
-          where: { isActive: true },
-          _sum: { clickCount: true }
-        })
-      ])
-
-      return {
-        totalTools,
-        activeTools,
-        featuredTools,
-        categoriesCount: categories.length,
-        averageQualityScore: Math.round(avgQuality._avg.qualityScore || 0),
-        totalViews: viewStats._sum.viewCount || 0,
-        totalClicks: clickStats._sum.clickCount || 0
-      }
-    } catch (error) {
-      console.error('Error getting tool statistics:', error)
-      throw new Error('Failed to retrieve tool statistics')
-    }
-  }
-
-  /**
-   * Increment view count for a tool
-   * 
-   * Tracks tool views for analytics. Non-blocking operation
-   * that handles errors gracefully.
-   * 
-   * @param toolId Tool ID or slug
-   * @returns Updated tool or null if error
-   */
-  static async incrementViewCount(toolId: number | string): Promise<Tool | null> {
-    try {
-      const whereClause = typeof toolId === 'string' 
-        ? { slug: toolId }
-        : { id: toolId }
-
-      return await prisma.tool.update({
-        where: whereClause,
-        data: {
-          viewCount: {
-            increment: 1
-          }
-        }
-      })
-    } catch (error) {
-      console.error('Error incrementing view count:', error)
-      // Return null for non-blocking behavior
-      return null
-    }
-  }
-
-  /**
-   * Increment click count for a tool
-   * 
-   * Tracks tool clicks for analytics. Non-blocking operation
-   * that handles errors gracefully.
-   * 
-   * @param toolId Tool ID or slug
-   * @returns Updated tool or null if error
-   */
-  static async incrementClickCount(toolId: number | string): Promise<Tool | null> {
-    try {
-      const whereClause = typeof toolId === 'string' 
-        ? { slug: toolId }
-        : { id: toolId }
-
-      return await prisma.tool.update({
-        where: whereClause,
-        data: {
-          clickCount: {
-            increment: 1
-          }
-        }
-      })
-    } catch (error) {
-      console.error('Error incrementing click count:', error)
-      // Return null for non-blocking behavior
-      return null
-    }
-  }
-
-  /**
-   * Generate URL-friendly slug from tool name
-   * 
-   * Creates SEO-friendly slug from tool name with proper formatting
-   * and uniqueness validation.
-   * 
-   * @param name Tool name
-   * @returns Generated slug
-   */
-  private static generateSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .substring(0, 50)
   }
 }
 
-export default ToolsService
+export const toolsService = new ToolsService();

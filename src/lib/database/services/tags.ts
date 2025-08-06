@@ -573,4 +573,5 @@ export class TagsService {
   }
 }
 
+export const tagsService = new TagsService()
 export default TagsService

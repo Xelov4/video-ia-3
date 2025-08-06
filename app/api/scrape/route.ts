@@ -11,7 +11,7 @@ const scraperService = new ScraperService();
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { url } = body;
+    const { url, professional = false } = body;
 
     if (!url) {
       return NextResponse.json(
@@ -28,10 +28,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Perform the analysis
-    const analysis = await scraperService.analyzeToolWebsite(url);
+    // Choose analysis method based on professional flag
+    const analysis = professional 
+      ? await scraperService.analyzeProfessionalTool(url)
+      : await scraperService.analyzeToolWebsite(url);
 
-    return NextResponse.json(analysis);
+    return NextResponse.json({
+      ...analysis,
+      processingMode: professional ? 'professional' : 'standard',
+      timestamp: new Date().toISOString(),
+      version: '2.0'
+    });
 
   } catch (error) {
     console.error('Scraper API error:', error);
@@ -39,7 +46,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: error instanceof Error ? error.message : 'Internal server error',
-        details: 'Failed to analyze the provided URL'
+        details: 'Failed to analyze the provided URL',
+        timestamp: new Date().toISOString()
       },
       { status: 500 }
     );

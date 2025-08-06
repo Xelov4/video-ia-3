@@ -18,8 +18,9 @@ import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ToolsService, CategoriesService } from '@/src/lib/database'
-import ToolsListing from '@/src/components/tools/ToolsListing'
+import { toolsService } from '@/src/lib/database/services/tools'
+import { CategoriesService } from '@/src/lib/database/services/categories'
+import { ToolsGrid } from '@/src/components/tools/ToolsGrid'
 import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline'
 
 interface CategoryPageProps {
@@ -74,188 +75,89 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   // Parse parameters
   const currentPage = Math.max(1, parseInt(page, 10) || 1)
   const limit = 20
-  const offset = (currentPage - 1) * limit
 
-  // Build search parameters
+  // Build search parameters for new service
   const searchParams_api = {
-    search: search || undefined,
+    query: search || undefined,
     category: category.name,
-    featured: featured === 'true',
-    sort: sort as any,
-    order: order as 'asc' | 'desc',
+    featured: featured === 'true' ? true : undefined,
+    page: currentPage,
     limit,
-    offset
+    sortBy: sort,
+    sortOrder: order as 'asc' | 'desc'
   }
 
   // Load tools and related categories
   const [toolsResult, allCategories, relatedCategories] = await Promise.all([
-    ToolsService.searchTools(searchParams_api).catch(error => {
+    toolsService.searchTools(searchParams_api).catch((error: any) => {
       console.error('Failed to load tools:', error)
-      return { tools: [], totalCount: 0, hasMore: false }
+      return { tools: [], totalCount: 0, hasMore: false, totalPages: 0, currentPage: 1, hasNextPage: false, hasPreviousPage: false }
     }),
     CategoriesService.getAllCategories().catch(() => []),
     CategoriesService.getRelatedCategories(category.name, 4).catch(() => [])
   ])
 
-  const totalPages = Math.ceil(toolsResult.totalCount / limit)
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumbs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <nav className="flex items-center space-x-2 text-sm">
-            <Link href="/" className="text-gray-500 hover:text-blue-600 flex items-center">
-              <HomeIcon className="w-4 h-4 mr-1" />
+    <div className="min-h-screen gradient-bg">
+      {/* Header */}
+      <div className="glass-effect border-b border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          {/* Breadcrumb */}
+          <nav className="flex items-center space-x-2 text-sm text-gray-400 mb-8">
+            <Link href="/" className="hover:text-white transition-colors">
               Accueil
             </Link>
-            <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-            <Link href="/categories" className="text-gray-500 hover:text-blue-600">
+            <span>/</span>
+            <Link href="/categories" className="hover:text-white transition-colors">
               Catégories
             </Link>
-            <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-900 font-medium">{category.name}</span>
+            <span>/</span>
+            <span className="text-white font-medium">{category.name}</span>
           </nav>
-        </div>
-      </div>
 
-      {/* Category Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            {/* Category Icon */}
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6">
-              {category.iconName ? (
-                <span className="text-3xl text-white">{category.iconName}</span>
-              ) : (
-                <span className="text-3xl font-bold text-white">
-                  {category.name.charAt(0)}
-                </span>
-              )}
-            </div>
-
-            {/* Title and Description */}
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          {/* Category Info */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
               {category.name}
             </h1>
-            
             {category.description && (
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed">
                 {category.description}
               </p>
             )}
-
-            {/* Category Stats */}
-            <div className="flex justify-center items-center space-x-8 text-sm text-gray-500">
+            <div className="flex justify-center items-center space-x-8 text-lg text-gray-400">
               <div>
-                <span className="font-semibold text-blue-600">{category.toolCount}</span> outils disponibles
+                <span className="font-bold gradient-text">{category.toolCount}</span> outils
               </div>
               <div>
-                <span className="font-semibold text-purple-600">{toolsResult.totalCount}</span> résultats
+                <span className="font-bold gradient-text">{relatedCategories.length}</span> catégories similaires
               </div>
-              {category.isFeatured && (
-                <div>
-                  <span className="inline-flex items-center px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
-                    ⭐ Catégorie principale
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar - Related Categories */}
-          <div className="lg:col-span-1 order-2 lg:order-1">
-            <div className="bg-white rounded-lg p-6 border border-gray-200 sticky top-24">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Catégories similaires
-              </h3>
-              
-              {relatedCategories.length > 0 ? (
-                <div className="space-y-3">
-                  {relatedCategories.map(relatedCategory => (
-                    <Link
-                      key={relatedCategory.id}
-                      href={`/categories/${relatedCategory.slug}`}
-                      className="block p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                          <span className="text-sm font-medium text-gray-600">
-                            {relatedCategory.iconName || relatedCategory.name.charAt(0)}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">
-                            {relatedCategory.name}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {relatedCategory.toolCount} outils
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  Aucune catégorie similaire trouvée.
-                </p>
-              )}
-
-              {/* Quick Links */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                  Navigation rapide
-                </h4>
-                <div className="space-y-2">
-                  <Link
-                    href="/categories"
-                    className="block text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    ← Toutes les catégories
-                  </Link>
-                  <Link
-                    href="/tools"
-                    className="block text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    Tous les outils
-                  </Link>
-                  <Link
-                    href="/tools?featured=true"
-                    className="block text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    Outils mis en avant
-                  </Link>
-                </div>
-              </div>
-            </div>
+      {/* Tools Listing */}
+      <div className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-white mb-4">
+              Outils dans cette catégorie
+            </h2>
+            <p className="text-gray-300">
+              {toolsResult.totalCount} outils trouvés
+            </p>
           </div>
-
-          {/* Tools Listing */}
-          <div className="lg:col-span-3 order-1 lg:order-2">
-            <Suspense fallback={<ToolsListingLoading />}>
-              <ToolsListing
-                initialTools={toolsResult.tools}
-                initialCategories={allCategories}
-                totalCount={toolsResult.totalCount}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                hasMore={toolsResult.hasMore}
-                searchParams={{
-                  search,
-                  category: category.name,
-                  featured: featured === 'true',
-                  sort,
-                  order: order as 'asc' | 'desc'
-                }}
-              />
-            </Suspense>
-          </div>
+          
+          <ToolsGrid
+            tools={toolsResult.tools}
+            totalCount={toolsResult.totalCount}
+            currentPage={toolsResult.currentPage}
+            totalPages={toolsResult.totalPages}
+            hasNextPage={toolsResult.hasNextPage}
+            hasPreviousPage={toolsResult.hasPreviousPage}
+            showCategory={false}
+          />
         </div>
       </div>
     </div>

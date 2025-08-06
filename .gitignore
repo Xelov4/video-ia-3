@@ -45,3 +45,5 @@ public/screenshots/
 # Temporary files
 *.tmp
 *.temp
+
+/generated/prisma

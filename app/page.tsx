@@ -20,35 +20,25 @@ import { Suspense } from 'react'
 import { Metadata } from 'next'
 import HeroSection from '@/src/components/home/HeroSection'
 import FeaturedTools from '@/src/components/home/FeaturedTools'
-import { ToolsService, CategoriesService, DatabaseUtils } from '@/src/lib/database'
+import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 /**
  * Page metadata for SEO optimization
  */
 export const metadata: Metadata = {
-  title: 'Video-IA.net - Répertoire de 16 763 Outils IA pour Créateurs | Intelligence Artificielle',
-  description: 'Découvrez le répertoire le plus complet d\'outils d\'intelligence artificielle. Plus de 16 000 outils IA organisés par catégories : ChatGPT, Midjourney, Claude et bien plus pour créateurs, développeurs et professionnels.',
-  keywords: 'outils IA, intelligence artificielle, ChatGPT, Midjourney, Claude, outils créateurs, développeurs, productivité, automatisation, AI tools',
+  title: 'Video-IA.net - Annuaire des Outils IA',
+  description: 'Découvrez les meilleurs outils d\'intelligence artificielle pour tous vos besoins. Plus de 16,000 outils IA classés et testés.',
+  keywords: 'IA, intelligence artificielle, outils IA, ChatGPT, Midjourney, génération d\'images, génération de texte',
   openGraph: {
-    title: 'Video-IA.net - 16 763 Outils IA pour Créateurs',
-    description: 'Le répertoire le plus complet d\'outils d\'intelligence artificielle pour créateurs et professionnels',
+    title: 'Video-IA.net - Annuaire des Outils IA',
+    description: 'Découvrez les meilleurs outils d\'intelligence artificielle pour tous vos besoins.',
     type: 'website',
     locale: 'fr_FR',
-    url: 'https://video-ia.net',
-    siteName: 'Video-IA.net',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Video-IA.net - 16 763 Outils IA',
-    description: 'Découvrez les meilleurs outils IA pour créateurs et professionnels',
-    site: '@videoianet',
-  },
-  alternates: {
-    canonical: 'https://video-ia.net',
-    languages: {
-      'fr': 'https://video-ia.net',
-      'en': 'https://video-ia.net/en',
-    },
+    title: 'Video-IA.net - Annuaire des Outils IA',
+    description: 'Découvrez les meilleurs outils d\'intelligence artificielle pour tous vos besoins.',
   },
 }
 
@@ -56,37 +46,15 @@ export const metadata: Metadata = {
  * Homepage component with server-side data loading
  */
 export default async function HomePage() {
-  // Load initial data on server-side for better performance and SEO
-  const [
-    featuredTools,
-    featuredCategories,
-    stats
-  ] = await Promise.all([
-    // Get featured tools for homepage showcase
-    ToolsService.getFeaturedTools(8).catch(error => {
-      console.error('Failed to load featured tools:', error)
-      return []
-    }),
-    
-    // Get featured categories for navigation
-    CategoriesService.getFeaturedCategories(6).catch(error => {
-      console.error('Failed to load featured categories:', error)
-      return []
-    }),
-    
-    // Get platform statistics
-    DatabaseUtils.getDatabaseStatistics().catch(error => {
-      console.error('Failed to load statistics:', error)
-      return {
-        tools: { totalTools: 16763, activeTools: 16763, featuredTools: 150 },
-        categories: { totalCategories: 140 },
-        system: { totalRecords: 16903 }
-      }
-    })
-  ])
+  // Default stats
+  const stats = {
+    tools: { totalTools: 16763, activeTools: 16763, featuredTools: 150 },
+    categories: { totalCategories: 140 },
+    system: { totalRecords: 16903 }
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen gradient-bg">
       {/* Hero Section */}
       <HeroSection
         totalToolsCount={stats.tools.totalTools}
@@ -97,14 +65,14 @@ export default async function HomePage() {
       {/* Featured Tools Section */}
       <Suspense fallback={<FeaturedToolsLoading />}>
         <FeaturedTools 
-          initialTools={featuredTools}
+          initialTools={[]}
           limit={8}
         />
       </Suspense>
 
       {/* Popular Categories Section */}
       <Suspense fallback={<CategoriesLoading />}>
-        <PopularCategories categories={featuredCategories} />
+        <PopularCategories categories={[]} />
       </Suspense>
 
       {/* Statistics & Features Section */}
@@ -121,20 +89,20 @@ export default async function HomePage() {
  */
 function FeaturedToolsLoading() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse"></div>
-          <div className="h-4 bg-gray-200 rounded w-96 mx-auto animate-pulse"></div>
+        <div className="text-center mb-16">
+          <div className="h-10 bg-gray-800 rounded-2xl w-80 mx-auto mb-6 animate-pulse"></div>
+          <div className="h-6 bg-gray-800 rounded-xl w-96 mx-auto animate-pulse"></div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-              <div className="h-48 bg-gray-200"></div>
-              <div className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded mb-4 w-3/4"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
+            <div key={i} className="card-hover overflow-hidden animate-pulse">
+              <div className="h-48 bg-gray-800 rounded-2xl mb-6"></div>
+              <div className="space-y-4">
+                <div className="h-6 bg-gray-800 rounded-xl"></div>
+                <div className="h-4 bg-gray-800 rounded-lg w-3/4"></div>
+                <div className="h-10 bg-gray-800 rounded-xl"></div>
               </div>
             </div>
           ))}
@@ -149,17 +117,17 @@ function FeaturedToolsLoading() {
  */
 function CategoriesLoading() {
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse"></div>
+        <div className="text-center mb-16">
+          <div className="h-10 bg-gray-800 rounded-2xl w-64 mx-auto mb-6 animate-pulse"></div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl p-6 text-center animate-pulse">
-              <div className="w-12 h-12 bg-gray-200 rounded-lg mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-16 mx-auto"></div>
+            <div key={i} className="card text-center animate-pulse">
+              <div className="w-16 h-16 bg-gray-800 rounded-2xl mx-auto mb-4"></div>
+              <div className="h-5 bg-gray-800 rounded-lg mb-2"></div>
+              <div className="h-4 bg-gray-800 rounded-lg w-3/4 mx-auto"></div>
             </div>
           ))}
         </div>
@@ -173,33 +141,33 @@ function CategoriesLoading() {
  */
 async function PopularCategories({ categories }: { categories: any[] }) {
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Catégories populaires
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Catégories <span className="gradient-text">populaires</span>
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-300">
             Explorez nos catégories les plus recherchées
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-12">
           {categories.map((category) => (
             <a
               key={category.id}
               href={`/categories/${category.slug}`}
-              className="bg-white rounded-2xl p-6 text-center hover:shadow-lg transition-all group"
+              className="card-hover text-center group"
             >
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="text-white font-bold text-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <span className="text-white font-bold text-xl">
                   {category.name.charAt(0)}
                 </span>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+              <h3 className="font-semibold text-white mb-2 group-hover:gradient-text transition-all duration-200">
                 {category.name}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-400">
                 {category.toolCount} outils
               </p>
             </a>
@@ -209,7 +177,7 @@ async function PopularCategories({ categories }: { categories: any[] }) {
         <div className="text-center">
           <a
             href="/categories"
-            className="inline-flex items-center px-6 py-3 bg-white text-gray-700 font-semibold rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+            className="btn-outline inline-flex items-center"
           >
             Voir toutes les catégories
             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,25 +218,25 @@ function PlatformFeatures({ stats }: { stats: any }) {
   ]
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Pourquoi choisir Video-IA.net ?
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Pourquoi choisir <span className="gradient-text">Video-IA.net</span> ?
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             La référence française pour découvrir, comparer et utiliser les meilleurs outils d'intelligence artificielle
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
           {features.map((feature, index) => (
-            <div key={index} className="text-center">
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <div key={index} className="text-center card p-8">
+              <div className="text-5xl mb-6">{feature.icon}</div>
+              <h3 className="text-xl font-semibold text-white mb-4">
                 {feature.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-300 leading-relaxed">
                 {feature.description}
               </p>
             </div>
@@ -276,40 +244,40 @@ function PlatformFeatures({ stats }: { stats: any }) {
         </div>
 
         {/* Platform Stats */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8 md:p-12">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              Des chiffres qui parlent
+        <div className="glass-effect rounded-3xl p-12 border border-gray-700/50">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Des chiffres qui <span className="gradient-text">parlent</span>
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-300 text-lg">
               La plus grande communauté francophone d'outils IA
             </p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-blue-600 mb-1">
-                {stats.tools.totalTools.toLocaleString()}
+              <div className="text-4xl md:text-5xl font-bold gradient-text mb-2">
+                {formatNumber(stats.tools.totalTools)}
               </div>
-              <div className="text-gray-600 font-medium">Outils référencés</div>
+              <div className="text-gray-300 font-medium">Outils référencés</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-purple-600 mb-1">
+              <div className="text-4xl md:text-5xl font-bold gradient-text mb-2">
                 {stats.categories.totalCategories}+
               </div>
-              <div className="text-gray-600 font-medium">Catégories</div>
+              <div className="text-gray-300 font-medium">Catégories</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-green-600 mb-1">
+              <div className="text-4xl md:text-5xl font-bold gradient-text mb-2">
                 100K+
               </div>
-              <div className="text-gray-600 font-medium">Utilisateurs</div>
+              <div className="text-gray-300 font-medium">Utilisateurs</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-orange-600 mb-1">
+              <div className="text-4xl md:text-5xl font-bold gradient-text mb-2">
                 24h
               </div>
-              <div className="text-gray-600 font-medium">Mises à jour</div>
+              <div className="text-gray-300 font-medium">Mises à jour</div>
             </div>
           </div>
         </div>
@@ -323,25 +291,25 @@ function PlatformFeatures({ stats }: { stats: any }) {
  */
 function CallToActionSection() {
   return (
-    <section className="py-16 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+    <section className="py-20 glass-effect border-t border-gray-700/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Prêt à découvrir l'IA qui révolutionnera votre travail ?
+        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          Prêt à découvrir l'IA qui <span className="gradient-text">révolutionnera</span> votre travail ?
         </h2>
-        <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+        <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
           Rejoignez des milliers de créateurs et professionnels qui utilisent déjà nos outils recommandés
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-6 justify-center">
           <a
             href="/tools"
-            className="inline-flex items-center px-8 py-4 bg-white text-blue-600 text-lg font-semibold rounded-2xl hover:bg-gray-100 transition-all"
+            className="btn-primary text-lg px-10 py-4"
           >
             Commencer l'exploration
           </a>
           <a
             href="/categories"
-            className="inline-flex items-center px-8 py-4 border-2 border-white text-white text-lg font-semibold rounded-2xl hover:bg-white hover:text-blue-600 transition-all"
+            className="btn-outline text-lg px-10 py-4"
           >
             Parcourir les catégories
           </a>

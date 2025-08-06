@@ -18,7 +18,9 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import ToolsListing from '@/src/components/tools/ToolsListing'
-import { ToolsService, CategoriesService } from '@/src/lib/database'
+import { toolsService } from '@/src/lib/database/services/tools'
+import { CategoriesService } from '@/src/lib/database/services/categories'
+import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolsPageProps {
   searchParams: {
@@ -50,81 +52,65 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
   // Parse parameters
   const currentPage = Math.max(1, parseInt(page, 10) || 1)
   const limit = 20
-  const offset = (currentPage - 1) * limit
 
-  // Build search parameters
+  // Build search parameters for new service
   const searchParams_api = {
-    search: search || undefined,
+    query: search || undefined,
     category: category || undefined,
-    featured: featured === 'true',
-    sort: sort as any,
-    order: order as 'asc' | 'desc',
+    featured: featured === 'true' ? true : undefined,
+    page: currentPage,
     limit,
-    offset
+    sortBy: sort,
+    sortOrder: order as 'asc' | 'desc'
   }
 
   // Load data server-side
   const [toolsResult, categories] = await Promise.all([
-    ToolsService.searchTools(searchParams_api).catch(error => {
+    toolsService.searchTools(searchParams_api).catch((error: any) => {
       console.error('Failed to load tools:', error)
-      return { tools: [], totalCount: 0, hasMore: false }
+      return { tools: [], totalCount: 0, hasMore: false, totalPages: 0, currentPage: 1, hasNextPage: false, hasPreviousPage: false }
     }),
-    CategoriesService.getAllCategories().catch(error => {
+    CategoriesService.getAllCategories().catch((error: any) => {
       console.error('Failed to load categories:', error)
       return []
     })
   ])
 
-  const totalPages = Math.ceil(toolsResult.totalCount / limit)
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen gradient-bg">
       {/* Header Section */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="glass-effect border-b border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
               {search ? (
-                <>Résultats pour "<span className="text-blue-600">{search}</span>"</>
+                <>Résultats pour "<span className="gradient-text">{search}</span>"</>
               ) : category ? (
-                <>Outils IA - <span className="text-blue-600">{category}</span></>
+                <>Outils IA - <span className="gradient-text">{category}</span></>
               ) : (
-                'Tous les outils IA'
+                'Tous les <span className="gradient-text">outils IA</span>'
               )}
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
               {search ? (
-                `${toolsResult.totalCount.toLocaleString()} outils trouvés pour votre recherche`
+                `${formatNumber(toolsResult.totalCount)} outils trouvés pour votre recherche`
               ) : (
-                `Découvrez notre collection de ${toolsResult.totalCount.toLocaleString()} outils d'intelligence artificielle`
+                `Découvrez notre collection de ${formatNumber(toolsResult.totalCount)} outils d'intelligence artificielle`
               )}
             </p>
-            
-            {/* Quick stats */}
-            <div className="flex justify-center items-center space-x-8 text-sm text-gray-500">
-              <div>
-                <span className="font-semibold text-blue-600">{toolsResult.totalCount.toLocaleString()}</span> outils
-              </div>
-              <div>
-                <span className="font-semibold text-purple-600">{categories.length}</span> catégories
-              </div>
-              <div>
-                <span className="font-semibold text-green-600">Mis à jour</span> quotidiennement
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Tools Listing Section */}
       <Suspense fallback={<ToolsListingLoading />}>
-        <ToolsListing
-          initialTools={toolsResult.tools}
+        <ToolsListing 
+          initialTools={[]}
           initialCategories={categories}
           totalCount={toolsResult.totalCount}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          hasMore={toolsResult.hasMore}
+          currentPage={toolsResult.currentPage}
+          totalPages={toolsResult.totalPages}
+          hasMore={toolsResult.hasNextPage}
           searchParams={{
             search,
             category,

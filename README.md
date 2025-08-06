@@ -1,235 +1,296 @@
-# Video-IA.net Tool Scraper MVP
+# Video-IA.net Tool Scraper
 
-A browser-based MVP for analyzing AI tools using web scraping and Gemini AI. This application demonstrates the core functionality of the Video-IA.net intelligent tool scraper without database storage.
+Une application Next.js propre et élégante pour analyser les outils IA avec extraction automatique de données, analyse IA et base de données multilingue.
 
-## 🚀 Features
+## 🏗️ Structure du Projet
 
-- **Web Scraping**: Automatically extracts content from AI tool websites
-- **AI Analysis**: Uses Gemini AI to analyze and categorize tools
-- **SEO Optimization**: Generates meta titles, descriptions, and tags
-- **Export Options**: Download results as JSON or CSV
-- **Real-time Analysis**: No database storage required
-- **Modern UI**: Clean, responsive interface with Tailwind CSS
+```
+video-ia.net/
+├── app/                          # Next.js App Router
+│   ├── api/
+│   │   └── scrape/
+│   │       └── route.ts         # API endpoint principal
+│   ├── globals.css              # Styles globaux
+│   ├── layout.tsx               # Layout principal
+│   └── page.tsx                 # Page d'accueil
+│
+├── src/                         # Code source principal
+│   ├── components/              # Composants React
+│   │   ├── ui/                  # Composants d'interface
+│   │   │   ├── ScraperForm.tsx  # Formulaire de scraping
+│   │   │   ├── ResultsDisplay.tsx # Affichage des résultats
+│   │   │   └── LoadingSpinner.tsx # Indicateur de chargement
+│   │   ├── forms/               # Composants de formulaires
+│   │   ├── display/             # Composants d'affichage
+│   │   └── common/              # Composants communs
+│   │
+│   ├── lib/                     # Librairies et utilitaires
+│   │   ├── scraper/            # Logique de scraping
+│   │   │   └── core.ts         # Fonctions de scraping principales
+│   │   ├── ai/                 # Intégration IA
+│   │   │   └── analyzer.ts     # Analyse avec Gemini AI
+│   │   ├── database/           # Base de données
+│   │   │   ├── schema.sql      # Schéma PostgreSQL multilingue
+│   │   │   ├── types.ts        # Types TypeScript
+│   │   │   └── integration.ts  # Intégration DB
+│   │   └── translations/       # Gestion des traductions
+│   │
+│   ├── types/                  # Définitions TypeScript
+│   │   ├── index.ts           # Export principal
+│   │   ├── scraper.ts         # Types pour le scraping
+│   │   └── analysis.ts        # Types pour l'analyse
+│   │
+│   ├── services/              # Services métier
+│   │   └── scraper.ts         # Service principal de scraping
+│   │
+│   ├── utils/                 # Utilitaires
+│   │   └── content.ts         # Génération de contenu
+│   │
+│   ├── hooks/                 # Custom React hooks
+│   ├── constants/             # Constantes
+│   └── context/               # Contextes React
+│
+├── docs/                      # Documentation
+│   ├── api/                   # Documentation API
+│   ├── components/           # Documentation composants
+│   └── database/             # Documentation base de données
+│
+├── public/                   # Fichiers statiques
+│   ├── assets/              # Assets généraux
+│   ├── screenshots/         # Screenshots capturés
+│   └── logos/               # Logos extraits
+│
+├── scripts/                 # Scripts utilitaires
+├── tests/                   # Tests unitaires et d'intégration
+└── Specifications/         # Spécifications du projet
+    └── prd2.md             # Product Requirements Document
+```
 
-## 🛠️ Technology Stack
+## 🚀 Fonctionnalités
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Styling**: Tailwind CSS
-- **Web Scraping**: Puppeteer, Cheerio
-- **AI Integration**: Google Gemini AI (gemini-2.0-flash)
-- **HTTP Client**: Axios
+### ✅ Fonctionnalités Actuelles
 
-## 📋 Prerequisites
+- **Scraping Web Avancé**: Extraction automatique de contenu avec Puppeteer
+- **Capture d'Écrans**: Screenshots en 1920x1080 format WebP optimisé
+- **Extraction de Logos**: Détection automatique des logos avec 15+ sélecteurs
+- **Analyse IA**: Utilisation de Google Gemini pour l'analyse de contenu
+- **Données Multilingues**: Support pour 7 langues (DE, NL, IT, EN, PT, FR, ES)
+- **Liens Sociaux**: Extraction de 40+ plateformes sociales
+- **Informations de Contact**: Email, téléphone, formulaires, support
+- **Analyse de Prix**: Détection automatique des modèles de tarification
+- **Programmes d'Affiliation**: Détection et extraction d'informations
+- **Contenu SEO**: Génération automatique de meta-titres et descriptions
+- **Base de Données**: Modèle PostgreSQL complet et normalisé
 
-- Node.js 18+ 
-- npm or yarn
-- Google Gemini API key
+### 🎯 Données Extraites
 
-## 🚀 Quick Start
+| Catégorie | Données |
+|-----------|---------|
+| **Informations de Base** | URL, titre, contenu, metadata, screenshots, logos |
+| **Contact** | Email, téléphone, adresse, formulaires de contact, support |
+| **Réseaux Sociaux** | LinkedIn, Twitter, GitHub, YouTube, Discord, etc. (40+ plateformes) |
+| **Analyse IA** | Fonctions principales, caractéristiques, audiences cibles, catégories |
+| **Tarification** | Plans, prix, cycles de facturation, niveaux gratuits/payants |
+| **Affiliation** | Programmes partenaires, contacts, formulaires |
+| **SEO** | Meta-titres, descriptions, tags, contenu HTML optimisé |
+| **Traductions** | Support complet multilingue pour 7 langues |
 
-### 1. Install Dependencies
+## 🛠️ Technologies
+
+- **Framework**: Next.js 14 avec App Router
+- **Language**: TypeScript
+- **Scraping**: Puppeteer + Cheerio
+- **IA**: Google Gemini AI
+- **Base de Données**: PostgreSQL avec types TypeScript
+- **Styles**: Tailwind CSS
+- **Tests**: À implémenter
+
+## 📦 Installation
 
 ```bash
+# Cloner le projet
+git clone [repository-url]
+cd video-ia.net
+
+# Installer les dépendances
 npm install
-```
 
-### 2. Set Environment Variables
+# Configurer les variables d'environnement
+cp .env.example .env.local
 
-Create a `.env.local` file in the root directory:
-
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-### 3. Run Development Server
-
-```bash
+# Lancer en développement
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`
+## ⚙️ Configuration
 
-## 🎯 Usage
+### Variables d'Environnement
 
-1. **Enter URL**: Input the website URL of an AI tool
-2. **Analyze**: Click "Analyze Tool" to start the process
-3. **Review Results**: View the comprehensive analysis including:
-   - Tool name and primary function
-   - Category and pricing model
-   - Key features and target audience
-   - SEO-optimized description
-   - Meta tags and keywords
-   - Confidence and completeness scores
-4. **Export**: Download results as JSON or CSV
+```env
+# Google Gemini AI
+GEMINI_API_KEY=your_gemini_api_key
 
-## 📊 Example URLs to Test
+# Base de Données PostgreSQL
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=video_ia_net
+DB_USER=postgres
+DB_PASSWORD=your_password
 
-- https://cassetteai.com/
-- https://midjourney.com/
-- https://chat.openai.com/
-- https://www.notion.so/
-- https://www.figma.com/
-
-## 🔧 API Endpoints
-
-### POST `/api/scrape`
-
-Analyzes a tool website and returns structured data.
-
-**Request:**
-```json
-{
-  "url": "https://example.com"
-}
+# Next.js
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-**Response:**
-```json
+### Base de Données
+
+```bash
+# Créer la base de données
+createdb video_ia_net
+
+# Exécuter le schéma
+psql -d video_ia_net -f src/lib/database/schema.sql
+```
+
+## 🎨 Architecture
+
+### Principe de Séparation des Responsabilités
+
+- **`app/`**: Interface utilisateur et API routes (Next.js App Router)
+- **`src/lib/`**: Logique métier et intégrations externes
+- **`src/components/`**: Composants React réutilisables
+- **`src/types/`**: Définitions TypeScript centralisées
+- **`src/services/`**: Services métier de haut niveau
+- **`src/utils/`**: Fonctions utilitaires pures
+
+### Flux de Données
+
+1. **Input**: URL soumise via `ScraperForm`
+2. **Scraping**: `ScraperService` → `scrapeWebsite()` avec Puppeteer
+3. **Analyse IA**: `analyzeWithGemini()` pour l'analyse de contenu
+4. **Traduction**: `translateToFrench()` pour le contenu multilingue
+5. **Stockage**: `DatabaseIntegration` pour la persistance
+6. **Affichage**: `ResultsDisplay` avec onglets multilingues
+
+## 📚 Utilisation de l'API
+
+### POST /api/scrape
+
+```typescript
+// Request
+{
+  "url": "https://example-ai-tool.com"
+}
+
+// Response
 {
   "toolName": "Example AI Tool",
+  "slug": "example-ai-tool",
   "primaryFunction": "AI-powered content generation",
-  "keyFeatures": ["Feature 1", "Feature 2", "Feature 3"],
-  "targetAudience": ["Content creators", "Marketers"],
+  "keyFeatures": ["Feature 1", "Feature 2"],
+  "targetAudience": ["Content creators", "Businesses"],
   "pricingModel": "Freemium",
   "category": "Content Creation",
-  "description": "Detailed SEO-optimized description...",
-  "metaTitle": "SEO-optimized title",
-  "metaDescription": "SEO-optimized description",
-  "tags": ["AI", "Content", "Generation"],
   "confidence": 85,
   "dataCompleteness": 90,
-  "recommendedActions": ["Verify pricing information"]
+  "logoUrl": "/logos/logo_example_123456.webp",
+  "screenshotUrl": "/screenshots/screenshot_example_123456.webp",
+  // ... plus de données
 }
 ```
 
-## 🏗️ Architecture
+## 🔧 Développement
 
-### Frontend Components
+### Ajouter un Nouveau Composant
 
-- **ScraperForm**: URL input and form handling
-- **ResultsDisplay**: Comprehensive results visualization
-- **LoadingSpinner**: Loading state indicator
+```bash
+# Créer dans le bon dossier
+touch src/components/ui/NewComponent.tsx
+```
 
-### Backend API
+### Ajouter un Nouveau Service
 
-- **Web Scraping**: Puppeteer for dynamic content, Cheerio for parsing
-- **AI Analysis**: Gemini AI for content analysis and categorization
-- **Data Processing**: Structured data extraction and validation
+```bash
+# Créer le service
+touch src/services/newService.ts
 
-### Data Flow
+# Ajouter les types associés
+touch src/types/newService.ts
+```
 
-1. **URL Input** → Frontend validation
-2. **API Request** → Backend processing
-3. **Web Scraping** → Content extraction
-4. **AI Analysis** → Gemini AI processing
-5. **Results Display** → Structured data presentation
-6. **Export Options** → JSON/CSV download
+### Scripts Disponibles
 
-## 🔍 Analysis Features
+```bash
+npm run dev          # Développement
+npm run build        # Build de production
+npm run start        # Démarrer en production
+npm run lint         # Linter
+npm run type-check   # Vérification TypeScript
+```
 
-### Content Extraction
-- Page title and main content
-- Meta descriptions and keywords
-- Social media links
-- Pricing information
-- Feature lists
+## 🌐 Support Multilingue
 
-### AI Analysis
-- Tool identification and categorization
-- Feature extraction and classification
-- Target audience identification
-- SEO optimization
-- Confidence scoring
+Le système supporte nativement 7 langues :
 
-### Quality Metrics
-- **Confidence Score**: AI analysis reliability (0-100%)
-- **Data Completeness**: Information coverage (0-100%)
-- **Recommended Actions**: Suggested improvements
+- 🇩🇪 **Allemand** (de)
+- 🇳🇱 **Néerlandais** (nl)  
+- 🇮🇹 **Italien** (it)
+- 🇬🇧 **Anglais** (en)
+- 🇵🇹 **Portugais** (pt)
+- 🇫🇷 **Français** (fr)
+- 🇪🇸 **Espagnol** (es)
 
-## 🎨 UI/UX Features
+### Structure Base de Données Multilingue
 
-- **Responsive Design**: Works on desktop and mobile
-- **Loading States**: Clear progress indicators
-- **Error Handling**: User-friendly error messages
-- **Export Options**: Easy data download
-- **Modern Interface**: Clean, professional design
-
-## 🔐 Security Considerations
-
-- **Input Validation**: URL format validation
-- **Error Handling**: Graceful error management
-- **Rate Limiting**: Built-in request throttling
-- **Content Safety**: Harmful content detection
+- Tables normalisées par langue
+- Traductions automatiques via IA
+- Support des caractéristiques, audiences et tags multilingues
+- API de recherche par langue
 
 ## 📈 Performance
 
-- **Scraping Time**: 30-60 seconds per analysis
-- **AI Processing**: Real-time Gemini AI analysis
-- **Response Time**: Optimized for user experience
-- **Memory Usage**: Efficient resource management
+- **Screenshots**: Format WebP avec compression optimisée
+- **Caching**: Mise en cache des résultats d'analyse
+- **Database**: Index optimisés pour les requêtes multilingues
+- **Scraping**: Timeouts et retry logic configurables
 
-## 🚧 Limitations
+## 🔒 Sécurité
 
-- **Single URL Analysis**: One tool at a time
-- **No Database**: Results not persisted
-- **API Rate Limits**: Subject to Gemini API limits
-- **Browser Dependencies**: Requires Puppeteer
+- Validation des URLs
+- Sanitisation des contenus HTML
+- Rate limiting sur l'API IA
+- Variables d'environnement sécurisées
 
-## 🔮 Future Enhancements
-
-- **Batch Processing**: Multiple URLs at once
-- **Database Integration**: PostgreSQL storage
-- **Multi-language Support**: French, Italian, Spanish, German, Dutch
-- **Advanced Analytics**: Trend detection and insights
-- **Admin Interface**: Management dashboard
-- **API Marketplace**: Public API access
-
-## 📝 Development
-
-### Project Structure
-
-```
-├── app/
-│   ├── components/          # React components
-│   ├── api/                # API routes
-│   ├── globals.css         # Global styles
-│   ├── layout.tsx          # Root layout
-│   └── page.tsx            # Main page
-├── public/                 # Static assets
-├── package.json            # Dependencies
-├── next.config.js          # Next.js config
-├── tailwind.config.js      # Tailwind config
-└── README.md              # Documentation
-```
-
-### Available Scripts
+## 🚀 Déploiement
 
 ```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Run ESLint
+# Build de production
+npm run build
+
+# Vérification des types
+npm run type-check
+
+# Déploiement (exemple Vercel)
+vercel --prod
 ```
 
-## 🤝 Contributing
+## 🤝 Contribution
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+1. Créer une branche feature
+2. Suivre les conventions TypeScript
+3. Ajouter des tests si nécessaire
+4. Mettre à jour la documentation
+5. Créer une Pull Request
 
-## 📄 License
+## 📝 TODO
 
-MIT License - see LICENSE file for details
-
-## 🆘 Support
-
-For issues and questions:
-- Create an issue in the repository
-- Check the documentation
-- Review the code examples
+- [ ] Tests unitaires et d'intégration
+- [ ] API de traduction pour toutes les langues
+- [ ] Interface d'administration
+- [ ] Export en formats multiples (PDF, DOCX)
+- [ ] API publique avec authentification
+- [ ] Dashboard analytics
+- [ ] Intégration webhooks
 
 ---
 
-**Video-IA.net Tool Scraper MVP** - Demonstrating the future of AI tool analysis and categorization. 
+**Créé avec ❤️ pour Video-IA.net**

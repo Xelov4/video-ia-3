@@ -22,7 +22,8 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ToolsService, CategoriesService } from '@/src/lib/database'
+import { toolsService } from '@/src/lib/database/services/tools'
+import { CategoriesService } from '@/src/lib/database/services/categories'
 import { 
   ArrowTopRightOnSquareIcon, 
   StarIcon,
@@ -35,13 +36,14 @@ import {
   UserGroupIcon
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
+import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolPageProps {
   params: { slug: string }
 }
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
-  const tool = await ToolsService.getToolBySlug(params.slug).catch(() => null)
+  const tool = await toolsService.getToolBySlug(params.slug).catch(() => null)
   
   if (!tool) {
     return {
@@ -51,53 +53,47 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
   }
 
   return {
-    title: tool.metaTitle || `${tool.toolName} - Outil IA ${tool.toolCategory} | Video-IA.net`,
-    description: tool.metaDescription || tool.overview || `Découvrez ${tool.toolName}, un outil d'intelligence artificielle ${tool.toolCategory}. ${tool.toolDescription?.substring(0, 120)}...`,
-    keywords: tool.seoKeywords || `${tool.toolName}, ${tool.toolCategory}, outil IA, intelligence artificielle`,
+    title: tool.meta_title || `${tool.tool_name} - Outil IA ${tool.tool_category} | Video-IA.net`,
+    description: tool.meta_description || tool.overview || `Découvrez ${tool.tool_name}, un outil d'intelligence artificielle ${tool.tool_category}. ${tool.tool_description?.substring(0, 120)}...`,
+    keywords: tool.seo_keywords || `${tool.tool_name}, ${tool.tool_category}, outil IA, intelligence artificielle`,
     openGraph: {
-      title: `${tool.toolName} - Outil IA`,
-      description: tool.overview || tool.toolDescription?.substring(0, 160) || '',
+      title: `${tool.tool_name} - Outil IA`,
+      description: tool.overview || tool.tool_description?.substring(0, 160) || '',
       type: 'website',
-      images: tool.imageUrl ? [{ url: tool.imageUrl, width: 1200, height: 630 }] : undefined,
+      images: tool.image_url ? [{ url: tool.image_url, width: 1200, height: 630 }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${tool.toolName} - Outil IA`,
-      description: tool.overview || tool.toolDescription?.substring(0, 160) || '',
-      images: tool.imageUrl ? [tool.imageUrl] : undefined,
+      title: `${tool.tool_name} - Outil IA`,
+      description: tool.overview || tool.tool_description?.substring(0, 160) || '',
+      images: tool.image_url ? [tool.image_url] : undefined,
     }
   }
 }
 
 export default async function ToolPage({ params }: ToolPageProps) {
   // Load tool details
-  const tool = await ToolsService.getToolBySlug(params.slug).catch(() => null)
+  const tool = await toolsService.getToolBySlug(params.slug).catch(() => null)
   
   if (!tool) {
     notFound()
   }
 
-  // Track view (non-blocking)
-  ToolsService.incrementViewCount(tool.id).catch(() => {
-    // Silently handle errors for analytics
-  })
-
   // Load related data
   const [relatedTools, categoryInfo] = await Promise.all([
-    ToolsService.searchTools({
-      category: tool.toolCategory || undefined,
-      limit: 4,
-      excludeId: tool.id
+    toolsService.searchTools({
+      category: tool.tool_category || undefined,
+      limit: 4
     }).catch(() => ({ tools: [], totalCount: 0, hasMore: false })),
-    tool.toolCategory 
-      ? CategoriesService.getCategoryByName(tool.toolCategory).catch(() => null)
+    tool.tool_category 
+      ? CategoriesService.getCategoryByName(tool.tool_category).catch(() => null)
       : Promise.resolve(null)
   ])
 
-  const hasImage = tool.imageUrl && tool.imageUrl.length > 0
-  const qualityScore = tool.qualityScore || 0
-  const features = tool.keyFeatures ? tool.keyFeatures.split(',').map(f => f.trim()).filter(f => f.length > 0) : []
-  const useCases = tool.useCases ? tool.useCases.split(',').map(u => u.trim()).filter(u => u.length > 0) : []
+  const hasImage = tool.image_url && tool.image_url.length > 0
+  const qualityScore = tool.quality_score || 0
+  const features = tool.key_features ? tool.key_features.split(',').map(f => f.trim()).filter(f => f.length > 0) : []
+  const useCases = tool.use_cases ? tool.use_cases.split(',').map(u => u.trim()).filter(u => u.length > 0) : []
   const tags = tool.tags ? tool.tags.split(',').map(t => t.trim()).filter(t => t.length > 0) : []
 
   return (
@@ -114,19 +110,19 @@ export default async function ToolPage({ params }: ToolPageProps) {
             <Link href="/tools" className="text-gray-500 hover:text-blue-600">
               Outils
             </Link>
-            {tool.toolCategory && categoryInfo && (
+            {tool.tool_category && categoryInfo && (
               <>
                 <ChevronRightIcon className="w-4 h-4 text-gray-400" />
                 <Link 
-                  href={`/categories/${categoryInfo.slug || tool.toolCategory.toLowerCase().replace(/\s+/g, '-')}`} 
+                  href={`/categories/${categoryInfo.slug || tool.tool_category.toLowerCase().replace(/\s+/g, '-')}`} 
                   className="text-gray-500 hover:text-blue-600"
                 >
-                  {tool.toolCategory}
+                  {tool.tool_category}
                 </Link>
               </>
             )}
             <ChevronRightIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-900 font-medium">{tool.toolName}</span>
+            <span className="text-gray-900 font-medium">{tool.tool_name}</span>
           </nav>
         </div>
       </div>
@@ -140,8 +136,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
               <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden">
                 {hasImage ? (
                   <Image
-                    src={tool.imageUrl!}
-                    alt={`${tool.toolName} logo`}
+                    src={tool.image_url!}
+                    alt={`${tool.tool_name} logo`}
                     fill
                     className="object-cover"
                     priority
@@ -150,7 +146,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
                   <div className="flex items-center justify-center h-full">
                     <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-3xl flex items-center justify-center">
                       <span className="text-4xl font-bold text-white">
-                        {tool.toolName.charAt(0).toUpperCase()}
+                        {tool.tool_name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   </div>
@@ -180,14 +176,14 @@ export default async function ToolPage({ params }: ToolPageProps) {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-                        {tool.toolName}
+                        {tool.tool_name}
                       </h1>
-                      {tool.toolCategory && (
+                      {tool.tool_category && (
                         <Link 
-                          href={`/categories/${categoryInfo?.slug || tool.toolCategory.toLowerCase().replace(/\s+/g, '-')}`}
+                          href={`/categories/${categoryInfo?.slug || tool.tool_category.toLowerCase().replace(/\s+/g, '-')}`}
                           className="inline-block px-4 py-2 bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors"
                         >
-                          {tool.toolCategory}
+                          {tool.tool_category}
                         </Link>
                       )}
                     </div>
@@ -223,16 +219,16 @@ export default async function ToolPage({ params }: ToolPageProps) {
                   <div className="flex items-center space-x-6 text-sm text-gray-500 mb-6">
                     <div className="flex items-center">
                       <EyeIcon className="w-4 h-4 mr-1" />
-                      <span>{(tool.viewCount || 0).toLocaleString()} vues</span>
+                      <span>{formatNumber(tool.view_count || 0)} vues</span>
                     </div>
                     <div className="flex items-center">
                       <HeartIcon className="w-4 h-4 mr-1" />
-                      <span>{(tool.favoriteCount || 0).toLocaleString()} favoris</span>
+                      <span>{formatNumber(tool.favorite_count || 0)} favoris</span>
                     </div>
-                    {tool.updatedAt && (
+                    {tool.updated_at && (
                       <div className="flex items-center">
                         <ClockIcon className="w-4 h-4 mr-1" />
-                        <span>Mis à jour le {new Date(tool.updatedAt).toLocaleDateString('fr')}</span>
+                        <span>Mis à jour le {new Date(tool.updated_at).toLocaleDateString('fr')}</span>
                       </div>
                     )}
                   </div>
@@ -240,15 +236,15 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
                 {/* Actions */}
                 <div className="flex space-x-4">
-                  {tool.toolLink && (
+                  {tool.tool_link && (
                     <a
-                      href={tool.toolLink}
+                      href={tool.tool_link}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 bg-blue-600 text-white text-center py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
                     >
                       <ArrowTopRightOnSquareIcon className="w-5 h-5 mr-2" />
-                      Visiter {tool.toolName}
+                      Visiter {tool.tool_name}
                     </a>
                   )}
                   
@@ -269,11 +265,11 @@ export default async function ToolPage({ params }: ToolPageProps) {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Description */}
-            {tool.toolDescription && (
+            {tool.tool_description && (
               <section className="bg-white rounded-2xl p-8 border border-gray-200 mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Description</h2>
                 <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-                  {tool.toolDescription.split('\n').map((paragraph, index) => (
+                  {tool.tool_description.split('\n').map((paragraph, index) => (
                     paragraph.trim() && (
                       <p key={index} className="mb-4">
                         {paragraph}
@@ -315,11 +311,11 @@ export default async function ToolPage({ params }: ToolPageProps) {
             )}
 
             {/* Target Audience */}
-            {tool.targetAudience && (
+            {tool.target_audience && (
               <section className="bg-white rounded-2xl p-8 border border-gray-200 mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Public cible</h2>
                 <p className="text-gray-700 leading-relaxed">
-                  {tool.targetAudience}
+                  {tool.target_audience}
                 </p>
               </section>
             )}
@@ -335,15 +331,15 @@ export default async function ToolPage({ params }: ToolPageProps) {
               
               <div className="space-y-4">
                 {/* Category */}
-                {tool.toolCategory && (
+                {tool.tool_category && (
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Catégorie</dt>
                     <dd className="mt-1">
                       <Link 
-                        href={`/categories/${categoryInfo?.slug || tool.toolCategory.toLowerCase().replace(/\s+/g, '-')}`}
+                        href={`/categories/${categoryInfo?.slug || tool.tool_category.toLowerCase().replace(/\s+/g, '-')}`}
                         className="text-blue-600 hover:text-blue-800 font-medium"
                       >
-                        {tool.toolCategory}
+                        {tool.tool_category}
                       </Link>
                     </dd>
                   </div>
@@ -373,9 +369,9 @@ export default async function ToolPage({ params }: ToolPageProps) {
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Statistiques</dt>
                   <dd className="mt-1 space-y-1 text-sm">
-                    <div>{(tool.viewCount || 0).toLocaleString()} vues</div>
-                    <div>{(tool.clickCount || 0).toLocaleString()} clics</div>
-                    <div>{(tool.favoriteCount || 0).toLocaleString()} favoris</div>
+                    <div>{formatNumber(tool.view_count || 0)} vues</div>
+                    <div>{formatNumber(tool.click_count || 0)} clics</div>
+                    <div>{formatNumber(tool.favorite_count || 0)} favoris</div>
                   </dd>
                 </div>
 
@@ -399,10 +395,10 @@ export default async function ToolPage({ params }: ToolPageProps) {
               </div>
 
               {/* Action Button */}
-              {tool.toolLink && (
+              {tool.tool_link && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <a
-                    href={tool.toolLink}
+                    href={tool.tool_link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full bg-blue-600 text-white text-center py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
@@ -429,26 +425,26 @@ export default async function ToolPage({ params }: ToolPageProps) {
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                          {relatedTool.imageUrl ? (
+                          {relatedTool.image_url ? (
                             <Image
-                              src={relatedTool.imageUrl}
-                              alt={relatedTool.toolName}
+                              src={relatedTool.image_url}
+                              alt={relatedTool.tool_name}
                               width={40}
                               height={40}
                               className="rounded-lg object-cover"
                             />
                           ) : (
                             <span className="text-sm font-medium text-gray-600">
-                              {relatedTool.toolName.charAt(0)}
+                              {relatedTool.tool_name.charAt(0)}
                             </span>
                           )}
                         </div>
                         <div className="flex-1">
                           <div className="text-sm font-medium text-gray-900">
-                            {relatedTool.toolName}
+                            {relatedTool.tool_name}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {relatedTool.toolCategory}
+                            {relatedTool.tool_category}
                           </div>
                         </div>
                       </div>

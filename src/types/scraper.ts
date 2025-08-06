@@ -5,6 +5,7 @@
 export interface ScrapingResult {
   url: string;
   title: string;
+  description: string;
   content: string;
   metadata: {
     description: string;

@@ -17,6 +17,8 @@
  */
 
 import Link from 'next/link'
+import { SparklesIcon } from '@heroicons/react/24/outline'
+import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface FooterProps {
   totalToolsCount?: number
@@ -78,37 +80,35 @@ export default function Footer({
   ]
 
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="glass-effect border-t border-gray-700/50">
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand and Description */}
           <div className="lg:col-span-1">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <SparklesIcon className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">Video-IA.net</h3>
-                <p className="text-sm text-gray-400">Répertoire d'outils IA</p>
+                <h3 className="text-2xl font-bold gradient-text">Video-IA.net</h3>
+                <p className="text-sm text-gray-400 font-medium">Répertoire d'outils IA</p>
               </div>
             </div>
-            <p className="text-gray-300 text-sm mb-4">
+            <p className="text-gray-300 text-base leading-relaxed mb-8">
               Le répertoire le plus complet d'outils d'intelligence artificielle pour les créateurs, 
               développeurs et professionnels. Découvrez les meilleurs outils IA du marché.
             </p>
             
             {/* Statistics */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center p-3 bg-gray-800 rounded-lg">
-                <div className="text-2xl font-bold text-blue-400">{totalToolsCount.toLocaleString()}</div>
-                <div className="text-xs text-gray-400">Outils IA</div>
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="text-center p-4 glass-effect rounded-2xl border border-gray-700/50">
+                <div className="text-3xl font-bold gradient-text">{formatNumber(totalToolsCount)}</div>
+                <div className="text-sm text-gray-400 font-medium">Outils IA</div>
               </div>
-              <div className="text-center p-3 bg-gray-800 rounded-lg">
-                <div className="text-2xl font-bold text-purple-400">{totalCategoriesCount}</div>
-                <div className="text-xs text-gray-400">Catégories</div>
+              <div className="text-center p-4 glass-effect rounded-2xl border border-gray-700/50">
+                <div className="text-3xl font-bold gradient-text">{totalCategoriesCount}</div>
+                <div className="text-sm text-gray-400 font-medium">Catégories</div>
               </div>
             </div>
 
@@ -120,10 +120,12 @@ export default function Footer({
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-3 glass-effect rounded-xl hover:bg-gray-700/50 transition-all duration-200 group"
                   aria-label={social.label}
                 >
-                  {social.icon}
+                  <div className="text-gray-400 group-hover:text-purple-400 transition-colors duration-200">
+                    {social.icon}
+                  </div>
                 </a>
               ))}
             </div>
@@ -131,13 +133,13 @@ export default function Footer({
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Navigation</h4>
-            <ul className="space-y-2">
+            <h4 className="text-xl font-semibold text-white mb-6">Navigation</h4>
+            <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-gray-300 hover:text-white transition-colors text-sm"
+                    className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium"
                   >
                     {link.label}
                   </Link>
@@ -148,13 +150,13 @@ export default function Footer({
 
           {/* Popular Categories */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Catégories populaires</h4>
-            <ul className="space-y-2">
+            <h4 className="text-xl font-semibold text-white mb-6">Catégories populaires</h4>
+            <ul className="space-y-3">
               {popularCategories.map((category) => (
                 <li key={category.href}>
                   <Link
                     href={category.href}
-                    className="text-gray-300 hover:text-white transition-colors text-sm"
+                    className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium"
                   >
                     {category.label}
                   </Link>
@@ -165,35 +167,35 @@ export default function Footer({
 
           {/* Resources and Support */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Ressources</h4>
-            <ul className="space-y-2">
+            <h4 className="text-xl font-semibold text-white mb-6">Ressources</h4>
+            <ul className="space-y-3">
               <li>
-                <Link href="/submit" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link href="/submit" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
                   Soumettre un outil
                 </Link>
               </li>
               <li>
-                <Link href="/api-docs" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link href="/api-docs" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
                   Documentation API
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link href="/blog" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link href="/changelog" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link href="/changelog" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
                   Nouveautés
                 </Link>
               </li>
               <li>
-                <Link href="/support" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link href="/support" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
                   Support
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-gray-300 hover:text-white transition-colors text-sm">
+                <Link href="/terms" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
                   Conditions d'utilisation
                 </Link>
               </li>
@@ -203,20 +205,20 @@ export default function Footer({
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="border-t border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-sm text-gray-400 mb-4 md:mb-0">
+            <div className="text-base text-gray-400 mb-4 md:mb-0 font-medium">
               © {currentYear} Video-IA.net. Tous droits réservés.
             </div>
-            <div className="flex items-center space-x-6 text-sm text-gray-400">
-              <Link href="/privacy" className="hover:text-white transition-colors">
+            <div className="flex items-center space-x-8 text-base text-gray-400">
+              <Link href="/privacy" className="hover:text-white hover:gradient-text transition-all duration-200 font-medium">
                 Politique de confidentialité
               </Link>
-              <Link href="/terms" className="hover:text-white transition-colors">
+              <Link href="/terms" className="hover:text-white hover:gradient-text transition-all duration-200 font-medium">
                 Conditions d'utilisation
               </Link>
-              <Link href="/cookies" className="hover:text-white transition-colors">
+              <Link href="/cookies" className="hover:text-white hover:gradient-text transition-all duration-200 font-medium">
                 Cookies
               </Link>
             </div>

@@ -34,6 +34,7 @@ import {
   ArrowTopRightOnSquareIcon
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
+import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolsListingProps {
   initialTools: Tool[]
@@ -236,7 +237,7 @@ export default function ToolsListing({
           {/* Stats */}
           <div className="flex items-center text-xs text-gray-500 mb-3">
             <EyeIcon className="w-3 h-3 mr-1" />
-            <span>{viewCount.toLocaleString()} vues</span>
+            <span>{formatNumber(viewCount)} vues</span>
           </div>
 
           {/* Actions */}
@@ -427,7 +428,7 @@ export default function ToolsListing({
           <div className="bg-white rounded-lg p-4 border border-gray-200 mb-6">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                {totalCount.toLocaleString()} outils trouvés
+                {formatNumber(totalCount)} outils trouvés
               </div>
               
               <div className="flex items-center space-x-4">

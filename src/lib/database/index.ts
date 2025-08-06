@@ -115,7 +115,7 @@ export class DatabaseUtils {
     }
   }> {
     try {
-      const { ToolsService } = await import('./services/tools')
+      const { toolsService } = await import('./services/tools')
       const { CategoriesService } = await import('./services/categories')
       const { TagsService } = await import('./services/tags')
       const { checkDatabaseConnection } = await import('./client')
@@ -126,7 +126,7 @@ export class DatabaseUtils {
         tagStats,
         connectionStatus
       ] = await Promise.all([
-        ToolsService.getToolStatistics(),
+        toolsService.getToolStatistics(),
         CategoriesService.getCategoryStatistics(),
         TagsService.getTagStatistics(),
         checkDatabaseConnection()
@@ -193,8 +193,8 @@ export class DatabaseUtils {
 
     try {
       // Test tools service
-      const { ToolsService } = await import('./services/tools')
-      await ToolsService.searchTools({ limit: 1 })
+      const { toolsService } = await import('./services/tools')
+      await toolsService.searchTools({ limit: 1 })
       services.tools = true
     } catch (error) {
       errors.push('Tools service error')

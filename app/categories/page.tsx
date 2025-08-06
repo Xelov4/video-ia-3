@@ -17,8 +17,10 @@
 import { Suspense } from 'react'
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { CategoriesService } from '@/src/lib/database'
+import { CategoriesService } from '@/src/lib/database/services/categories'
+import { getCategoryEmojiString } from '@/src/lib/services/emojiMapping'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 export const metadata: Metadata = {
   title: 'Catégories d\'outils IA - Explorez 140+ catégories organisées | Video-IA.net',
@@ -36,7 +38,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
   const { search = '' } = searchParams
 
   // Load categories with statistics
-  const categories = await CategoriesService.getAllCategories().catch(error => {
+  const categories = await CategoriesService.getAllCategories().catch((error: any) => {
     console.error('Failed to load categories:', error)
     return []
   })
@@ -55,15 +57,15 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
   const otherCategories = filteredCategories.filter(cat => (cat.isFeatured !== true) && (cat.toolCount || 0) <= 10)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen gradient-bg">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="glass-effect border-b border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Catégories d'outils IA
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Catégories d'<span className="gradient-text">outils IA</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed">
               Explorez notre collection organisée de {categories.length} catégories d'outils 
               d'intelligence artificielle pour tous vos besoins créatifs et professionnels.
             </p>
@@ -77,23 +79,23 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
                     name="search"
                     defaultValue={search}
                     placeholder="Rechercher une catégorie..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="input-field"
                   />
-                  <MagnifyingGlassIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                  <MagnifyingGlassIcon className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
                 </div>
               </form>
             </div>
 
             {/* Stats */}
-            <div className="flex justify-center items-center space-x-8 mt-8 text-sm text-gray-500">
+            <div className="flex justify-center items-center space-x-8 mt-8 text-sm text-gray-400">
               <div>
-                <span className="font-semibold text-blue-600">{categories.length}</span> catégories
+                <span className="font-semibold gradient-text">{categories.length}</span> catégories
               </div>
               <div>
-                <span className="font-semibold text-purple-600">{categories.reduce((sum, cat) => sum + (cat.toolCount || 0), 0).toLocaleString()}</span> outils total
+                <span className="font-semibold gradient-text">{categories.reduce((sum, cat) => sum + (cat.toolCount || 0), 0).toLocaleString()}</span> outils total
               </div>
               <div>
-                <span className="font-semibold text-green-600">{featuredCategories.length}</span> catégories principales
+                <span className="font-semibold gradient-text">{featuredCategories.length}</span> catégories principales
               </div>
             </div>
           </div>
@@ -207,21 +209,15 @@ function CategoryCard({ category, featured = false }: CategoryCardProps) {
           : 'border-gray-200 hover:border-gray-300'
       }`}
     >
-      {/* Icon */}
-      <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 ${
+      {/* Emoji Icon */}
+      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 ${
         featured 
-          ? 'bg-gradient-to-br from-blue-500 to-purple-600' 
-          : 'bg-gradient-to-br from-gray-100 to-gray-200 group-hover:from-blue-100 group-hover:to-purple-100'
-      } transition-all duration-200`}>
-        {category.iconName ? (
-          <span className={`text-xl ${featured ? 'text-white' : 'text-gray-600 group-hover:text-blue-600'}`}>
-            {category.iconName}
-          </span>
-        ) : (
-          <span className={`text-xl font-bold ${featured ? 'text-white' : 'text-gray-600 group-hover:text-blue-600'}`}>
-            {category.name.charAt(0)}
-          </span>
-        )}
+          ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-200' 
+          : 'bg-gradient-to-br from-gray-50 to-white border border-gray-200 group-hover:border-purple-200 group-hover:bg-gradient-to-br group-hover:from-purple-50/50 group-hover:to-pink-50/50'
+      } transition-all duration-300 group-hover:scale-110`}>
+        <span className="text-3xl animate-pulse">
+          {getCategoryEmojiString(category.name)}
+        </span>
       </div>
 
       {/* Content */}

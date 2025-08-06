@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// *
+///  * Tool Model
+///  * 
+///  * Represents an AI tool in the directory with comprehensive metadata,
+///  * SEO optimization fields, and analytics tracking.
+///  * 
+///  * Features:
+///  * - Rich metadata for tool discovery
+///  * - SEO fields for search engine optimization
+///  * - Analytics tracking for user engagement
+///  * - Content management fields (active, featured, quality)
+///  * - Relationship with categories through tool_category field
+model Tool {
+  id              Int       @id @default(autoincrement())
+  toolName        String    @map("tool_name") @db.VarChar(255)
+  toolCategory    String?   @map("tool_category") @db.VarChar(100)
+  toolLink        String?   @map("tool_link")
+  overview        String?
+  toolDescription String?   @map("tool_description")
+  targetAudience  String?   @map("target_audience")
+  keyFeatures     String?   @map("key_features")
+  useCases        String?   @map("use_cases")
+  tags            String?
+  imageUrl        String?   @map("image_url")
+  slug            String?   @unique @db.VarChar(255)
+  isActive        Boolean?  @default(true) @map("is_active")
+  featured        Boolean?  @default(false)
+  qualityScore    Int?      @default(0) @map("quality_score")
+  metaTitle       String?   @map("meta_title") @db.VarChar(255)
+  metaDescription String?   @map("meta_description")
+  seoKeywords     String?   @map("seo_keywords")
+  viewCount       Int?      @default(0) @map("view_count")
+  clickCount      Int?      @default(0) @map("click_count")
+  favoriteCount   Int?      @default(0) @map("favorite_count")
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  lastCheckedAt   DateTime? @default(now()) @map("last_checked_at") @db.Timestamp(6)
+
+  @@map("tools")
+}
+
+/// *
+///  * Category Model
+///  * 
+///  * Represents tool categories for organizational hierarchy.
+///  * Categories help users discover tools by domain/use case.
+///  * 
+///  * Features:
+///  * - Hierarchical organization (ready for parent-child relationships)
+///  * - Tool count tracking for performance
+///  * - Featured categories for homepage display
+///  * - SEO-friendly slugs
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  slug        String?   @unique @db.VarChar(100)
+  description String?
+  iconName    String?   @map("icon_name") @db.VarChar(50)
+  toolCount   Int?      @default(0) @map("tool_count")
+  isFeatured  Boolean?  @default(false) @map("is_featured")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@map("categories")
+}
+
+/// *
+///  * Tag Model
+///  * 
+///  * Represents flexible tagging system for enhanced tool discoverability.
+///  * Tags provide cross-category relationships and user-friendly filtering.
+///  * 
+///  * Features:
+///  * - Usage tracking for popular tags
+///  * - SEO-friendly slugs
+///  * - Performance optimized for tag clouds and filtering
+model Tag {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(50)
+  slug       String?   @unique @db.VarChar(50)
+  usageCount Int?      @default(0) @map("usage_count")
+  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@map("tags")
+}

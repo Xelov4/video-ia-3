@@ -1,0 +1,193 @@
+/**
+ * Tool Card Component
+ * Professional tool display card with image, rating, and actions
+ */
+
+import Link from 'next/link'
+import Image from 'next/image'
+import { DatabaseTool } from '@/src/lib/database/services/tools'
+import { 
+  EyeIcon, 
+  HeartIcon, 
+  StarIcon,
+  ArrowTopRightOnSquareIcon 
+} from '@heroicons/react/24/outline'
+import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
+import { formatNumber } from '@/src/lib/utils/formatNumbers'
+
+interface ToolCardProps {
+  tool: DatabaseTool
+  showCategory?: boolean
+  size?: 'small' | 'medium' | 'large'
+}
+
+export const ToolCard = ({ tool, showCategory = true, size = 'medium' }: ToolCardProps) => {
+  const qualityScore = tool.quality_score || 0
+  const rating = Math.min(5, Math.max(0, qualityScore / 2))
+  
+  const cardSizes = {
+    small: 'p-4',
+    medium: 'p-6',
+    large: 'p-8'
+  }
+
+  const imageSizes = {
+    small: { width: 48, height: 48 },
+    medium: { width: 64, height: 64 },
+    large: { width: 80, height: 80 }
+  }
+
+  // Check if image_url is a valid image URL
+  const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    // Check if it starts with http/https or is a relative path starting with /
+    const isValidUrl = url.startsWith('http') || url.startsWith('/')
+    // Check if it's not just plain text (contains common image extensions or is a data URL)
+    const hasImageIndicator = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url) || url.startsWith('data:image/') || url.includes('/')
+    return isValidUrl && hasImageIndicator
+  }
+
+  return (
+    <div className="group bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden hover:scale-105 hover:shadow-2xl transition-all duration-300">
+      {/* Tool Image Header */}
+      <div className="relative h-48 bg-gradient-to-br from-purple-500/20 to-blue-500/20">
+        {tool.image_url && isValidImageUrl(tool.image_url) ? (
+          <Image
+            src={tool.image_url}
+            alt={tool.tool_name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-110"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            onError={(e) => {
+              // Hide the image and show fallback on error
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-3xl font-bold text-white">
+                {tool.tool_name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          </div>
+        )}
+        
+        {/* Fallback div in case image fails to load */}
+        {tool.image_url && isValidImageUrl(tool.image_url) && (
+          <div 
+            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-blue-500/20"
+            style={{ display: 'none' }}
+            id={`fallback-${tool.id}`}
+          >
+            <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-3xl font-bold text-white">
+                {tool.tool_name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          </div>
+        )}
+        
+        {/* Badges */}
+        <div className="absolute top-3 left-3">
+          {tool.featured && (
+            <span className="inline-flex items-center px-2 py-1 bg-yellow-500/90 text-white text-xs font-semibold rounded-full backdrop-blur-sm">
+              ⭐ Featured
+            </span>
+          )}
+        </div>
+
+        <div className="absolute top-3 right-3">
+          {qualityScore >= 8 && (
+            <span className="inline-flex items-center px-2 py-1 bg-green-500/90 text-white text-xs font-semibold rounded-full backdrop-blur-sm">
+              Premium
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className={cardSizes[size]}>
+        {/* Category (if shown) */}
+        {showCategory && tool.tool_category && (
+          <div className="mb-3">
+            <Link
+              href={`/categories/${encodeURIComponent(tool.tool_category.toLowerCase().replace(/\s+/g, '-'))}`}
+              className="inline-flex items-center px-2 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full hover:bg-blue-500/30 transition-colors"
+            >
+              {tool.tool_category}
+            </Link>
+          </div>
+        )}
+
+        {/* Title */}
+        <h3 className="text-lg font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+          <Link href={`/tools/${tool.slug || tool.id}`} className="hover:underline">
+            {tool.tool_name}
+          </Link>
+        </h3>
+
+        {/* Description */}
+        <p className="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed">
+          {tool.overview || tool.tool_description?.substring(0, 150) + '...' || 'Aucune description disponible'}
+        </p>
+
+        {/* Rating */}
+        <div className="flex items-center mb-4">
+          <div className="flex items-center mr-2">
+            {[...Array(5)].map((_, i) => (
+              <StarSolidIcon
+                key={i}
+                className={`w-4 h-4 ${
+                  i < Math.floor(rating)
+                    ? 'text-yellow-400'
+                    : 'text-gray-600'
+                }`}
+              />
+            ))}
+          </div>
+          <span className="text-sm font-medium text-white">
+            {rating.toFixed(1)}
+          </span>
+          <span className="text-xs text-gray-400 ml-1">
+            ({qualityScore}/10)
+          </span>
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center justify-between text-xs text-gray-400 mb-6">
+          <div className="flex items-center">
+            <EyeIcon className="w-3 h-3 mr-1" />
+            {formatNumber(tool.view_count || 0)}
+          </div>
+          <div className="flex items-center">
+            <HeartIcon className="w-3 h-3 mr-1" />
+            {formatNumber(tool.favorite_count || 0)}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex space-x-2">
+          <Link
+            href={`/tools/${tool.slug || tool.id}`}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-center py-2 px-4 rounded-xl text-sm font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+          >
+            Voir les détails
+          </Link>
+          {tool.tool_link && (
+            <a
+              href={tool.tool_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-2 border border-white/30 text-white rounded-xl hover:bg-white/10 transition-colors"
+              title="Visiter le site"
+            >
+              <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

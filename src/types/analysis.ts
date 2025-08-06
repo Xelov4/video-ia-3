@@ -26,6 +26,15 @@ export interface ToolAnalysis {
   affiliateInfo: AffiliateInfo;
   translations?: FrenchTranslation;
   logoUrl?: string;
+  // Enhanced analysis fields
+  qualityScore?: number;
+  completenessScore?: number;
+  competitiveAdvantages?: string[];
+  useCases?: string[];
+  limitations?: string[];
+  integrations?: string[];
+  languages?: string[];
+  platforms?: string[];
 }
 
 export interface PricingDetails {

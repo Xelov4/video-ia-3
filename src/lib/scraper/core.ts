@@ -67,6 +67,7 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
     return {
       url,
       title: content.title,
+      description: metadata.description || metadata.ogDescription || content.title,
       content: content.content,
       metadata,
       socialLinks,

@@ -18,12 +18,14 @@
 
 import { Category, Prisma } from '@prisma/client'
 import { prisma } from '../client'
+import { getCategoryEmoji, getCategoryEmojiString, enrichCategoryWithEmoji } from '../../services/emojiMapping'
 
 /**
  * Category with tool count and additional metadata
  */
 export interface CategoryWithStats extends Category {
   actualToolCount?: number
+  emoji?: string
 }
 
 /**
@@ -75,7 +77,8 @@ export class CategoriesService {
 
           return {
             ...category,
-            actualToolCount
+            actualToolCount,
+            emoji: getCategoryEmojiString(category.name)
           }
         })
       )
@@ -101,9 +104,9 @@ export class CategoriesService {
    * @param limit Number of categories to return
    * @returns Array of featured categories
    */
-  static async getFeaturedCategories(limit: number = 6): Promise<Category[]> {
+  static async getFeaturedCategories(limit: number = 6): Promise<(Category & { emoji: string })[]> {
     try {
-      return await prisma.category.findMany({
+      const categories = await prisma.category.findMany({
         where: {
           isFeatured: true
         },
@@ -113,6 +116,8 @@ export class CategoriesService {
         ],
         take: limit
       })
+      
+      return categories.map(category => enrichCategoryWithEmoji(category))
     } catch (error) {
       console.error('Error getting featured categories:', error)
       throw new Error('Failed to retrieve featured categories')
@@ -536,4 +541,5 @@ export class CategoriesService {
   }
 }
 
+export const categoriesService = new CategoriesService()
 export default CategoriesService

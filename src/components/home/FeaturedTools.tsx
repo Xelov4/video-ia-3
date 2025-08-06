@@ -22,6 +22,7 @@ import Link from 'next/link'
 import { Tool } from '@prisma/client'
 import { StarIcon, EyeIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
+import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface FeaturedToolsProps {
   initialTools?: Tool[]
@@ -171,7 +172,7 @@ export default function FeaturedTools({ initialTools = [], limit = 8 }: Featured
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
                 <EyeIcon className="w-4 h-4 mr-1" />
-                <span>{viewCount.toLocaleString()} vues</span>
+                <span>{formatNumber(viewCount)} vues</span>
               </div>
             </div>
           </div>
