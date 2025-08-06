@@ -76,7 +76,17 @@ class MultilingualToolsService {
   private readonly VALID_LANGUAGES: SupportedLanguage[] = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt']
   private readonly DEFAULT_LANGUAGE: SupportedLanguage = 'en'
   private readonly CACHE_TTL = 300000 // 5 minutes
-  private cache = new Map<string, { data: any; expires: number }>()
+  private readonly MAX_CACHE_SIZE = 2000 // Limite mémoire
+  private readonly CACHE_CLEANUP_THRESHOLD = 1500 // Seuil nettoyage
+  
+  private cache = new Map<string, { data: any; expires: number; accessCount: number; lastAccess: number }>()
+  private cacheStats = {
+    hits: 0,
+    misses: 0,
+    sets: 0,
+    evictions: 0,
+    cleanups: 0
+  }
   private metrics = {
     queries: 0,
     cacheHits: 0,
@@ -92,39 +102,113 @@ class MultilingualToolsService {
   }
 
   /**
-   * Nettoyage automatique du cache
+   * Stratégie d'invalidation cache intelligente LRU + TTL
    */
-  private cleanExpiredCache() {
+  private cleanExpiredCache(force = false) {
     const now = Date.now()
-    for (const [key, value] of this.cache.entries()) {
-      if (value.expires < now) {
+    const shouldClean = force || this.cache.size > this.CACHE_CLEANUP_THRESHOLD
+    
+    if (shouldClean) {
+      this.cacheStats.cleanups++
+      const entries = Array.from(this.cache.entries())
+      
+      // 1. Supprimer les entrées expirées
+      const expired = entries.filter(([_, value]) => value.expires < now)
+      expired.forEach(([key]) => {
         this.cache.delete(key)
+        this.cacheStats.evictions++
+      })
+      
+      // 2. Si toujours trop plein, utiliser LRU
+      if (this.cache.size > this.MAX_CACHE_SIZE) {
+        const remaining = Array.from(this.cache.entries())
+        remaining
+          .sort(([,a], [,b]) => a.lastAccess - b.lastAccess) // Plus ancien d'abord
+          .slice(0, this.cache.size - this.MAX_CACHE_SIZE)
+          .forEach(([key]) => {
+            this.cache.delete(key)
+            this.cacheStats.evictions++
+          })
       }
     }
   }
 
   /**
-   * Gestion du cache avec TTL
+   * Invalidation sélective par pattern
+   */
+  private invalidateByPattern(pattern: RegExp | string) {
+    let count = 0
+    for (const [key] of this.cache.entries()) {
+      if (typeof pattern === 'string' ? key.includes(pattern) : pattern.test(key)) {
+        this.cache.delete(key)
+        count++
+      }
+    }
+    console.log(`Cache invalidation: ${count} entries removed for pattern: ${pattern}`)
+    return count
+  }
+
+  /**
+   * Génération de clé cache stable (ordre déterministe)
+   */
+  private generateStableCacheKey(prefix: string, params: any): string {
+    const sortedParams = this.sortObjectKeys(params)
+    return `${prefix}:${this.stableStringify(sortedParams)}`
+  }
+
+  private sortObjectKeys(obj: any): any {
+    if (obj === null || typeof obj !== 'object') return obj
+    if (Array.isArray(obj)) return obj.map(item => this.sortObjectKeys(item))
+    
+    const sorted: any = {}
+    Object.keys(obj).sort().forEach(key => {
+      sorted[key] = this.sortObjectKeys(obj[key])
+    })
+    return sorted
+  }
+
+  private stableStringify(obj: any): string {
+    try {
+      return JSON.stringify(obj)
+    } catch (error) {
+      console.warn('Cache key serialization failed:', error)
+      return `fallback:${Date.now()}:${Math.random()}`
+    }
+  }
+
+  /**
+   * Gestion du cache avec TTL et statistiques avancées
    */
   private getCachedData<T>(key: string): T | null {
     const cached = this.cache.get(key)
     if (cached && cached.expires > Date.now()) {
+      // Update access statistics
+      cached.accessCount++
+      cached.lastAccess = Date.now()
+      this.cache.set(key, cached)
+      
       this.metrics.cacheHits++
+      this.cacheStats.hits++
       return cached.data as T
     }
+    
+    this.cacheStats.misses++
     return null
   }
 
   private setCachedData<T>(key: string, data: T): void {
+    const now = Date.now()
     this.cache.set(key, {
       data,
-      expires: Date.now() + this.CACHE_TTL
+      expires: now + this.CACHE_TTL,
+      accessCount: 1,
+      lastAccess: now
     })
     
-    // Nettoyage périodique
-    if (this.cache.size > 1000) {
-      this.cleanExpiredCache()
-    }
+    this.cacheStats.sets++
+    
+    // Nettoyage périodique intelligent
+    this.cleanExpiredCache()
   }
 
   /**
@@ -266,11 +350,13 @@ class MultilingualToolsService {
         throw new ValidationError('Invalid pagination parameters')
       }
 
-      // Cache key pour la requête complète
-      const cacheKey = `search:${JSON.stringify(params)}`
+      // Cache key stable pour la requête complète
+      const cacheKey = this.generateStableCacheKey('search', params)
+      let cacheHit = false
       if (useCache) {
         const cached = this.getCachedData<PaginatedToolsResponse>(cacheKey)
         if (cached) {
+          cached.meta.cacheHit = true
           return cached
         }
       }
@@ -392,7 +478,7 @@ class MultilingualToolsService {
         meta: {
           language,
           fallbackCount,
-          cacheHit: false,
+          cacheHit,
           responseTime
         }
       }
@@ -450,18 +536,95 @@ class MultilingualToolsService {
   }
 
   /**
-   * Récupérer les métriques du service
+   * Métriques avancées avec diagnostics performance
    */
   getMetrics() {
-    const cacheHitRate = this.metrics.queries > 0 ? 
-      (this.metrics.cacheHits / this.metrics.queries * 100).toFixed(2) : '0'
+    const totalCacheOps = this.cacheStats.hits + this.cacheStats.misses
+    const cacheHitRate = totalCacheOps > 0 ? 
+      (this.cacheStats.hits / totalCacheOps * 100).toFixed(2) : '0'
     
     return {
+      // Métriques existantes
       ...this.metrics,
-      cacheSize: this.cache.size,
-      cacheHitRate: `${cacheHitRate}%`,
+      
+      // Statistiques cache détaillées
+      cache: {
+        size: this.cache.size,
+        maxSize: this.MAX_CACHE_SIZE,
+        hitRate: `${cacheHitRate}%`,
+        hits: this.cacheStats.hits,
+        misses: this.cacheStats.misses,
+        sets: this.cacheStats.sets,
+        evictions: this.cacheStats.evictions,
+        cleanups: this.cacheStats.cleanups
+      },
+      
+      // Ratios calculés
       fallbackRate: this.metrics.queries > 0 ? 
-        (this.metrics.fallbacks / this.metrics.queries * 100).toFixed(2) + '%' : '0%'
+        (this.metrics.fallbacks / this.metrics.queries * 100).toFixed(2) + '%' : '0%',
+      errorRate: this.metrics.queries > 0 ? 
+        (this.metrics.errors / this.metrics.queries * 100).toFixed(2) + '%' : '0%',
+      
+      // Diagnostics
+      health: {
+        cacheEfficiency: parseFloat(cacheHitRate),
+        memoryPressure: (this.cache.size / this.MAX_CACHE_SIZE * 100).toFixed(1) + '%',
+        status: this.getHealthStatus()
+      }
+    }
+  }
+
+  private getHealthStatus(): 'healthy' | 'warning' | 'critical' {
+    const hitRate = this.cacheStats.hits / (this.cacheStats.hits + this.cacheStats.misses || 1)
+    const errorRate = this.metrics.errors / (this.metrics.queries || 1)
+    const memoryUsage = this.cache.size / this.MAX_CACHE_SIZE
+    
+    if (errorRate > 0.1 || hitRate < 0.3) return 'critical'
+    if (errorRate > 0.05 || hitRate < 0.6 || memoryUsage > 0.8) return 'warning'
+    return 'healthy'
+  }
+
+  /**
+   * Monitoring en temps réel
+   */
+  public async getPerformanceReport(): Promise<{
+    status: 'healthy' | 'warning' | 'critical'
+    metrics: any
+    recommendations: string[]
+  }> {
+    const metrics = this.getMetrics()
+    const recommendations: string[] = []
+    
+    if (metrics.cache.hitRate && parseFloat(metrics.cache.hitRate) < 60) {
+      recommendations.push('Low cache hit rate - consider increasing TTL or cache warming')
+    }
+    
+    if (parseFloat(metrics.errorRate.replace('%', '')) > 5) {
+      recommendations.push('High error rate detected - check database connectivity')
+    }
+    
+    if (this.cache.size > this.CACHE_CLEANUP_THRESHOLD) {
+      recommendations.push('Cache size approaching limit - consider memory optimization')
+    }
+    
+    return {
+      status: metrics.health.status,
+      metrics,
+      recommendations
+    }
+  }
+
+  /**
+   * API publique d'invalidation cache
+   */
+  public invalidateCache(pattern?: string | RegExp) {
+    if (pattern) {
+      return this.invalidateByPattern(pattern)
+    } else {
+      const size = this.cache.size
+      this.cache.clear()
+      console.log(`Full cache invalidation: ${size} entries removed`)
+      return size
     }
   }
 
@@ -474,30 +637,123 @@ class MultilingualToolsService {
   }
 
   /**
-   * Health check du service
+   * Cache warming strategique pour performance optimale
+   */
+  public async warmCache(options: {
+    languages?: SupportedLanguage[]
+    popularTools?: number
+    categories?: boolean
+  } = {}): Promise<{
+    warmedItems: number
+    duration: number
+    errors: string[]
+  }> {
+    const startTime = Date.now()
+    let warmedItems = 0
+    const errors: string[] = []
+    
+    const languages = options.languages || ['en', 'fr']
+    const popularToolsLimit = options.popularTools || 20
+    
+    try {
+      console.log(`🔥 Starting cache warming for languages: ${languages.join(', ')}`)
+      
+      // 1. Pre-charger outils populaires
+      for (const language of languages) {
+        try {
+          const popularTools = await this.searchTools({
+            language,
+            limit: popularToolsLimit,
+            sortBy: 'view_count',
+            sortOrder: 'desc',
+            useCache: false // Force fresh data
+          })
+          
+          // Cache chaque outil individuellement
+          for (const tool of popularTools.tools.slice(0, Math.min(10, popularTools.tools.length))) {
+            await this.getToolWithTranslation(tool.id, language, { useCache: false })
+            warmedItems++
+          }
+          
+          warmedItems++ // Pour la recherche elle-même
+          
+        } catch (error) {
+          errors.push(`Tools warming failed for ${language}: ${error}`)
+        }
+      }
+      
+      // 2. Pre-charger catégories si demandé
+      if (options.categories) {
+        for (const language of languages) {
+          try {
+            await multilingualCategoriesService.getAllCategories(language, { 
+              useCache: false,
+              includeCounts: true 
+            })
+            warmedItems++
+          } catch (error) {
+            errors.push(`Categories warming failed for ${language}: ${error}`)
+          }
+        }
+      }
+      
+    } catch (error) {
+      errors.push(`Cache warming general error: ${error}`)
+    }
+    
+    const duration = Date.now() - startTime
+    console.log(`🔥 Cache warming completed: ${warmedItems} items in ${duration}ms`)
+    
+    return { warmedItems, duration, errors }
+  }
+
+  /**
+   * Health check avancé avec diagnostics cache
    */
   async healthCheck(): Promise<{
     status: 'healthy' | 'degraded' | 'unhealthy'
     checks: Record<string, boolean>
     metrics: any
+    diagnostics: string[]
   }> {
     const checks = {
       database: false,
       translations: false,
-      cache: true
+      cache: true,
+      performance: false
     }
+    
+    const diagnostics: string[] = []
 
     try {
-      // Test connexion DB
+      // Test connexion DB avec timing
+      const dbStart = Date.now()
       await prisma.tool.findFirst({ where: { isActive: true } })
+      const dbTime = Date.now() - dbStart
       checks.database = true
+      
+      if (dbTime > 100) {
+        diagnostics.push(`Database response slow: ${dbTime}ms`)
+      }
 
       // Test traductions
       const translationCount = await prisma.toolTranslation.count()
       checks.translations = translationCount > 0
+      
+      // Test performance cache
+      const metrics = this.getMetrics()
+      const hitRate = parseFloat(metrics.cache.hitRate?.replace('%', '') || '0')
+      checks.performance = hitRate >= 50
+      
+      if (hitRate < 30) {
+        diagnostics.push(`Critical cache hit rate: ${hitRate}%`)
+      } else if (hitRate < 60) {
+        diagnostics.push(`Low cache hit rate: ${hitRate}%`)
+      }
 
     } catch (error) {
       console.error('Health check failed:', error)
+      diagnostics.push(`Health check error: ${error}`)
     }
 
     const healthyChecks = Object.values(checks).filter(Boolean).length
@@ -513,7 +769,8 @@ class MultilingualToolsService {
     return {
       status,
       checks,
-      metrics: this.getMetrics()
+      metrics: this.getMetrics(),
+      diagnostics
     }
   }
 }

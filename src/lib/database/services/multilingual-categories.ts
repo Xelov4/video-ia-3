@@ -114,49 +114,62 @@ class MultilingualCategoriesService {
 
       let fallbackCount = 0
       
-      // Traitement avec fallbacks
-      const processedCategories: CategoryWithTranslation[] = await Promise.all(
-        categories.map(async category => {
-          const requestedTranslation = category.translations.find(t => t.languageCode === language)
-          const fallbackTranslation = category.translations.find(t => t.languageCode === this.DEFAULT_LANGUAGE)
-          
-          let resolvedTranslation = requestedTranslation
-          let translationSource: 'exact' | 'fallback' | 'original' = 'exact'
-          let resolvedLanguage = language
-
-          if (!requestedTranslation) {
-            fallbackCount++
-            if (fallbackTranslation) {
-              resolvedTranslation = fallbackTranslation
-              translationSource = 'fallback'
-              resolvedLanguage = this.DEFAULT_LANGUAGE
-            } else {
-              translationSource = 'original'
+      // Calcul optimisé des tool counts en batch (1 seule requête)
+      let toolCountsMap: Record<string, number> = {}
+      if (includeCounts) {
+        const toolCounts = await prisma.tool.groupBy({
+          by: ['toolCategory'],
+          where: {
+            isActive: true,
+            toolCategory: {
+              in: categories.map(cat => cat.name)
             }
-          }
-
-          // Calcul du nombre réel d'outils si demandé
-          let actualToolCount = category.toolCount
-          if (includeCounts) {
-            actualToolCount = await prisma.tool.count({
-              where: {
-                toolCategory: category.name,
-                isActive: true
-              }
-            })
-          }
-
-          return {
-            ...category,
-            displayName: resolvedTranslation?.name || category.name,
-            displayDescription: resolvedTranslation?.description || category.description,
-            resolvedLanguage,
-            translationSource,
-            emoji: getCategoryEmojiString(category.name),
-            actualToolCount
+          },
+          _count: {
+            id: true
           }
         })
-      )
+        
+        toolCountsMap = Object.fromEntries(
+          toolCounts.map(tc => [tc.toolCategory, tc._count.id])
+        )
+      }
+
+      // Traitement avec fallbacks (sans requêtes individuelles)
+      const processedCategories: CategoryWithTranslation[] = categories.map(category => {
+        const requestedTranslation = category.translations.find(t => t.languageCode === language)
+        const fallbackTranslation = category.translations.find(t => t.languageCode === this.DEFAULT_LANGUAGE)
+        
+        let resolvedTranslation = requestedTranslation
+        let translationSource: 'exact' | 'fallback' | 'original' = 'exact'
+        let resolvedLanguage = language
+
+        if (!requestedTranslation) {
+          fallbackCount++
+          if (fallbackTranslation) {
+            resolvedTranslation = fallbackTranslation
+            translationSource = 'fallback'
+            resolvedLanguage = this.DEFAULT_LANGUAGE
+          } else {
+            translationSource = 'original'
+          }
+        }
+
+        // Utilisation du count optimisé ou fallback vers category.toolCount
+        const actualToolCount = includeCounts ? 
+          (toolCountsMap[category.name] ?? category.toolCount) : 
+          category.toolCount
+
+        return {
+          ...category,
+          displayName: resolvedTranslation?.name || category.name,
+          displayDescription: resolvedTranslation?.description || category.description,
+          resolvedLanguage,
+          translationSource,
+          emoji: getCategoryEmojiString(category.name),
+          actualToolCount
+        }
+      })
 
       const result: CategoriesResponse = {
         categories: processedCategories,
