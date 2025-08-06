@@ -36,7 +36,7 @@ export default function AdminCategoriesPage() {
     try {
       const response = await fetch('/api/categories')
       const data = await response.json()
-      setCategories(data)
+      setCategories(data.categories || [])
     } catch (error) {
       console.error('Error fetching categories:', error)
     } finally {
