@@ -46,6 +46,9 @@ model Tool {
   updatedAt       DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
   lastCheckedAt   DateTime? @default(now()) @map("last_checked_at") @db.Timestamp(6)
 
+  // Relations
+  translations ToolTranslation[]
+
   @@map("tools")
 }
 
@@ -70,6 +73,9 @@ model Category {
   isFeatured  Boolean?  @default(false) @map("is_featured")
   createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
 
+  // Relations
+  translations CategoryTranslation[]
+
   @@map("categories")
 }
 
@@ -91,4 +97,83 @@ model Tag {
   createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
 
   @@map("tags")
+}
+
+/// *
+///  * Language Model
+///  * 
+///  * Represents supported languages in the multilingual system.
+///  * Controls language activation, fallbacks, and display order.
+model Language {
+  code             String  @id @db.VarChar(2)
+  name             String  @db.VarChar(50)
+  nativeName       String  @map("native_name") @db.VarChar(50)
+  flagEmoji        String? @map("flag_emoji") @db.VarChar(10)
+  enabled          Boolean @default(true)
+  fallbackLanguage String? @map("fallback_language") @db.VarChar(2)
+  sortOrder        Int     @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  toolTranslations     ToolTranslation[]
+  categoryTranslations CategoryTranslation[]
+  
+  // Self-referential relation for fallback
+  fallbackLang Language? @relation("LanguageFallback", fields: [fallbackLanguage], references: [code])
+  fallbackFor  Language[] @relation("LanguageFallback")
+
+  @@map("languages")
+}
+
+/// *
+///  * Tool Translation Model
+///  * 
+///  * Stores translated content for tools in different languages.
+///  * Supports fallback hierarchy and quality tracking.
+model ToolTranslation {
+  id                Int      @id @default(autoincrement())
+  toolId            Int      @map("tool_id")
+  languageCode      String   @map("language_code") @db.VarChar(2)
+  name              String   @db.VarChar(255)
+  overview          String?
+  description       String?
+  metaTitle         String?  @map("meta_title") @db.VarChar(255)
+  metaDescription   String?  @map("meta_description")
+  translationSource String   @default("auto") @map("translation_source") @db.VarChar(20)
+  qualityScore      Decimal  @default(0.00) @map("quality_score") @db.Decimal(3, 2)
+  humanReviewed     Boolean  @default(false) @map("human_reviewed")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  tool     Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageCode], references: [code], onUpdate: Cascade)
+
+  @@unique([toolId, languageCode])
+  @@map("tool_translations")
+}
+
+/// *
+///  * Category Translation Model
+///  * 
+///  * Stores translated content for categories in different languages.
+model CategoryTranslation {
+  id                Int      @id @default(autoincrement())
+  categoryId        Int      @map("category_id")
+  languageCode      String   @map("language_code") @db.VarChar(2)
+  name              String   @db.VarChar(100)
+  description       String?
+  translationSource String   @default("auto") @map("translation_source") @db.VarChar(20)
+  qualityScore      Decimal  @default(0.00) @map("quality_score") @db.Decimal(3, 2)
+  humanReviewed     Boolean  @default(false) @map("human_reviewed")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relations
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageCode], references: [code], onUpdate: Cascade)
+
+  @@unique([categoryId, languageCode])
+  @@map("category_translations")
 }

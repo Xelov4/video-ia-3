@@ -19,7 +19,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { CategoriesService } from '@/src/lib/database'
+import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
+import { validateLanguageParam, validateLimitParam, I18N_HEADERS } from '@/src/lib/i18n/types'
 
 /**
  * GET /api/categories
@@ -37,62 +38,124 @@ import { CategoriesService } from '@/src/lib/database'
  * @returns Categories list with metadata
  */
 export async function GET(request: NextRequest) {
+  const startTime = Date.now()
+  
   try {
     const { searchParams } = new URL(request.url)
     
-    // Parse query parameters
+    // Validation sécurisée des paramètres
+    const language = validateLanguageParam(searchParams.get('lang') || 'en')
     const featured = searchParams.get('featured') === 'true'
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+    const limit = searchParams.get('limit') ? validateLimitParam(searchParams.get('limit')!, 100) : undefined
     const search = searchParams.get('search') || undefined
     const includeEmpty = searchParams.get('includeEmpty') !== 'false' // Default to true
+    const useCache = searchParams.get('cache') !== 'false'
     
-    let categories
+    let result
     
     if (featured) {
       // Get featured categories
-      categories = await CategoriesService.getFeaturedCategories(limit || 8)
+      const categories = await multilingualCategoriesService.getFeaturedCategories(language, limit || 8)
+      result = {
+        categories,
+        meta: {
+          language,
+          totalCount: categories.length,
+          fallbackCount: categories.filter(cat => cat.translationSource !== 'exact').length,
+          cacheHit: false // Featured categories use their own cache
+        }
+      }
     } else if (search) {
       // Search categories by name
-      categories = await CategoriesService.searchCategories(search, limit || 50)
+      const categories = await multilingualCategoriesService.searchCategories(search, language, limit || 50)
+      result = {
+        categories,
+        meta: {
+          language,
+          totalCount: categories.length,
+          fallbackCount: categories.filter(cat => cat.translationSource !== 'exact').length,
+          cacheHit: false
+        }
+      }
     } else {
       // Get all categories
-      categories = await CategoriesService.getAllCategories(includeEmpty)
+      result = await multilingualCategoriesService.getAllCategories(language, {
+        includeEmpty,
+        useCache,
+        includeCounts: true
+      })
       
       // Apply limit if specified
-      if (limit && categories.length > limit) {
-        categories = categories.slice(0, limit)
+      if (limit && result.categories.length > limit) {
+        result.categories = result.categories.slice(0, limit)
+        result.meta.totalCount = result.categories.length
       }
     }
     
-    // Calculate statistics
-    const totalCategories = categories.length
-    const featuredCount = categories.filter(cat => cat.isFeatured).length
-    const totalTools = categories.reduce((sum, cat) => sum + (cat.toolCount || 0), 0)
+    // Calculate additional statistics
+    const featuredCount = result.categories.filter(cat => cat.isFeatured).length
+    const totalTools = result.categories.reduce((sum, cat) => sum + (cat.actualToolCount || 0), 0)
     
-    return NextResponse.json({
+    // Headers informatifs
+    const responseHeaders = new Headers()
+    responseHeaders.set(I18N_HEADERS.LANGUAGE, result.meta.language)
+    responseHeaders.set(I18N_HEADERS.FALLBACK_USED, result.meta.fallbackCount.toString())
+    responseHeaders.set(I18N_HEADERS.CACHE_STATUS, result.meta.cacheHit ? 'HIT' : 'MISS')
+    responseHeaders.set('Content-Type', 'application/json')
+    
+    const response = {
       success: true,
-      categories,
+      data: result.categories,
       meta: {
-        totalCategories,
+        language: result.meta.language,
+        totalCategories: result.meta.totalCount,
         featuredCount,
         totalTools,
+        fallbackCount: result.meta.fallbackCount,
+        cacheHit: result.meta.cacheHit,
+        responseTime: Date.now() - startTime,
         filters: {
           featured,
           search,
           includeEmpty,
           limit
-        }
+        },
+        timestamp: new Date().toISOString(),
+        version: '2.0'
       }
+    }
+    
+    return NextResponse.json(response, {
+      status: 200,
+      headers: responseHeaders
     })
     
   } catch (error) {
-    console.error('Error in GET /api/categories:', error)
+    console.error('Error in GET /api/categories:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      url: request.url
+    })
+
+    // Gestion spécifique des erreurs de validation
+    if (error instanceof Error && (error as any).code) {
+      const validationError = error as any
+      return NextResponse.json(
+        {
+          success: false,
+          error: validationError.message,
+          code: validationError.code,
+          field: validationError.field
+        },
+        { status: 400 }
+      )
+    }
     
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to retrieve categories',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        timestamp: new Date().toISOString()
       },
       { status: 500 }
     )
