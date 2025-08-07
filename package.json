@@ -35,7 +35,15 @@
     "test:links:optimized": "node scripts/optimized-link-checker.js",
     "test:links:e2e": "playwright test tests/e2e/link-checker.spec.ts",
     "test:all-links": "node scripts/test-all-links.js",
-    "test:links:quick": "node scripts/quick-link-test.js"
+    "test:links:quick": "node scripts/quick-link-test.js",
+    "deploy:setup-vps": "./scripts/deploy/setup-vps-complete.sh",
+    "deploy:migrate-initial": "./scripts/deploy/initial-migration.sh",
+    "sync:to-prod": "node scripts/deploy/sync-to-prod.js",
+    "sync:from-prod": "node scripts/deploy/sync-from-prod.js",
+    "sync:analyze": "node scripts/deploy/database-analyzer.js",
+    "sync:dashboard": "node scripts/deploy/sync-dashboard.js",
+    "validate:databases": "node scripts/deploy/database-analyzer.js --compare-all --verbose",
+    "test:deployment": "./scripts/deploy/test-deployment.sh"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

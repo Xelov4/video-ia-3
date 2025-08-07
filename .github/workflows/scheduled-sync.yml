@@ -1,0 +1,276 @@
+name: 📅 Scheduled Database Sync
+
+on:
+  schedule:
+    # Daily at 02:00 UTC (03:00 CET) - DEV → PROD content sync
+    - cron: '0 2 * * *'
+    # Weekly on Sunday at 04:00 UTC - Full bidirectional sync
+    - cron: '0 4 * * 0'
+  
+  workflow_dispatch:
+    inputs:
+      sync_type:
+        description: 'Type of scheduled sync to run'
+        type: choice
+        options:
+          - 'daily'     # Light content sync DEV → PROD
+          - 'weekly'    # Full bidirectional sync
+          - 'emergency' # Emergency sync with validation
+        default: 'daily'
+        required: true
+      
+      force_sync:
+        description: 'Force sync even if no changes detected'
+        type: boolean
+        default: false
+        required: false
+
+jobs:
+  determine_sync_type:
+    name: Determine Sync Type
+    runs-on: ubuntu-latest
+    outputs:
+      sync_type: ${{ steps.determine.outputs.sync_type }}
+      should_run: ${{ steps.determine.outputs.should_run }}
+    
+    steps:
+      - name: 🎯 Determine Sync Type
+        id: determine
+        run: |
+          # Determine sync type based on trigger
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            if [ "${{ github.event.schedule }}" == "0 2 * * *" ]; then
+              echo "sync_type=daily" >> $GITHUB_OUTPUT
+            elif [ "${{ github.event.schedule }}" == "0 4 * * 0" ]; then
+              echo "sync_type=weekly" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "sync_type=${{ inputs.sync_type }}" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "should_run=true" >> $GITHUB_OUTPUT
+
+  daily_sync:
+    name: Daily Content Sync (DEV → PROD)
+    runs-on: ubuntu-latest
+    needs: determine_sync_type
+    if: needs.determine_sync_type.outputs.sync_type == 'daily' && needs.determine_sync_type.outputs.should_run == 'true'
+    
+    steps:
+      - name: 📋 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🔍 Check for Changes
+        id: check_changes
+        run: |
+          echo "🔍 Checking for changes since last sync..."
+          
+          # Get last sync time from production
+          last_sync=$(PGPASSWORD="${{ secrets.PROD_DB_PASSWORD }}" psql -h "${{ secrets.PROD_DB_HOST }}" -U "${{ secrets.PROD_DB_USER }}" -d "${{ secrets.PROD_DB_NAME }}" -t -c "SELECT COALESCE(MAX(updated_at), '1970-01-01') FROM tools;")
+          
+          # Count changes in dev since last sync
+          changes=$(PGPASSWORD="${{ secrets.DEV_DB_PASSWORD }}" psql -h "${{ secrets.DEV_DB_HOST }}" -U "${{ secrets.DEV_DB_USER }}" -d "${{ secrets.DEV_DB_NAME }}" -t -c "SELECT COUNT(*) FROM tools WHERE updated_at > '$last_sync';")
+          changes=$(echo $changes | tr -d ' ')
+          
+          echo "📊 Changes detected: $changes tools"
+          
+          if [ "$changes" -gt 0 ] || [ "${{ inputs.force_sync }}" == "true" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "changes_count=$changes" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "changes_count=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔄 Execute Daily Sync
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          echo "🚀 Executing daily sync: ${{ steps.check_changes.outputs.changes_count }} changes"
+          
+          # Run lightweight content sync
+          npm run sync:to-prod -- \
+            --mode="content_only" \
+            --preserve-analytics \
+            --incremental \
+            --quiet
+
+      - name: 📊 Daily Sync Summary
+        if: always()
+        run: |
+          echo "## 📅 Daily Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type**: Daily automated sync" >> $GITHUB_STEP_SUMMARY
+          echo "- **Direction**: DEV → PROD" >> $GITHUB_STEP_SUMMARY
+          echo "- **Changes**: ${{ steps.check_changes.outputs.changes_count || 'N/A' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_changes.outputs.has_changes }}" != "true" ]; then
+            echo "- **Note**: No changes detected, sync skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  weekly_sync:
+    name: Weekly Full Sync (Bidirectional)
+    runs-on: ubuntu-latest
+    needs: determine_sync_type
+    if: needs.determine_sync_type.outputs.sync_type == 'weekly' && needs.determine_sync_type.outputs.should_run == 'true'
+    
+    steps:
+      - name: 📋 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 📦 Create Weekly Backups
+        run: |
+          echo "📦 Creating weekly backups..."
+          
+          # Backup DEV
+          PGPASSWORD="${{ secrets.DEV_DB_PASSWORD }}" pg_dump \
+            -h "${{ secrets.DEV_DB_HOST }}" \
+            -U "${{ secrets.DEV_DB_USER }}" \
+            -d "${{ secrets.DEV_DB_NAME }}" \
+            --clean --if-exists \
+            -f "weekly_backup_dev_$(date +%Y%m%d).sql"
+          
+          # Backup PROD
+          PGPASSWORD="${{ secrets.PROD_DB_PASSWORD }}" pg_dump \
+            -h "${{ secrets.PROD_DB_HOST }}" \
+            -U "${{ secrets.PROD_DB_USER }}" \
+            -d "${{ secrets.PROD_DB_NAME }}" \
+            --clean --if-exists \
+            -f "weekly_backup_prod_$(date +%Y%m%d).sql"
+          
+          echo "✅ Weekly backups created"
+
+      - name: 🔄 Analyze Sync Requirements
+        id: analyze
+        run: |
+          echo "🔍 Analyzing sync requirements..."
+          
+          # Compare database states
+          npm run sync:analyze -- \
+            --compare-all \
+            --output=analysis.json
+          
+          # Determine sync direction and requirements
+          echo "sync_required=true" >> $GITHUB_OUTPUT
+
+      - name: 🔄 Execute Weekly Sync
+        if: steps.analyze.outputs.sync_required == 'true'
+        run: |
+          echo "🚀 Executing weekly full sync..."
+          
+          # Step 1: Sync new content DEV → PROD
+          echo "📤 Syncing new content DEV → PROD..."
+          npm run sync:to-prod -- \
+            --mode="incremental" \
+            --preserve-analytics \
+            --backup=false
+          
+          # Step 2: Sync production analytics PROD → DEV
+          echo "📥 Syncing analytics PROD → DEV..."
+          npm run sync:from-prod -- \
+            --mode="analytics_only" \
+            --preserve-dev-data \
+            --backup=false
+
+      - name: 🔍 Weekly Validation
+        if: always()
+        run: |
+          echo "🔍 Performing weekly validation..."
+          
+          # Comprehensive database validation
+          npm run validate:databases -- \
+            --comprehensive \
+            --report=weekly_validation.json
+          
+          echo "✅ Weekly validation completed"
+
+      - name: 📊 Weekly Sync Summary
+        if: always()
+        run: |
+          echo "## 📅 Weekly Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type**: Weekly full sync" >> $GITHUB_STEP_SUMMARY
+          echo "- **Direction**: Bidirectional" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backups**: Created" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+
+  emergency_sync:
+    name: Emergency Sync
+    runs-on: ubuntu-latest
+    needs: determine_sync_type
+    if: needs.determine_sync_type.outputs.sync_type == 'emergency' && needs.determine_sync_type.outputs.should_run == 'true'
+    
+    steps:
+      - name: 📋 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🚨 Emergency Backup
+        run: |
+          echo "🚨 Creating emergency backups..."
+          
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          
+          # Emergency backup of both databases
+          PGPASSWORD="${{ secrets.DEV_DB_PASSWORD }}" pg_dump \
+            -h "${{ secrets.DEV_DB_HOST }}" \
+            -U "${{ secrets.DEV_DB_USER }}" \
+            -d "${{ secrets.DEV_DB_NAME }}" \
+            --clean --if-exists \
+            -f "emergency_backup_dev_${TIMESTAMP}.sql"
+          
+          PGPASSWORD="${{ secrets.PROD_DB_PASSWORD }}" pg_dump \
+            -h "${{ secrets.PROD_DB_HOST }}" \
+            -U "${{ secrets.PROD_DB_USER }}" \
+            -d "${{ secrets.PROD_DB_NAME }}" \
+            --clean --if-exists \
+            -f "emergency_backup_prod_${TIMESTAMP}.sql"
+          
+          echo "✅ Emergency backups created with timestamp: $TIMESTAMP"
+
+      - name: 🔍 Emergency Validation
+        run: |
+          echo "🔍 Emergency database validation..."
+          
+          # Validate both databases
+          npm run validate:databases -- \
+            --emergency \
+            --detailed-report
+          
+          echo "✅ Emergency validation completed"
+
+      - name: 📊 Emergency Summary
+        if: always()
+        run: |
+          echo "## 🚨 Emergency Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Type**: Emergency sync" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Backups**: Created with timestamp" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Note**: Manual review recommended" >> $GITHUB_STEP_SUMMARY
