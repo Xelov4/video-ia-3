@@ -236,7 +236,7 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
           </main>
           
           {/* Footer avec contexte langue */}
-          <Footer />
+          <Footer currentLanguage={lang} />
         </I18nProvider>
         
         {/* Analytics et scripts de tracking */}

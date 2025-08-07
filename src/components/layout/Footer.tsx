@@ -1,9 +1,9 @@
 /**
- * Main Footer Component
+ * Main Footer Component - Multilingual
  * 
  * Comprehensive footer for the AI tools directory platform.
  * Features site links, category navigation, statistics, and
- * social media integration.
+ * social media integration with full multilingual support.
  * 
  * Features:
  * - Site navigation links
@@ -12,6 +12,7 @@
  * - Social media links
  * - SEO-optimized structure
  * - Responsive design
+ * - Full multilingual support
  * 
  * @author Video-IA.net Development Team
  */
@@ -19,34 +20,248 @@
 import Link from 'next/link'
 import { SparklesIcon } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
+import { SupportedLocale } from '@/middleware'
 
 interface FooterProps {
+  currentLanguage: SupportedLocale
   totalToolsCount?: number
   totalCategoriesCount?: number
 }
 
 export default function Footer({ 
+  currentLanguage,
   totalToolsCount = 16763,
   totalCategoriesCount = 140 
 }: FooterProps) {
   const currentYear = new Date().getFullYear()
 
+  // Traductions par langue
+  const translations = {
+    'en': {
+      tagline: 'AI Tools Directory',
+      description: 'The most comprehensive directory of artificial intelligence tools for creators, developers and professionals. Discover the best AI tools on the market.',
+      home: 'Home',
+      allTools: 'All Tools',
+      categories: 'Categories',
+      about: 'About',
+      contact: 'Contact',
+      privacy: 'Privacy',
+      popularCategories: 'Popular Categories',
+      writingAssistant: 'Writing Assistant',
+      imageEditing: 'Image Editing',
+      videoEditing: 'Video Editing',
+      music: 'Music',
+      productivity: 'Productivity',
+      chatbots: 'Chatbots',
+      resources: 'Resources',
+      submitTool: 'Submit Tool',
+      apiDocs: 'API Documentation',
+      blog: 'Blog',
+      changelog: 'Changelog',
+      support: 'Support',
+      terms: 'Terms of Use',
+      copyright: 'All rights reserved.',
+      privacyPolicy: 'Privacy Policy',
+      termsOfUse: 'Terms of Use',
+      cookies: 'Cookies'
+    },
+    'fr': {
+      tagline: 'Répertoire d\'outils IA',
+      description: 'Le répertoire le plus complet d\'outils d\'intelligence artificielle pour les créateurs, développeurs et professionnels. Découvrez les meilleurs outils IA du marché.',
+      home: 'Accueil',
+      allTools: 'Tous les outils',
+      categories: 'Catégories',
+      about: 'À propos',
+      contact: 'Contact',
+      privacy: 'Confidentialité',
+      popularCategories: 'Catégories populaires',
+      writingAssistant: 'Assistant rédaction',
+      imageEditing: 'Édition d\'images',
+      videoEditing: 'Montage vidéo',
+      music: 'Musique',
+      productivity: 'Productivité',
+      chatbots: 'Chatbots',
+      resources: 'Ressources',
+      submitTool: 'Soumettre un outil',
+      apiDocs: 'Documentation API',
+      blog: 'Blog',
+      changelog: 'Nouveautés',
+      support: 'Support',
+      terms: 'Conditions d\'utilisation',
+      copyright: 'Tous droits réservés.',
+      privacyPolicy: 'Politique de confidentialité',
+      termsOfUse: 'Conditions d\'utilisation',
+      cookies: 'Cookies'
+    },
+    'es': {
+      tagline: 'Directorio de Herramientas IA',
+      description: 'El directorio más completo de herramientas de inteligencia artificial para creadores, desarrolladores y profesionales. Descubre las mejores herramientas IA del mercado.',
+      home: 'Inicio',
+      allTools: 'Todas las herramientas',
+      categories: 'Categorías',
+      about: 'Acerca de',
+      contact: 'Contacto',
+      privacy: 'Privacidad',
+      popularCategories: 'Categorías populares',
+      writingAssistant: 'Asistente de escritura',
+      imageEditing: 'Edición de imágenes',
+      videoEditing: 'Edición de video',
+      music: 'Música',
+      productivity: 'Productividad',
+      chatbots: 'Chatbots',
+      resources: 'Recursos',
+      submitTool: 'Enviar herramienta',
+      apiDocs: 'Documentación API',
+      blog: 'Blog',
+      changelog: 'Novedades',
+      support: 'Soporte',
+      terms: 'Términos de uso',
+      copyright: 'Todos los derechos reservados.',
+      privacyPolicy: 'Política de privacidad',
+      termsOfUse: 'Términos de uso',
+      cookies: 'Cookies'
+    },
+    'it': {
+      tagline: 'Directory Strumenti IA',
+      description: 'La directory più completa di strumenti di intelligenza artificiale per creatori, sviluppatori e professionisti. Scopri i migliori strumenti IA del mercato.',
+      home: 'Home',
+      allTools: 'Tutti gli strumenti',
+      categories: 'Categorie',
+      about: 'Chi siamo',
+      contact: 'Contatto',
+      privacy: 'Privacy',
+      popularCategories: 'Categorie popolari',
+      writingAssistant: 'Assistente di scrittura',
+      imageEditing: 'Editing immagini',
+      videoEditing: 'Editing video',
+      music: 'Musica',
+      productivity: 'Produttività',
+      chatbots: 'Chatbot',
+      resources: 'Risorse',
+      submitTool: 'Invia strumento',
+      apiDocs: 'Documentazione API',
+      blog: 'Blog',
+      changelog: 'Novità',
+      support: 'Supporto',
+      terms: 'Termini di utilizzo',
+      copyright: 'Tutti i diritti riservati.',
+      privacyPolicy: 'Politica sulla privacy',
+      termsOfUse: 'Termini di utilizzo',
+      cookies: 'Cookie'
+    },
+    'de': {
+      tagline: 'KI-Tools Verzeichnis',
+      description: 'Das umfassendste Verzeichnis von KI-Tools für Kreative, Entwickler und Fachleute. Entdecken Sie die besten KI-Tools auf dem Markt.',
+      home: 'Startseite',
+      allTools: 'Alle Tools',
+      categories: 'Kategorien',
+      about: 'Über uns',
+      contact: 'Kontakt',
+      privacy: 'Datenschutz',
+      popularCategories: 'Beliebte Kategorien',
+      writingAssistant: 'Schreibassistent',
+      imageEditing: 'Bildbearbeitung',
+      videoEditing: 'Videobearbeitung',
+      music: 'Musik',
+      productivity: 'Produktivität',
+      chatbots: 'Chatbots',
+      resources: 'Ressourcen',
+      submitTool: 'Tool einreichen',
+      apiDocs: 'API-Dokumentation',
+      blog: 'Blog',
+      changelog: 'Änderungsprotokoll',
+      support: 'Support',
+      terms: 'Nutzungsbedingungen',
+      copyright: 'Alle Rechte vorbehalten.',
+      privacyPolicy: 'Datenschutzrichtlinie',
+      termsOfUse: 'Nutzungsbedingungen',
+      cookies: 'Cookies'
+    },
+    'nl': {
+      tagline: 'AI Tools Directory',
+      description: 'De meest uitgebreide directory van AI-tools voor makers, ontwikkelaars en professionals. Ontdek de beste AI-tools op de markt.',
+      home: 'Home',
+      allTools: 'Alle tools',
+      categories: 'Categorieën',
+      about: 'Over ons',
+      contact: 'Contact',
+      privacy: 'Privacy',
+      popularCategories: 'Populaire categorieën',
+      writingAssistant: 'Schrijfassistent',
+      imageEditing: 'Afbeeldingsbewerking',
+      videoEditing: 'Videobewerking',
+      music: 'Muziek',
+      productivity: 'Productiviteit',
+      chatbots: 'Chatbots',
+      resources: 'Bronnen',
+      submitTool: 'Tool indienen',
+      apiDocs: 'API-documentatie',
+      blog: 'Blog',
+      changelog: 'Wijzigingslogboek',
+      support: 'Ondersteuning',
+      terms: 'Gebruiksvoorwaarden',
+      copyright: 'Alle rechten voorbehouden.',
+      privacyPolicy: 'Privacybeleid',
+      termsOfUse: 'Gebruiksvoorwaarden',
+      cookies: 'Cookies'
+    },
+    'pt': {
+      tagline: 'Diretório de Ferramentas IA',
+      description: 'O diretório mais completo de ferramentas de inteligência artificial para criadores, desenvolvedores e profissionais. Descubra as melhores ferramentas IA do mercado.',
+      home: 'Início',
+      allTools: 'Todas as ferramentas',
+      categories: 'Categorias',
+      about: 'Sobre',
+      contact: 'Contato',
+      privacy: 'Privacidade',
+      popularCategories: 'Categorias populares',
+      writingAssistant: 'Assistente de escrita',
+      imageEditing: 'Edição de imagens',
+      videoEditing: 'Edição de vídeo',
+      music: 'Música',
+      productivity: 'Produtividade',
+      chatbots: 'Chatbots',
+      resources: 'Recursos',
+      submitTool: 'Enviar ferramenta',
+      apiDocs: 'Documentação da API',
+      blog: 'Blog',
+      changelog: 'Novidades',
+      support: 'Suporte',
+      terms: 'Termos de uso',
+      copyright: 'Todos os direitos reservados.',
+      privacyPolicy: 'Política de privacidade',
+      termsOfUse: 'Termos de uso',
+      cookies: 'Cookies'
+    }
+  }
+
+  const t = translations[currentLanguage] || translations['en']
+
   const quickLinks = [
-    { href: '/', label: 'Accueil' },
-    { href: '/tools', label: 'Tous les outils' },
-    { href: '/categories', label: 'Catégories' },
-    { href: '/about', label: 'À propos' },
-    { href: '/contact', label: 'Contact' },
-    { href: '/privacy', label: 'Confidentialité' },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}`, label: t.home },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/tools`, label: t.allTools },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories`, label: t.categories },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/about`, label: t.about },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/contact`, label: t.contact },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/privacy`, label: t.privacy },
   ]
 
   const popularCategories = [
-    { href: '/categories/writing-assistant', label: 'Assistant rédaction' },
-    { href: '/categories/image-editing', label: 'Édition d\'images' },
-    { href: '/categories/video-editing', label: 'Montage vidéo' },
-    { href: '/categories/music', label: 'Musique' },
-    { href: '/categories/productivity', label: 'Productivité' },
-    { href: '/categories/chatbot', label: 'Chatbots' },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/writing-assistant`, label: t.writingAssistant },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/image-editing`, label: t.imageEditing },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/video-editing`, label: t.videoEditing },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/music`, label: t.music },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/productivity`, label: t.productivity },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/chatbot`, label: t.chatbots },
+  ]
+
+  const resourceLinks = [
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/submit`, label: t.submitTool },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/api-docs`, label: t.apiDocs },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/blog`, label: t.blog },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/changelog`, label: t.changelog },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/support`, label: t.support },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/terms`, label: t.terms },
   ]
 
   const socialLinks = [
@@ -92,26 +307,25 @@ export default function Footer({
               </div>
               <div>
                 <h3 className="text-2xl font-bold gradient-text">Video-IA.net</h3>
-                <p className="text-sm text-gray-400 font-medium">Répertoire d'outils IA</p>
+                <p className="text-sm text-gray-400 font-medium">{t.tagline}</p>
               </div>
             </div>
             <p className="text-gray-300 text-base leading-relaxed mb-8">
-              Le répertoire le plus complet d'outils d'intelligence artificielle pour les créateurs, 
-              développeurs et professionnels. Découvrez les meilleurs outils IA du marché.
+              {t.description}
             </p>
             
             {/* Statistics */}
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div className="text-center p-4 glass-effect rounded-2xl border border-gray-700/50">
                 <div className="text-3xl font-bold gradient-text">{formatNumber(totalToolsCount)}</div>
-                <div className="text-sm text-gray-400 font-medium">Outils IA</div>
+                <div className="text-sm text-gray-400 font-medium">AI Tools</div>
               </div>
               <div className="text-center p-4 glass-effect rounded-2xl border border-gray-700/50">
                 <div className="text-3xl font-bold gradient-text">{totalCategoriesCount}</div>
-                <div className="text-sm text-gray-400 font-medium">Catégories</div>
+                <div className="text-sm text-gray-400 font-medium">{t.categories}</div>
               </div>
             </div>
-
+            
             {/* Social Links */}
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
@@ -130,10 +344,10 @@ export default function Footer({
               ))}
             </div>
           </div>
-
-          {/* Quick Links */}
+          
+          {/* Navigation */}
           <div>
-            <h4 className="text-xl font-semibold text-white mb-6">Navigation</h4>
+            <h4 className="text-xl font-semibold text-white mb-6">{t.home}</h4>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.href}>
@@ -147,10 +361,10 @@ export default function Footer({
               ))}
             </ul>
           </div>
-
+          
           {/* Popular Categories */}
           <div>
-            <h4 className="text-xl font-semibold text-white mb-6">Catégories populaires</h4>
+            <h4 className="text-xl font-semibold text-white mb-6">{t.popularCategories}</h4>
             <ul className="space-y-3">
               {popularCategories.map((category) => (
                 <li key={category.href}>
@@ -164,62 +378,51 @@ export default function Footer({
               ))}
             </ul>
           </div>
-
-          {/* Resources and Support */}
+          
+          {/* Resources */}
           <div>
-            <h4 className="text-xl font-semibold text-white mb-6">Ressources</h4>
+            <h4 className="text-xl font-semibold text-white mb-6">{t.resources}</h4>
             <ul className="space-y-3">
-              <li>
-                <Link href="/submit" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
-                  Soumettre un outil
-                </Link>
-              </li>
-              <li>
-                <Link href="/api-docs" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
-                  Documentation API
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link href="/changelog" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
-                  Nouveautés
-                </Link>
-              </li>
-              <li>
-                <Link href="/support" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
-                  Support
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium">
-                  Conditions d'utilisation
-                </Link>
-              </li>
+              {resourceLinks.map((resource) => (
+                <li key={resource.href}>
+                  <Link
+                    href={resource.href}
+                    className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium"
+                  >
+                    {resource.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
       </div>
-
-      {/* Bottom Bar */}
+      
+      {/* Bottom Footer */}
       <div className="border-t border-gray-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-base text-gray-400 mb-4 md:mb-0 font-medium">
-              © {currentYear} Video-IA.net. Tous droits réservés.
+              © {currentYear} Video-IA.net. {t.copyright}
             </div>
             <div className="flex items-center space-x-8 text-base text-gray-400">
-              <Link href="/privacy" className="hover:text-white hover:gradient-text transition-all duration-200 font-medium">
-                Politique de confidentialité
+              <Link
+                href={`/${currentLanguage === 'en' ? '' : currentLanguage}/privacy`}
+                className="hover:text-white hover:gradient-text transition-all duration-200 font-medium"
+              >
+                {t.privacyPolicy}
               </Link>
-              <Link href="/terms" className="hover:text-white hover:gradient-text transition-all duration-200 font-medium">
-                Conditions d'utilisation
+              <Link
+                href={`/${currentLanguage === 'en' ? '' : currentLanguage}/terms`}
+                className="hover:text-white hover:gradient-text transition-all duration-200 font-medium"
+              >
+                {t.termsOfUse}
               </Link>
-              <Link href="/cookies" className="hover:text-white hover:gradient-text transition-all duration-200 font-medium">
-                Cookies
+              <Link
+                href={`/${currentLanguage === 'en' ? '' : currentLanguage}/cookies`}
+                className="hover:text-white hover:gradient-text transition-all duration-200 font-medium"
+              >
+                {t.cookies}
               </Link>
             </div>
           </div>
