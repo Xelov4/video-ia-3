@@ -1,8 +1,5 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import Header from '@/src/components/layout/Header'
-import Footer from '@/src/components/layout/Footer'
-import { SessionProvider } from '@/src/components/auth/SessionProvider'
 
 export const metadata: Metadata = {
   title: 'Video-IA.net - Répertoire de 16 763 Outils IA pour Créateurs',
@@ -52,15 +49,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
       </head>
       <body className="bg-gray-900 text-gray-100 min-h-screen antialiased font-roboto">
-        <SessionProvider>
-          <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </SessionProvider>
+        {children}
       </body>
     </html>
   )

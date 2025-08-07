@@ -7,8 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { SupportedLocale, SUPPORTED_LOCALES } from '@/middleware'
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
-import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
+import { toolsService } from '@/src/lib/database/services/tools'
+import { CategoriesService } from '@/src/lib/database/services/categories'
 
 // Interface pour entrée sitemap
 interface SitemapEntry {
@@ -68,6 +68,35 @@ function buildAlternateUrls(basePath: string): { [key: string]: string } {
 }
 
 /**
+ * Récupération des données avec fallbacks robustes
+ */
+async function getSitemapData(lang: SupportedLocale) {
+  try {
+    // Récupération parallèle des données avec fallbacks
+    const [toolsResult, categories] = await Promise.all([
+      toolsService.searchTools({ 
+        limit: 5000, // Limite raisonnable pour éviter timeout
+        useCache: true 
+      }).catch(() => ({ tools: [], pagination: { totalPages: 0, hasNextPage: false } })),
+      CategoriesService.getAllCategories().catch(() => [])
+    ])
+
+    return {
+      tools: toolsResult.tools || [],
+      categories: categories || [],
+      success: true
+    }
+  } catch (error) {
+    console.error(`Error fetching sitemap data for ${lang}:`, error)
+    return {
+      tools: [],
+      categories: [],
+      success: false
+    }
+  }
+}
+
+/**
  * GET /api/sitemap/[lang]
  */
 export async function GET(
@@ -92,7 +121,8 @@ export async function GET(
     const mainPages = [
       { path: '', priority: 1.0, changeFreq: 'daily' as const },
       { path: '/tools', priority: 0.9, changeFreq: 'daily' as const },
-      { path: '/categories', priority: 0.8, changeFreq: 'weekly' as const }
+      { path: '/categories', priority: 0.8, changeFreq: 'weekly' as const },
+      { path: '/about', priority: 0.6, changeFreq: 'monthly' as const }
     ]
     
     mainPages.forEach(page => {
@@ -105,87 +135,46 @@ export async function GET(
       })
     })
     
-    // 2. Récupération des données en parallèle pour performance
-    const [toolsResult, categoriesResult] = await Promise.all([
-      // Récupération par batches pour éviter timeout
-      multilingualToolsService.searchTools({
-        language: lang,
-        limit: 1000, // Premier batch
-        useCache: false // Données fraîches pour sitemap
-      }),
-      
-      multilingualCategoriesService.getAllCategories(lang, {
-        includeEmpty: false,
-        useCache: false
-      })
-    ])
+    // 2. Récupération des données
+    const { tools, categories, success } = await getSitemapData(lang)
     
-    // 3. Pages d'outils
-    toolsResult.tools.forEach(tool => {
-      const toolSlug = tool.slug || tool.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    if (!success) {
+      console.warn(`⚠️ Using fallback data for ${lang} sitemap`)
+    }
+    
+    // 3. Pages d'outils (limitées pour performance)
+    tools.slice(0, 1000).forEach(tool => {
+      const toolSlug = tool.slug || tool.id
+      const lastModified = tool.updated_at 
+        ? new Date(tool.updated_at).toISOString()
+        : tool.created_at 
+          ? new Date(tool.created_at).toISOString()
+          : currentDate
       
       sitemapEntries.push({
         url: `${baseUrl}${langPrefix}/tools/${toolSlug}`,
-        lastModified: tool.updatedAt?.toISOString() || tool.createdAt?.toISOString() || currentDate,
+        lastModified: lastModified,
         changeFrequency: 'weekly',
         priority: tool.featured ? 0.8 : 0.6,
         alternates: buildAlternateUrls(`/tools/${toolSlug}`)
       })
     })
     
-    // 4. Si plus d'outils disponibles, récupérer les suivants
-    if (toolsResult.pagination.hasNextPage) {
-      let page = 2
-      while (page <= Math.min(toolsResult.pagination.totalPages, 10)) { // Limite à 10 pages max pour éviter timeout
-        try {
-          const moreTools = await multilingualToolsService.searchTools({
-            language: lang,
-            page,
-            limit: 1000,
-            useCache: false
-          })
-          
-          moreTools.tools.forEach(tool => {
-            const toolSlug = tool.slug || tool.displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-            
-            sitemapEntries.push({
-              url: `${baseUrl}${langPrefix}/tools/${toolSlug}`,
-              lastModified: tool.updatedAt?.toISOString() || tool.createdAt?.toISOString() || currentDate,
-              changeFrequency: 'weekly',
-              priority: tool.featured ? 0.8 : 0.6,
-              alternates: buildAlternateUrls(`/tools/${toolSlug}`)
-            })
-          })
-          
-          page++
-          
-          if (!moreTools.pagination.hasNextPage) break
-          
-        } catch (error) {
-          console.error(`Error fetching tools page ${page}:`, error)
-          break
-        }
-      }
-    }
-    
-    // 5. Pages de catégories avec filtres
-    categoriesResult.categories.forEach(category => {
-      // Page principale de catégorie
-      const categoryPath = `/tools?category=${encodeURIComponent(category.name)}`
-      
+    // 4. Pages de catégories
+    categories.forEach(category => {
       sitemapEntries.push({
-        url: `${baseUrl}${langPrefix}${categoryPath}`,
+        url: `${baseUrl}${langPrefix}/categories/${category.slug}`,
         lastModified: currentDate,
         changeFrequency: 'weekly',
-        priority: category.isFeatured ? 0.7 : 0.5,
-        alternates: buildAlternateUrls(categoryPath)
+        priority: 0.7,
+        alternates: buildAlternateUrls(`/categories/${category.slug}`)
       })
     })
     
-    // 6. Génération du XML final
+    // 5. Génération du XML final
     const sitemapXML = generateSitemapXML(sitemapEntries)
     
-    // 7. Headers pour cache et SEO
+    // 6. Headers pour cache et SEO
     const response = new NextResponse(sitemapXML, {
       status: 200,
       headers: {
@@ -197,24 +186,54 @@ export async function GET(
       }
     })
     
+    console.log(`✅ Sitemap generated for ${lang}: ${sitemapEntries.length} entries`)
     return response
     
   } catch (error) {
-    console.error(`Sitemap generation error for ${lang}:`, error)
+    console.error(`❌ Sitemap generation error for ${lang}:`, error)
     
-    return NextResponse.json(
-      { 
-        error: 'Sitemap generation failed',
-        language: lang,
-        timestamp: new Date().toISOString()
-      }, 
-      { 
-        status: 500,
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
+    // Fallback minimal pour cette langue
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
+    const langPrefix = lang === 'en' ? '' : `/${lang}`
+    const currentDate = new Date().toISOString()
+    
+    const fallbackEntries: SitemapEntry[] = [
+      {
+        url: `${baseUrl}${langPrefix}`,
+        lastModified: currentDate,
+        changeFrequency: 'daily',
+        priority: 1.0,
+        alternates: buildAlternateUrls('')
+      },
+      {
+        url: `${baseUrl}${langPrefix}/tools`,
+        lastModified: currentDate,
+        changeFrequency: 'daily',
+        priority: 0.9,
+        alternates: buildAlternateUrls('/tools')
+      },
+      {
+        url: `${baseUrl}${langPrefix}/categories`,
+        lastModified: currentDate,
+        changeFrequency: 'weekly',
+        priority: 0.8,
+        alternates: buildAlternateUrls('/categories')
       }
-    )
+    ]
+    
+    const fallbackXML = generateSitemapXML(fallbackEntries)
+    
+    return new NextResponse(fallbackXML, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, max-age=300, s-maxage=300', // Cache court pour fallback
+        'Last-Modified': currentDate,
+        'X-Sitemap-Language': lang,
+        'X-Sitemap-Entries': fallbackEntries.length.toString(),
+        'X-Sitemap-Fallback': 'true'
+      }
+    })
   }
 }
 

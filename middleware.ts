@@ -65,17 +65,13 @@ function buildLocalizedUrl(url: URL, locale: SupportedLocale): URL {
   const newUrl = new URL(url)
   const segments = newUrl.pathname.split('/').filter(Boolean)
   
-  // Supprimer langue existante
+  // Supprimer langue existante si présente
   if (SUPPORTED_LOCALES.includes(segments[0] as SupportedLocale)) {
     segments.shift()
   }
   
-  // Ajouter nouvelle langue (sauf pour langue par défaut)
-  if (locale !== DEFAULT_LOCALE) {
-    newUrl.pathname = `/${locale}/${segments.join('/')}`
-  } else {
-    newUrl.pathname = `/${segments.join('/')}`
-  }
+  // Construire le nouveau pathname - toujours avec préfixe de langue
+  newUrl.pathname = `/${locale}${segments.length > 0 ? `/${segments.join('/')}` : ''}`
   
   return newUrl
 }
@@ -96,7 +92,34 @@ function handleI18nRouting(request: NextRequest): NextResponse | null {
   
   // Si pas de langue dans URL, rediriger avec langue détectée
   if (!currentLang) {
+    // Pour la racine, toujours rediriger vers une langue spécifique
+    if (pathname === '/') {
+      const redirectUrl = buildLocalizedUrl(request.nextUrl, preferredLang)
+      const response = NextResponse.redirect(redirectUrl, 302)
+      
+      // Set cookie préférence
+      response.cookies.set('preferred-language', preferredLang, {
+        maxAge: 365 * 24 * 60 * 60, // 1 an
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      })
+      
+      return response
+    }
+    
+    // Pour les autres routes sans langue, rediriger
     const redirectUrl = buildLocalizedUrl(request.nextUrl, preferredLang)
+    
+    // Éviter la boucle : vérifier que l'URL de redirection est différente
+    if (redirectUrl.pathname === pathname) {
+      console.warn('Potential redirect loop detected, skipping redirect')
+      const response = NextResponse.next()
+      response.headers.set('x-current-locale', preferredLang)
+      response.headers.set('x-preferred-locale', preferredLang)
+      return response
+    }
+    
     const response = NextResponse.redirect(redirectUrl, 302)
     
     // Set cookie préférence
@@ -110,6 +133,7 @@ function handleI18nRouting(request: NextRequest): NextResponse | null {
     return response
   }
   
+  // Si la langue est déjà dans l'URL, pas de redirection nécessaire
   // Headers pour debugging
   const response = NextResponse.next()
   response.headers.set('x-current-locale', currentLang)
@@ -191,6 +215,5 @@ export const config = {
 // Export pour usage dans l'app
 export { 
   SUPPORTED_LOCALES as supportedLocales,
-  DEFAULT_LOCALE as defaultLocale,
-  type SupportedLocale
+  DEFAULT_LOCALE as defaultLocale
 }

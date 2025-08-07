@@ -159,8 +159,7 @@ export async function generateMetadata({
     // Vérification propriété site
     verification: {
       google: process.env.GOOGLE_SITE_VERIFICATION,
-      yandex: process.env.YANDEX_VERIFICATION,
-      bing: process.env.BING_VERIFICATION
+      yandex: process.env.YANDEX_VERIFICATION
     }
   }
 }
@@ -237,7 +236,7 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
           </main>
           
           {/* Footer avec contexte langue */}
-          <Footer currentLanguage={lang} />
+          <Footer />
         </I18nProvider>
         
         {/* Analytics et scripts de tracking */}

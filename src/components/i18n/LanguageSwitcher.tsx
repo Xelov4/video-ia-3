@@ -82,23 +82,24 @@ export default function LanguageSwitcher({
    * Construire URL localisée en préservant le contexte
    */
   const buildLocalizedUrl = (targetLang: SupportedLocale): string => {
-    // Extraire le path sans la langue actuelle
-    let pathWithoutLang = pathname
-    
-    // Supprimer le préfixe langue actuel si présent
-    const currentPrefix = currentLanguage === DEFAULT_LOCALE ? '' : `/${currentLanguage}`
-    if (currentPrefix && pathWithoutLang.startsWith(currentPrefix)) {
-      pathWithoutLang = pathWithoutLang.substring(currentPrefix.length) || '/'
+    // Si on clique sur la langue actuelle, ne rien faire
+    if (targetLang === currentLanguage) {
+      return pathname
     }
-
-    // Construire nouvelle URL avec la langue cible
-    const newPrefix = targetLang === DEFAULT_LOCALE ? '' : `/${targetLang}`
-    let newPath = `${newPrefix}${pathWithoutLang}`
     
-    // S'assurer qu'on commence par /
-    if (!newPath.startsWith('/')) {
-      newPath = `/${newPath}`
+    // Logique simplifiée et robuste
+    const segments = pathname.split('/').filter(Boolean)
+    
+    // Si le premier segment est une langue supportée, le remplacer
+    if (SUPPORTED_LOCALES.includes(segments[0] as SupportedLocale)) {
+      segments[0] = targetLang
+    } else {
+      // Sinon, ajouter la langue au début
+      segments.unshift(targetLang)
     }
+    
+    // Construire la nouvelle URL
+    let newPath = `/${segments.join('/')}`
     
     // Ajouter les paramètres de recherche si présents
     const params = searchParams.toString()

@@ -8,12 +8,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SupportedLocale, SUPPORTED_LOCALES } from '@/middleware'
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
-import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
-
-import HeroSection from '@/src/components/home/HeroSection'
-import FeaturedTools from '@/src/components/home/FeaturedTools'
-import ToolsGrid from '@/src/components/tools/ToolsGrid'
 
 // Interface pour props de page
 interface HomePageProps {
@@ -71,7 +65,7 @@ export async function generateMetadata({
     },
     'nl': {
       title: 'Video-IA.net - Beste AI Tools Directory 2025 | 16.000+ AI Tools',
-      description: 'Ontdek 's werelds grootste AI-tools directory met 16.000+ geverifieerde tools voor video creatie, bewerking, automatisering en meer. Gratis reviews, vergelijkingen en beoordelingen.',
+      description: 'Ontdek \'s werelds grootste AI-tools directory met 16.000+ geverifieerde tools voor video creatie, bewerking, automatisering en meer. Gratis reviews, vergelijkingen en beoordelingen.',
       keywords: 'AI-tools directory, kunstmatige intelligentie, video AI-tools, machine learning tools, AI-automatisering, gratis AI-tools'
     },
     'pt': {
@@ -99,7 +93,12 @@ export async function generateMetadata({
       type: 'website',
     },
     
-    // Alternates languages
+    twitter: {
+      card: 'summary_large_image',
+      title: content.title,
+      description: content.description,
+    },
+    
     alternates: {
       canonical: currentUrl,
       languages: Object.fromEntries(
@@ -113,7 +112,7 @@ export async function generateMetadata({
 }
 
 /**
- * Génération des paramètres statiques
+ * Génération des paramètres statiques pour build
  */
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.map((lang) => ({
@@ -122,288 +121,304 @@ export function generateStaticParams() {
 }
 
 /**
- * Homepage Component avec données multilingues
+ * Homepage Component avec contenu multilingue
  */
 export default async function HomePage({ params }: HomePageProps) {
   const lang = validateLanguageParam(params.lang)
   
-  try {
-    // Récupération parallèle des données pour performance
-    const [featuredToolsResult, topCategoriesResult, recentToolsResult] = await Promise.all([
-      // Outils en vedette (8 premiers)
-      multilingualToolsService.getFeaturedTools(lang, 8),
-      
-      // Top catégories (6 premières)  
-      multilingualCategoriesService.getFeaturedCategories(lang, 6),
-      
-      // Outils récents (12 premiers)
-      multilingualToolsService.searchTools({
-        language: lang,
-        limit: 12,
-        sortBy: 'created_at',
-        sortOrder: 'desc',
-        useCache: true
-      })
-    ])
-    
-    // Données pour composants
-    const pageData = {
-      featuredTools: featuredToolsResult,
-      topCategories: topCategoriesResult,
-      recentTools: recentToolsResult.tools,
-      language: lang
-    }
-    
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-        {/* Section Hero avec CTA */}
-        <HeroSection 
-          language={lang}
-          totalToolsCount={16765} 
-          featuredCategories={pageData.topCategories.slice(0, 4)}
-        />
-        
-        {/* Section Outils en Vedette */}
-        <section className="py-16 px-4">
-          <div className="max-w-7xl mx-auto">
-            <FeaturedTools 
-              tools={pageData.featuredTools}
-              language={lang}
-              title={getLocalizedText(lang, 'featuredTools')}
-              subtitle={getLocalizedText(lang, 'featuredToolsSubtitle')}
-            />
-          </div>
-        </section>
-        
-        {/* Section Catégories Populaires */}
-        <section className="py-16 px-4 bg-white dark:bg-gray-800">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-              {getLocalizedText(lang, 'popularCategories')}
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-              {pageData.topCategories.map((category) => (
-                <a
-                  key={category.id}
-                  href={`/${lang}/categories/${category.slug}`}
-                  className="group flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-blue-50 dark:hover:bg-gray-600 transition-all duration-300 hover:scale-105"
-                >
-                  <div className="text-4xl mb-3">
-                    {category.emoji || '🔧'}
-                  </div>
-                  <h3 className="text-sm font-semibold text-center text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                    {category.displayName}
-                  </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {category.actualToolCount} {getLocalizedText(lang, 'tools')}
-                  </p>
-                </a>
-              ))}
-            </div>
-            <div className="text-center mt-8">
-              <a
-                href={`/${lang}/categories`}
-                className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
-              >
-                {getLocalizedText(lang, 'viewAllCategories')}
-                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </section>
-        
-        {/* Section Outils Récents */}
-        <section className="py-16 px-4">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-              {getLocalizedText(lang, 'recentlyAdded')}
-            </h2>
-            <ToolsGrid 
-              tools={pageData.recentTools}
-              language={lang}
-              showLoadMore={false}
-            />
-            <div className="text-center mt-12">
-              <a
-                href={`/${lang}/tools`}
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
-              >
-                {getLocalizedText(lang, 'exploreAllTools')}
-                <svg className="ml-3 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </section>
-        
-        {/* Section CTA Newsletter/Community */}
-        <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
-          <div className="max-w-4xl mx-auto text-center text-white">
-            <h2 className="text-4xl font-bold mb-6">
-              {getLocalizedText(lang, 'stayUpdated')}
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              {getLocalizedText(lang, 'stayUpdatedDescription')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder={getLocalizedText(lang, 'emailPlaceholder')}
-                className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
-              />
-              <button className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                {getLocalizedText(lang, 'subscribe')}
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-    )
-    
-  } catch (error) {
-    console.error('Homepage data loading error:', error)
-    
-    // Fallback gracieux en cas d'erreur
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            {getLocalizedText(lang, 'errorLoading')}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {getLocalizedText(lang, 'errorTryAgain')}
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            {getLocalizedText(lang, 'reload')}
-          </button>
-        </div>
-      </div>
-    )
+  // Données mockées pour l'instant
+  const mockData = {
+    totalTools: 16765,
+    totalCategories: 140,
+    featuredTools: [
+      { id: 1, name: 'ChatGPT', description: 'AI chatbot for conversations', category: 'Chatbot', rating: 4.8 },
+      { id: 2, name: 'Midjourney', description: 'AI image generation', category: 'Image Generation', rating: 4.7 },
+      { id: 3, name: 'Jasper', description: 'AI writing assistant', category: 'Writing', rating: 4.6 },
+      { id: 4, name: 'DALL-E', description: 'AI art creation', category: 'Art', rating: 4.5 }
+    ],
+    popularCategories: [
+      { id: 1, name: 'Writing Assistant', slug: 'writing-assistant', toolCount: 1250, emoji: '✍️' },
+      { id: 2, name: 'Image Editing', slug: 'image-editing', toolCount: 980, emoji: '🎨' },
+      { id: 3, name: 'Video Editing', slug: 'video-editing', toolCount: 750, emoji: '🎬' },
+      { id: 4, name: 'Music Generation', slug: 'music-generation', toolCount: 420, emoji: '🎵' },
+      { id: 5, name: 'Productivity', slug: 'productivity', toolCount: 890, emoji: '⚡' },
+      { id: 6, name: 'Chatbot', slug: 'chatbot', toolCount: 650, emoji: '🤖' }
+    ]
   }
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* Section Hero */}
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6">
+            {getLocalizedText(lang, 'heroTitle')}
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+            {getLocalizedText(lang, 'heroSubtitle')}
+          </p>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                {mockData.totalTools.toLocaleString()}
+              </div>
+              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(lang, 'tools')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                {mockData.totalCategories}
+              </div>
+              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(lang, 'categories')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
+                150+
+              </div>
+              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(lang, 'featured')}</div>
+            </div>
+          </div>
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href={`/${lang}/tools`}
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
+            >
+              {getLocalizedText(lang, 'exploreTools')}
+              <svg className="ml-3 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </a>
+            <a
+              href={`/${lang}/categories`}
+              className="inline-flex items-center px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition-all duration-300"
+            >
+              {getLocalizedText(lang, 'browseCategories')}
+            </a>
+          </div>
+        </div>
+      </section>
+      
+      {/* Section Outils en Vedette */}
+      <section className="py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
+            {getLocalizedText(lang, 'featuredTools')}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {mockData.featuredTools.map((tool) => (
+              <div key={tool.id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{tool.category}</span>
+                  <div className="flex items-center">
+                    <span className="text-yellow-400">★</span>
+                    <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">{tool.rating}</span>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{tool.name}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{tool.description}</p>
+                <a
+                  href={`/${lang}/tools/${tool.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                >
+                  {getLocalizedText(lang, 'learnMore')}
+                  <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Section Catégories Populaires */}
+      <section className="py-16 px-4 bg-white dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
+            {getLocalizedText(lang, 'popularCategories')}
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {mockData.popularCategories.map((category) => (
+              <a
+                key={category.id}
+                href={`/${lang}/categories/${category.slug}`}
+                className="group flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-blue-50 dark:hover:bg-gray-600 transition-all duration-300 hover:scale-105"
+              >
+                <div className="text-4xl mb-3">{category.emoji}</div>
+                <h3 className="text-sm font-semibold text-center text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                  {category.name}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {category.toolCount} {getLocalizedText(lang, 'tools')}
+                </p>
+              </a>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <a
+              href={`/${lang}/categories`}
+              className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
+            >
+              {getLocalizedText(lang, 'viewAllCategories')}
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </section>
+      
+      {/* Section CTA Newsletter */}
+      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="max-w-4xl mx-auto text-center text-white">
+          <h2 className="text-4xl font-bold mb-6">
+            {getLocalizedText(lang, 'stayUpdated')}
+          </h2>
+          <p className="text-xl mb-8 opacity-90">
+            {getLocalizedText(lang, 'stayUpdatedDescription')}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+            <input
+              type="email"
+              placeholder={getLocalizedText(lang, 'emailPlaceholder')}
+              className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
+            />
+            <button className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              {getLocalizedText(lang, 'subscribe')}
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
 }
 
 /**
  * Textes localisés pour la homepage
  */
 function getLocalizedText(lang: SupportedLocale, key: string): string {
-  const translations = {
+  const translations: Record<string, Record<string, string>> = {
     'en': {
+      heroTitle: 'Discover the Best AI Tools',
+      heroSubtitle: '16,000+ verified AI tools for creators and professionals',
+      tools: 'Tools',
+      categories: 'Categories',
+      featured: 'Featured',
+      exploreTools: 'Explore Tools',
+      browseCategories: 'Browse Categories',
       featuredTools: 'Featured AI Tools',
-      featuredToolsSubtitle: 'Discover the most popular and highly-rated AI tools',
       popularCategories: 'Popular Categories',
-      tools: 'tools',
+      learnMore: 'Learn More',
       viewAllCategories: 'View All Categories',
-      recentlyAdded: 'Recently Added Tools',
-      exploreAllTools: 'Explore All Tools',
       stayUpdated: 'Stay Updated',
       stayUpdatedDescription: 'Get the latest AI tools and updates delivered to your inbox',
       emailPlaceholder: 'Enter your email',
-      subscribe: 'Subscribe',
-      errorLoading: 'Error Loading Page',
-      errorTryAgain: 'Something went wrong. Please try again.',
-      reload: 'Reload Page'
+      subscribe: 'Subscribe'
     },
     'fr': {
+      heroTitle: 'Découvrez les Meilleurs Outils IA',
+      heroSubtitle: '16 000+ outils IA vérifiés pour créateurs et professionnels',
+      tools: 'Outils',
+      categories: 'Catégories',
+      featured: 'En Vedette',
+      exploreTools: 'Explorer les Outils',
+      browseCategories: 'Parcourir les Catégories',
       featuredTools: 'Outils IA en Vedette',
-      featuredToolsSubtitle: 'Découvrez les outils IA les plus populaires et les mieux notés',
       popularCategories: 'Catégories Populaires',
-      tools: 'outils',
+      learnMore: 'En Savoir Plus',
       viewAllCategories: 'Voir Toutes les Catégories',
-      recentlyAdded: 'Outils Récemment Ajoutés',
-      exploreAllTools: 'Explorer Tous les Outils',
       stayUpdated: 'Restez Informé',
       stayUpdatedDescription: 'Recevez les derniers outils IA et mises à jour dans votre boîte mail',
       emailPlaceholder: 'Entrez votre email',
-      subscribe: 'S\'abonner',
-      errorLoading: 'Erreur de Chargement',
-      errorTryAgain: 'Quelque chose s\'est mal passé. Veuillez réessayer.',
-      reload: 'Recharger la Page'
+      subscribe: 'S\'abonner'
     },
     'it': {
+      heroTitle: 'Scopri i Migliori Strumenti AI',
+      heroSubtitle: '16.000+ strumenti AI verificati per creatori e professionisti',
+      tools: 'Strumenti',
+      categories: 'Categorie',
+      featured: 'In Evidenza',
+      exploreTools: 'Esplora Strumenti',
+      browseCategories: 'Sfoglia Categorie',
       featuredTools: 'Strumenti AI in Evidenza',
-      featuredToolsSubtitle: 'Scopri gli strumenti AI più popolari e meglio valutati',
       popularCategories: 'Categorie Popolari',
-      tools: 'strumenti',
+      learnMore: 'Scopri di Più',
       viewAllCategories: 'Visualizza Tutte le Categorie',
-      recentlyAdded: 'Strumenti Aggiunti di Recente',
-      exploreAllTools: 'Esplora Tutti gli Strumenti',
       stayUpdated: 'Resta Aggiornato',
       stayUpdatedDescription: 'Ricevi i più recenti strumenti AI e aggiornamenti nella tua casella di posta',
       emailPlaceholder: 'Inserisci la tua email',
-      subscribe: 'Iscriviti',
-      errorLoading: 'Errore nel Caricamento',
-      errorTryAgain: 'Qualcosa è andato storto. Riprova.',
-      reload: 'Ricarica Pagina'
+      subscribe: 'Iscriviti'
     },
     'es': {
+      heroTitle: 'Descubre las Mejores Herramientas IA',
+      heroSubtitle: '16.000+ herramientas IA verificadas para creadores y profesionales',
+      tools: 'Herramientas',
+      categories: 'Categorías',
+      featured: 'Destacadas',
+      exploreTools: 'Explorar Herramientas',
+      browseCategories: 'Navegar Categorías',
       featuredTools: 'Herramientas IA Destacadas',
-      featuredToolsSubtitle: 'Descubre las herramientas IA más populares y mejor valoradas',
       popularCategories: 'Categorías Populares',
-      tools: 'herramientas',
+      learnMore: 'Saber Más',
       viewAllCategories: 'Ver Todas las Categorías',
-      recentlyAdded: 'Herramientas Añadidas Recientemente',
-      exploreAllTools: 'Explorar Todas las Herramientas',
       stayUpdated: 'Mantente Actualizado',
       stayUpdatedDescription: 'Recibe las últimas herramientas IA y actualizaciones en tu bandeja de entrada',
       emailPlaceholder: 'Ingresa tu email',
-      subscribe: 'Suscribirse',
-      errorLoading: 'Error al Cargar',
-      errorTryAgain: 'Algo salió mal. Por favor, inténtalo de nuevo.',
-      reload: 'Recargar Página'
+      subscribe: 'Suscribirse'
     },
     'de': {
-      featuredTools: 'Featured KI-Tools',
-      featuredToolsSubtitle: 'Entdecken Sie die beliebtesten und bestbewerteten KI-Tools',
-      popularCategories: 'Beliebte Kategorien',
+      heroTitle: 'Entdecken Sie die Besten KI-Tools',
+      heroSubtitle: '16.000+ verifizierte KI-Tools für Kreative und Profis',
       tools: 'Tools',
+      categories: 'Kategorien',
+      featured: 'Empfohlen',
+      exploreTools: 'Tools Erkunden',
+      browseCategories: 'Kategorien Durchsuchen',
+      featuredTools: 'Featured KI-Tools',
+      popularCategories: 'Beliebte Kategorien',
+      learnMore: 'Mehr Erfahren',
       viewAllCategories: 'Alle Kategorien Anzeigen',
-      recentlyAdded: 'Kürzlich Hinzugefügte Tools',
-      exploreAllTools: 'Alle Tools Erkunden',
       stayUpdated: 'Bleiben Sie auf dem Laufenden',
       stayUpdatedDescription: 'Erhalten Sie die neuesten KI-Tools und Updates in Ihr Postfach',
       emailPlaceholder: 'E-Mail eingeben',
-      subscribe: 'Abonnieren',
-      errorLoading: 'Fehler beim Laden',
-      errorTryAgain: 'Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.',
-      reload: 'Seite Neu Laden'
+      subscribe: 'Abonnieren'
     },
     'nl': {
+      heroTitle: 'Ontdek de Beste AI Tools',
+      heroSubtitle: '16.000+ geverifieerde AI-tools voor creatieven en professionals',
+      tools: 'Tools',
+      categories: 'Categorieën',
+      featured: 'Uitgelicht',
+      exploreTools: 'Tools Verkennen',
+      browseCategories: 'Categorieën Bladeren',
       featuredTools: 'Uitgelichte AI Tools',
-      featuredToolsSubtitle: 'Ontdek de meest populaire en best beoordeelde AI-tools',
       popularCategories: 'Populaire Categorieën',
-      tools: 'tools',
+      learnMore: 'Meer Leren',
       viewAllCategories: 'Bekijk Alle Categorieën',
-      recentlyAdded: 'Recent Toegevoegde Tools',
-      exploreAllTools: 'Verken Alle Tools',
       stayUpdated: 'Blijf Op de Hoogte',
       stayUpdatedDescription: 'Ontvang de nieuwste AI-tools en updates in je inbox',
       emailPlaceholder: 'Voer je e-mail in',
-      subscribe: 'Abonneren',
-      errorLoading: 'Fout bij Laden',
-      errorTryAgain: 'Er is iets misgegaan. Probeer het opnieuw.',
-      reload: 'Pagina Herladen'
+      subscribe: 'Abonneren'
     },
     'pt': {
+      heroTitle: 'Descubra as Melhores Ferramentas IA',
+      heroSubtitle: '16.000+ ferramentas IA verificadas para criadores e profissionais',
+      tools: 'Ferramentas',
+      categories: 'Categorias',
+      featured: 'Destacadas',
+      exploreTools: 'Explorar Ferramentas',
+      browseCategories: 'Navegar Categorias',
       featuredTools: 'Ferramentas IA em Destaque',
-      featuredToolsSubtitle: 'Descubra as ferramentas IA mais populares e mais bem avaliadas',
       popularCategories: 'Categorias Populares',
-      tools: 'ferramentas',
+      learnMore: 'Saber Mais',
       viewAllCategories: 'Ver Todas as Categorias',
-      recentlyAdded: 'Ferramentas Adicionadas Recentemente',
-      exploreAllTools: 'Explorar Todas as Ferramentas',
       stayUpdated: 'Fique Atualizado',
       stayUpdatedDescription: 'Receba as mais recentes ferramentas IA e atualizações na sua caixa de entrada',
       emailPlaceholder: 'Digite seu email',
-      subscribe: 'Assinar',
-      errorLoading: 'Erro ao Carregar',
-      errorTryAgain: 'Algo deu errado. Tente novamente.',
-      reload: 'Recarregar Página'
+      subscribe: 'Assinar'
     }
   }
   
