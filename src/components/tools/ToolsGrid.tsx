@@ -26,6 +26,7 @@ interface ToolsGridProps {
   hasNextPage: boolean
   hasPreviousPage: boolean
   showCategory?: boolean
+  lang?: string
 }
 
 export const ToolsGrid = ({ 
@@ -35,13 +36,146 @@ export const ToolsGrid = ({
   totalPages, 
   hasNextPage, 
   hasPreviousPage,
-  showCategory = true 
+  showCategory = true,
+  lang = 'en'
 }: ToolsGridProps) => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
+
+  // Multilingual messages
+  const messages = {
+    'en': {
+      toolsFound: 'tools found',
+      page: 'Page',
+      of: 'of',
+      filters: 'Filters',
+      featured: 'Featured',
+      allTools: 'All tools',
+      featuredOnly: 'Featured only',
+      notFeatured: 'Not featured',
+      qualityScore: 'Minimum quality score',
+      allScores: 'All scores',
+      premium: '8+ (Premium)',
+      good: '6+ (Good)',
+      correct: '4+ (Correct)',
+      clearFilters: 'Clear filters',
+      previous: 'Previous',
+      next: 'Next'
+    },
+    'fr': {
+      toolsFound: 'outils trouvés',
+      page: 'Page',
+      of: 'sur',
+      filters: 'Filtres',
+      featured: 'Mise en vedette',
+      allTools: 'Tous les outils',
+      featuredOnly: 'En vedette uniquement',
+      notFeatured: 'Non en vedette',
+      qualityScore: 'Score qualité minimum',
+      allScores: 'Tous les scores',
+      premium: '8+ (Premium)',
+      good: '6+ (Bon)',
+      correct: '4+ (Correct)',
+      clearFilters: 'Effacer les filtres',
+      previous: 'Précédent',
+      next: 'Suivant'
+    },
+    'de': {
+      toolsFound: 'Tools gefunden',
+      page: 'Seite',
+      of: 'von',
+      filters: 'Filter',
+      featured: 'Empfohlen',
+      allTools: 'Alle Tools',
+      featuredOnly: 'Nur empfohlene',
+      notFeatured: 'Nicht empfohlen',
+      qualityScore: 'Mindestqualitätsscore',
+      allScores: 'Alle Scores',
+      premium: '8+ (Premium)',
+      good: '6+ (Gut)',
+      correct: '4+ (Korrekt)',
+      clearFilters: 'Filter löschen',
+      previous: 'Zurück',
+      next: 'Weiter'
+    },
+    'nl': {
+      toolsFound: 'tools gevonden',
+      page: 'Pagina',
+      of: 'van',
+      filters: 'Filters',
+      featured: 'Uitgelicht',
+      allTools: 'Alle tools',
+      featuredOnly: 'Alleen uitgelicht',
+      notFeatured: 'Niet uitgelicht',
+      qualityScore: 'Minimale kwaliteitsscore',
+      allScores: 'Alle scores',
+      premium: '8+ (Premium)',
+      good: '6+ (Goed)',
+      correct: '4+ (Correct)',
+      clearFilters: 'Filters wissen',
+      previous: 'Vorige',
+      next: 'Volgende'
+    },
+    'es': {
+      toolsFound: 'herramientas encontradas',
+      page: 'Página',
+      of: 'de',
+      filters: 'Filtros',
+      featured: 'Destacado',
+      allTools: 'Todas las herramientas',
+      featuredOnly: 'Solo destacadas',
+      notFeatured: 'No destacadas',
+      qualityScore: 'Puntuación mínima de calidad',
+      allScores: 'Todas las puntuaciones',
+      premium: '8+ (Premium)',
+      good: '6+ (Bueno)',
+      correct: '4+ (Correcto)',
+      clearFilters: 'Limpiar filtros',
+      previous: 'Anterior',
+      next: 'Siguiente'
+    },
+    'it': {
+      toolsFound: 'strumenti trovati',
+      page: 'Pagina',
+      of: 'di',
+      filters: 'Filtri',
+      featured: 'In evidenza',
+      allTools: 'Tutti gli strumenti',
+      featuredOnly: 'Solo in evidenza',
+      notFeatured: 'Non in evidenza',
+      qualityScore: 'Punteggio qualità minimo',
+      allScores: 'Tutti i punteggi',
+      premium: '8+ (Premium)',
+      good: '6+ (Buono)',
+      correct: '4+ (Corretto)',
+      clearFilters: 'Cancella filtri',
+      previous: 'Precedente',
+      next: 'Successivo'
+    },
+    'pt': {
+      toolsFound: 'ferramentas encontradas',
+      page: 'Página',
+      of: 'de',
+      filters: 'Filtros',
+      featured: 'Destaque',
+      allTools: 'Todas as ferramentas',
+      featuredOnly: 'Apenas destacadas',
+      notFeatured: 'Não destacadas',
+      qualityScore: 'Pontuação mínima de qualidade',
+      allScores: 'Todas as pontuações',
+      premium: '8+ (Premium)',
+      good: '6+ (Bom)',
+      correct: '4+ (Correto)',
+      clearFilters: 'Limpar filtros',
+      previous: 'Anterior',
+      next: 'Próximo'
+    }
+  }
+
+  const t = messages[lang as keyof typeof messages] || messages['en']
 
   const createQueryString = (params: Record<string, string | null>) => {
     const newSearchParams = new URLSearchParams(searchParams)
@@ -89,10 +223,10 @@ export const ToolsGrid = ({
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         {/* Results Info */}
         <div className="text-gray-300">
-          <span className="font-semibold text-white">{formatNumber(totalCount)}</span> outils trouvés
+          <span className="font-semibold text-white">{formatNumber(totalCount)}</span> {t.toolsFound}
           {currentPage > 1 && (
             <span className="ml-2">
-              • Page {currentPage} sur {totalPages}
+              • {t.page} {currentPage} {t.of} {totalPages}
             </span>
           )}
         </div>
@@ -129,24 +263,24 @@ export const ToolsGrid = ({
             className="flex items-center px-4 py-2 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors"
           >
             <FunnelIcon className="w-4 h-4 mr-2" />
-            Filtres
+            {t.filters}
           </button>
 
           {/* Sort Dropdown */}
           <select
             value={`${currentSort}-${currentOrder}`}
             onChange={(e) => {
-              const [sortBy, sortOrder] = e.target.value.split('-')
-              handleSortChange(sortBy, sortOrder)
+              const [sort, order] = e.target.value.split('-')
+              handleSortChange(sort, order)
             }}
-            className="px-3 py-2 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="px-4 py-2 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
           >
             <option value="created_at-desc">Plus récents</option>
             <option value="created_at-asc">Plus anciens</option>
             <option value="view_count-desc">Plus populaires</option>
-            <option value="quality_score-desc">Mieux notés</option>
-            <option value="tool_name-asc">Nom (A-Z)</option>
-            <option value="tool_name-desc">Nom (Z-A)</option>
+            <option value="quality_score-desc">Meilleur score</option>
+            <option value="tool_name-asc">A-Z</option>
+            <option value="tool_name-desc">Z-A</option>
           </select>
         </div>
       </div>
@@ -158,31 +292,31 @@ export const ToolsGrid = ({
             {/* Featured Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Mise en vedette
+                {t.featured}
               </label>
               <select
                 value={currentFeatured || ''}
                 onChange={(e) => handleFeaturedFilter(e.target.value || null)}
                 className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
               >
-                <option value="">Tous les outils</option>
-                <option value="true">En vedette uniquement</option>
-                <option value="false">Non en vedette</option>
+                <option value="">{t.allTools}</option>
+                <option value="true">{t.featuredOnly}</option>
+                <option value="false">{t.notFeatured}</option>
               </select>
             </div>
 
             {/* Quality Score Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Score qualité minimum
+                {t.qualityScore}
               </label>
               <select
                 className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
               >
-                <option value="">Tous les scores</option>
-                <option value="8">8+ (Premium)</option>
-                <option value="6">6+ (Bon)</option>
-                <option value="4">4+ (Correct)</option>
+                <option value="">{t.allScores}</option>
+                <option value="8">{t.premium}</option>
+                <option value="6">{t.good}</option>
+                <option value="4">{t.correct}</option>
               </select>
             </div>
 
@@ -192,7 +326,7 @@ export const ToolsGrid = ({
                 onClick={() => router.push(pathname)}
                 className="w-full px-4 py-2 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-colors"
               >
-                Effacer les filtres
+                {t.clearFilters}
               </button>
             </div>
           </div>
@@ -200,19 +334,7 @@ export const ToolsGrid = ({
       )}
 
       {/* Tools Grid/List */}
-      {tools.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="text-gray-400 mb-4">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29.82-5.877 2.172M15 19.128A9.38 9.38 0 0112 21c-2.646 0-4.755-.753-5.877-2.172M13 13.496V8a4 4 0 00-8 0v5.496M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-white mb-2">Aucun outil trouvé</h3>
-          <p className="text-gray-400">
-            Essayez de modifier vos critères de recherche ou de filtrage
-          </p>
-        </div>
-      ) : (
+      {tools.length > 0 ? (
         <>
           <div className={`grid gap-6 ${
             viewMode === 'grid' 
@@ -225,6 +347,7 @@ export const ToolsGrid = ({
                 tool={tool} 
                 showCategory={showCategory}
                 size={viewMode === 'list' ? 'small' : 'medium'}
+                lang={lang}
               />
             ))}
           </div>
@@ -243,30 +366,36 @@ export const ToolsGrid = ({
                 }`}
               >
                 <ChevronLeftIcon className="w-4 h-4 mr-1" />
-                Précédent
+                {t.previous}
               </button>
 
               {/* Page Numbers */}
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(7, totalPages) }, (_, i) => {
-                  const page = i + Math.max(1, currentPage - 3)
-                  if (page > totalPages) return null
-                  
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-2 rounded-lg transition-colors ${
-                        page === currentPage
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  )
-                })}
-              </div>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum
+                if (totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      pageNum === currentPage
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
 
               {/* Next Button */}
               <button
@@ -278,12 +407,24 @@ export const ToolsGrid = ({
                     : 'bg-gray-600/50 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                Suivant
+                {t.next}
                 <ChevronRightIcon className="w-4 h-4 ml-1" />
               </button>
             </div>
           )}
         </>
+      ) : (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4">
+            <Squares2X2Icon className="w-16 h-16 mx-auto" />
+          </div>
+          <h3 className="text-lg font-medium text-white mb-2">
+            Aucun outil trouvé
+          </h3>
+          <p className="text-gray-300">
+            Essayez de modifier vos critères de recherche ou supprimez certains filtres.
+          </p>
+        </div>
       )}
     </div>
   )

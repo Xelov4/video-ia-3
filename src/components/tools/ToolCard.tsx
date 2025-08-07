@@ -19,11 +19,12 @@ interface ToolCardProps {
   tool: DatabaseTool
   showCategory?: boolean
   size?: 'small' | 'medium' | 'large'
+  lang?: string
 }
 
-export const ToolCard = ({ tool, showCategory = true, size = 'medium' }: ToolCardProps) => {
+export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'en' }: ToolCardProps) => {
   const qualityScore = tool.quality_score || 0
-  const rating = Math.min(5, Math.max(0, qualityScore / 2))
+  const rating = (qualityScore / 2) || 0
   
   const cardSizes = {
     small: 'p-4',
@@ -31,69 +32,95 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium' }: ToolCar
     large: 'p-8'
   }
 
-  const imageSizes = {
-    small: { width: 48, height: 48 },
-    medium: { width: 64, height: 64 },
-    large: { width: 80, height: 80 }
+  // Multilingual messages
+  const messages = {
+    'en': {
+      featured: '⭐ Featured',
+      premium: 'Premium',
+      viewDetails: 'View Details',
+      visitSite: 'Visit Site',
+      noDescription: 'No description available'
+    },
+    'fr': {
+      featured: '⭐ Mis en avant',
+      premium: 'Premium',
+      viewDetails: 'Voir les détails',
+      visitSite: 'Visiter le site',
+      noDescription: 'Aucune description disponible'
+    },
+    'de': {
+      featured: '⭐ Empfohlen',
+      premium: 'Premium',
+      viewDetails: 'Details anzeigen',
+      visitSite: 'Website besuchen',
+      noDescription: 'Keine Beschreibung verfügbar'
+    },
+    'nl': {
+      featured: '⭐ Uitgelicht',
+      premium: 'Premium',
+      viewDetails: 'Bekijk details',
+      visitSite: 'Bezoek site',
+      noDescription: 'Geen beschrijving beschikbaar'
+    },
+    'es': {
+      featured: '⭐ Destacado',
+      premium: 'Premium',
+      viewDetails: 'Ver detalles',
+      visitSite: 'Visitar sitio',
+      noDescription: 'Sin descripción disponible'
+    },
+    'it': {
+      featured: '⭐ In evidenza',
+      premium: 'Premium',
+      viewDetails: 'Vedi dettagli',
+      visitSite: 'Visita sito',
+      noDescription: 'Nessuna descrizione disponibile'
+    },
+    'pt': {
+      featured: '⭐ Destaque',
+      premium: 'Premium',
+      viewDetails: 'Ver detalhes',
+      visitSite: 'Visitar site',
+      noDescription: 'Nenhuma descrição disponível'
+    }
   }
 
-  // Check if image_url is a valid image URL
+  const t = messages[lang as keyof typeof messages] || messages['en']
+
   const isValidImageUrl = (url: string | null | undefined): boolean => {
     if (!url) return false
-    // Check if it starts with http/https or is a relative path starting with /
-    const isValidUrl = url.startsWith('http') || url.startsWith('/')
-    // Check if it's not just plain text (contains common image extensions or is a data URL)
-    const hasImageIndicator = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url) || url.startsWith('data:image/') || url.includes('/')
-    return isValidUrl && hasImageIndicator
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
   }
 
+  const imageUrl = isValidImageUrl(tool.image_url) 
+    ? tool.image_url! 
+    : `https://via.placeholder.com/400x250/1f2937/ffffff?text=${encodeURIComponent(tool.tool_name)}`
+
   return (
-    <div className="group bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl overflow-hidden hover:scale-105 hover:shadow-2xl transition-all duration-300">
-      {/* Tool Image Header */}
-      <div className="relative h-48 bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-        {tool.image_url && isValidImageUrl(tool.image_url) ? (
-          <Image
-            src={tool.image_url}
-            alt={tool.tool_name}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-110"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            onError={(e) => {
-              // Hide the image and show fallback on error
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-            }}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-3xl font-bold text-white">
-                {tool.tool_name.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          </div>
-        )}
+    <div className="group bg-gray-800 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-gray-700">
+      {/* Image */}
+      <div className="relative h-48 overflow-hidden">
+        <Image
+          src={imageUrl}
+          alt={tool.tool_name}
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-300"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
         
-        {/* Fallback div in case image fails to load */}
-        {tool.image_url && isValidImageUrl(tool.image_url) && (
-          <div 
-            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-blue-500/20"
-            style={{ display: 'none' }}
-            id={`fallback-${tool.id}`}
-          >
-            <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-3xl font-bold text-white">
-                {tool.tool_name.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent" />
         
         {/* Badges */}
         <div className="absolute top-3 left-3">
           {tool.featured && (
             <span className="inline-flex items-center px-2 py-1 bg-yellow-500/90 text-white text-xs font-semibold rounded-full backdrop-blur-sm">
-              ⭐ Featured
+              {t.featured}
             </span>
           )}
         </div>
@@ -101,7 +128,7 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium' }: ToolCar
         <div className="absolute top-3 right-3">
           {qualityScore >= 8 && (
             <span className="inline-flex items-center px-2 py-1 bg-green-500/90 text-white text-xs font-semibold rounded-full backdrop-blur-sm">
-              Premium
+              {t.premium}
             </span>
           )}
         </div>
@@ -113,7 +140,7 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium' }: ToolCar
         {showCategory && tool.tool_category && (
           <div className="mb-3">
             <Link
-              href={`/categories/${encodeURIComponent(tool.tool_category.toLowerCase().replace(/\s+/g, '-'))}`}
+              href={`/${lang}/categories/${encodeURIComponent(tool.tool_category.toLowerCase().replace(/\s+/g, '-'))}`}
               className="inline-flex items-center px-2 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full hover:bg-blue-500/30 transition-colors"
             >
               {tool.tool_category}
@@ -123,14 +150,14 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium' }: ToolCar
 
         {/* Title */}
         <h3 className="text-lg font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
-          <Link href={`/tools/${tool.slug || tool.id}`} className="hover:underline">
+          <Link href={`/${lang}/tools/${tool.slug || tool.id}`} className="hover:underline">
             {tool.tool_name}
           </Link>
         </h3>
 
         {/* Description */}
         <p className="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed">
-          {tool.overview || tool.tool_description?.substring(0, 150) + '...' || 'Aucune description disponible'}
+          {tool.overview || tool.tool_description?.substring(0, 150) + '...' || t.noDescription}
         </p>
 
         {/* Rating */}
@@ -170,10 +197,10 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium' }: ToolCar
         {/* Actions */}
         <div className="flex space-x-2">
           <Link
-            href={`/tools/${tool.slug || tool.id}`}
+            href={`/${lang}/tools/${tool.slug || tool.id}`}
             className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-center py-2 px-4 rounded-xl text-sm font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
           >
-            Voir les détails
+            {t.viewDetails}
           </Link>
           {tool.tool_link && (
             <a
@@ -181,7 +208,7 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium' }: ToolCar
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-2 border border-white/30 text-white rounded-xl hover:bg-white/10 transition-colors"
-              title="Visiter le site"
+              title={t.visitSite}
             >
               <ArrowTopRightOnSquareIcon className="w-4 h-4" />
             </a>

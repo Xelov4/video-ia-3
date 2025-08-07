@@ -275,6 +275,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             hasNextPage={toolsResult.hasNextPage}
             hasPreviousPage={toolsResult.hasPreviousPage}
             showCategory={false}
+            lang={lang}
           />
         </div>
       </div>
