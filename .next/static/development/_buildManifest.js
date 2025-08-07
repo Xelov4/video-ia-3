@@ -1,1 +1,1 @@
-self.__BUILD_MANIFEST = {__rewrites:{afterFiles:[],beforeFiles:[],fallback:[]},sortedPages:["\u002F_app"]};self.__BUILD_MANIFEST_CB && self.__BUILD_MANIFEST_CB()
+self.__BUILD_MANIFEST = (function(a){return {__rewrites:{afterFiles:[{has:a,source:"\u002Frobots.txt",destination:"\u002Fapi\u002Frobots"}],beforeFiles:[{has:a,source:"\u002Fsitemap-:lang.xml",destination:"\u002Fapi\u002Fsitemap\u002F:lang"}],fallback:[]},sortedPages:["\u002F_app"]}}(void 0));self.__BUILD_MANIFEST_CB && self.__BUILD_MANIFEST_CB()
