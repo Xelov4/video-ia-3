@@ -34,6 +34,7 @@ import {
   InformationCircleIcon
 } from '@heroicons/react/24/outline'
 import LanguageSwitcher from '@/src/components/i18n/LanguageSwitcher'
+import { useNavTranslation } from '@/src/hooks/useTranslation'
 import { SupportedLocale } from '@/middleware'
 
 interface Category {
@@ -60,6 +61,7 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
   
   const router = useRouter()
   const pathname = usePathname()
+  const nav = useNavTranslation()
 
   /**
    * Handle scroll effect for header background
@@ -110,25 +112,25 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
   const navigationLinks = [
     { 
       href: '/', 
-      label: 'Accueil', 
+      label: nav.home, 
       icon: SparklesIcon,
       active: pathname === '/' 
     },
     { 
       href: '/tools', 
-      label: 'Outils IA', 
+      label: nav.tools, 
       icon: CommandLineIcon,
       active: pathname.startsWith('/tools') 
     },
     { 
       href: '/categories', 
-      label: 'Catégories', 
+      label: nav.categories, 
       icon: BeakerIcon,
       active: pathname.startsWith('/categories') 
     },
     { 
       href: '/about', 
-      label: 'À propos', 
+      label: nav.about, 
       icon: InformationCircleIcon,
       active: pathname === '/about' 
     },
@@ -204,7 +206,7 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
                 {isCategoriesOpen && (
                   <div className="absolute right-0 mt-3 w-96 bg-black/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-4 z-50">
                     <div className="px-6 py-3 border-b border-white/10">
-                      <h3 className="text-lg font-semibold text-white">Catégories Populaires</h3>
+                      <h3 className="text-lg font-semibold text-white">{nav.categories}</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-1 p-4">
                       {featuredCategories.map((category) => (
@@ -284,7 +286,7 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
-                    placeholder="Rechercher un outil IA..."
+                    placeholder={nav.searchPlaceholder}
                     className="w-80 pl-12 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-2xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400/50 text-white placeholder-gray-400 transition-all duration-300 backdrop-blur-xl hover:bg-white/15"
                   />
                   <MagnifyingGlassIcon className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 transition-colors duration-200 ${
@@ -339,7 +341,7 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Rechercher un outil IA..."
+                    placeholder={nav.searchPlaceholder}
                     className="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-2xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400/50 text-white placeholder-gray-400 transition-all duration-300 backdrop-blur-xl"
                   />
                   <MagnifyingGlassIcon className="absolute left-4 top-4 h-6 w-6 text-gray-400" />
@@ -371,7 +373,7 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
                 <div className="border-t border-white/10 pt-8 mt-8">
                   <h3 className="text-xl font-bold text-white mb-6 flex items-center space-x-2">
                     <BeakerIcon className="w-5 h-5 text-purple-400" />
-                    <span>Catégories Populaires</span>
+                    <span>{nav.categories}</span>
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
                     {featuredCategories.slice(0, 6).map((category) => (
