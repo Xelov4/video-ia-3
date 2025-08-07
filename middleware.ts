@@ -1,15 +1,10 @@
 /**
- * Combined Middleware pour Video-IA.net
- * Gère l'authentification admin ET le routing multilingue
+ * Middleware pour Video-IA.net
+ * Gère le routing multilingue pour les routes publiques
  */
 
-import { withAuth } from 'next-auth/middleware'
 import { NextRequest, NextResponse } from 'next/server'
-
-// Configuration i18n
-export const SUPPORTED_LOCALES = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt'] as const
-export const DEFAULT_LOCALE = 'en' as const
-export type SupportedLocale = typeof SUPPORTED_LOCALES[number]
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type SupportedLocale } from '@/src/lib/i18n/constants'
 
 // Routes protégées qui ne doivent pas être préfixées par la langue
 const PROTECTED_ROUTES = [
@@ -79,12 +74,12 @@ function buildLocalizedUrl(url: URL, locale: SupportedLocale): URL {
 /**
  * Middleware i18n (pour routes publiques)
  */
-function handleI18nRouting(request: NextRequest): NextResponse | null {
+export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
   // Bypass pour routes protégées
   if (isProtectedRoute(pathname)) {
-    return null // Continue vers middleware suivant
+    return NextResponse.next()
   }
   
   const currentLang = extractLanguageFromUrl(pathname)
@@ -141,63 +136,6 @@ function handleI18nRouting(request: NextRequest): NextResponse | null {
   
   return response
 }
-
-/**
- * Middleware combiné avec gestion d'ordre
- */
-export default withAuth(
-  function middleware(req) {
-    // 1. D'abord traiter l'i18n pour routes publiques
-    const i18nResponse = handleI18nRouting(req)
-    if (i18nResponse && i18nResponse.status !== 200) {
-      return i18nResponse // Redirection i18n
-    }
-    
-    // 2. Ensuite traiter l'auth pour routes admin
-    if (req.nextUrl.pathname.startsWith('/admin')) {
-      // Allow access to login page
-      if (req.nextUrl.pathname === '/admin/login') {
-        return NextResponse.next()
-      }
-
-      // Check if user is authenticated
-      if (!req.nextauth.token) {
-        const loginUrl = new URL('/admin/login', req.url)
-        loginUrl.searchParams.set('callbackUrl', req.nextUrl.pathname)
-        return NextResponse.redirect(loginUrl)
-      }
-
-      // Check user role for admin access
-      const userRole = req.nextauth.token.role as string
-      const allowedRoles = ['super_admin', 'admin', 'editor']
-      
-      if (!allowedRoles.includes(userRole)) {
-        return NextResponse.redirect(new URL('/admin/login', req.url))
-      }
-    }
-
-    // 3. Retourner réponse avec headers i18n si applicable
-    return i18nResponse || NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        // Allow access to public routes (géré par i18n)
-        if (!req.nextUrl.pathname.startsWith('/admin')) {
-          return true
-        }
-        
-        // Allow access to login page
-        if (req.nextUrl.pathname === '/admin/login') {
-          return true
-        }
-        
-        // Require authentication for admin routes
-        return !!token
-      },
-    },
-  }
-)
 
 export const config = {
   matcher: [

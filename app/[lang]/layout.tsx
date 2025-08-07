@@ -8,7 +8,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Inter } from 'next/font/google'
-import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/src/lib/i18n/constants'
 
 import Header from '@/src/components/layout/Header'
 import Footer from '@/src/components/layout/Footer'

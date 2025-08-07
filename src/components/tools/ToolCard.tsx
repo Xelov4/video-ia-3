@@ -99,7 +99,7 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'e
 
   const imageUrl = isValidImageUrl(tool.image_url) 
     ? tool.image_url! 
-    : `https://via.placeholder.com/400x250/1f2937/ffffff?text=${encodeURIComponent(tool.tool_name)}`
+    : `https://picsum.photos/400/250?random=${encodeURIComponent(tool.tool_name)}`
 
   return (
     <div className="group bg-gray-800 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-gray-700">

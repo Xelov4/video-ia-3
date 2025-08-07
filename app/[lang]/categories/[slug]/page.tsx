@@ -23,9 +23,7 @@ import { toolsService } from '@/src/lib/database/services/tools'
 import { CategoriesService } from '@/src/lib/database/services/categories'
 import { ToolsGrid } from '@/src/components/tools/ToolsGrid'
 import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline'
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware'
-
-type SupportedLocale = typeof SUPPORTED_LOCALES[number]
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type SupportedLocale } from '@/src/lib/i18n/constants'
 
 interface CategoryPageProps {
   params: { 
