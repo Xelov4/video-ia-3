@@ -98,7 +98,9 @@ check_prerequisites() {
   fi
   
   # Vérifier les changements non commités (ignorer les fichiers de build)
-  UNCOMMITTED_CHANGES=$(git status --porcelain | grep -v "^.M .next/" | grep -v "^.M tsconfig.tsbuildinfo")
+  ALL_CHANGES=$(git status --porcelain)
+  UNCOMMITTED_CHANGES=$(echo "$ALL_CHANGES" | grep -v "^.M .next/" | grep -v "^.M tsconfig.tsbuildinfo" | head -10)
+  
   if ! $FORCE && [[ -n "$UNCOMMITTED_CHANGES" ]]; then
     warning "Des changements non commités ont été détectés:"
     echo "$UNCOMMITTED_CHANGES"
@@ -111,7 +113,7 @@ check_prerequisites() {
   fi
   
   # Informer si seuls les fichiers de build ont changé
-  if [[ -n $(git status --porcelain) && -z "$UNCOMMITTED_CHANGES" ]]; then
+  if [[ -n "$ALL_CHANGES" && -z "$UNCOMMITTED_CHANGES" ]]; then
     log "Seuls les fichiers de build Next.js ont changé (ignorés pour le déploiement)"
   fi
   
