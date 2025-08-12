@@ -11,7 +11,7 @@
 
 import React, { createContext, useContext, useCallback, useMemo } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
 
 // Types du context
 interface I18nContextValue {
@@ -69,7 +69,7 @@ export function I18nProvider({ children, currentLanguage }: I18nProviderProps) {
   const searchParams = useSearchParams()
 
   // Calculer si c'est la langue par défaut
-  const isDefaultLanguage = currentLanguage === DEFAULT_LOCALE
+  const isDefaultLanguage = currentLanguage === defaultLocale
 
   /**
    * Construire path localisé
@@ -80,7 +80,7 @@ export function I18nProvider({ children, currentLanguage }: I18nProviderProps) {
   ) => {
     const cleanPath = path.startsWith('/') ? path : `/${path}`
     
-    return targetLanguage === DEFAULT_LOCALE 
+    return targetLanguage === defaultLocale 
       ? cleanPath
       : `/${targetLanguage}${cleanPath}`
   }, [currentLanguage])
@@ -113,7 +113,7 @@ export function I18nProvider({ children, currentLanguage }: I18nProviderProps) {
 
     // Extraire path sans langue actuelle
     let pathWithoutLang = pathname
-    const currentPrefix = currentLanguage === DEFAULT_LOCALE ? '' : `/${currentLanguage}`
+    const currentPrefix = currentLanguage === defaultLocale ? '' : `/${currentLanguage}`
     
     if (currentPrefix && pathWithoutLang.startsWith(currentPrefix)) {
       pathWithoutLang = pathWithoutLang.substring(currentPrefix.length) || '/'
@@ -139,7 +139,7 @@ export function I18nProvider({ children, currentLanguage }: I18nProviderProps) {
   const alternateUrls = useMemo(() => {
     // Extraire path sans langue
     let pathWithoutLang = pathname
-    const currentPrefix = currentLanguage === DEFAULT_LOCALE ? '' : `/${currentLanguage}`
+    const currentPrefix = currentLanguage === defaultLocale ? '' : `/${currentLanguage}`
     
     if (currentPrefix && pathWithoutLang.startsWith(currentPrefix)) {
       pathWithoutLang = pathWithoutLang.substring(currentPrefix.length) || '/'
@@ -153,8 +153,8 @@ export function I18nProvider({ children, currentLanguage }: I18nProviderProps) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
 
     // URLs pour chaque langue
-    return SUPPORTED_LOCALES.reduce((acc, lang) => {
-      const localizedPath = lang === DEFAULT_LOCALE 
+    return supportedLocales.reduce((acc, lang) => {
+      const localizedPath = lang === defaultLocale 
         ? pathWithoutLang
         : `/${lang}${pathWithoutLang}`
       
@@ -172,7 +172,7 @@ export function I18nProvider({ children, currentLanguage }: I18nProviderProps) {
    * Vérifier si une langue est supportée
    */
   const isLanguageSupported = useCallback((language: string): boolean => {
-    return SUPPORTED_LOCALES.includes(language as SupportedLocale)
+    return supportedLocales.includes(language as SupportedLocale)
   }, [])
 
   /**
@@ -187,8 +187,8 @@ export function I18nProvider({ children, currentLanguage }: I18nProviderProps) {
     // État
     currentLanguage,
     isDefaultLanguage,
-    supportedLanguages: SUPPORTED_LOCALES,
-    defaultLanguage: DEFAULT_LOCALE,
+    supportedLanguages: supportedLocales,
+    defaultLanguage: defaultLocale,
     
     // Actions
     changeLanguage,
@@ -237,7 +237,7 @@ export function useI18n(): I18nContextValue {
 /**
  * Hook pour métadonnées de langue
  */
-export function useLanguageMetadata(language: SupportedLocale = DEFAULT_LOCALE) {
+export function useLanguageMetadata(language: SupportedLocale = defaultLocale) {
   return useMemo(() => {
     const metadata = LANGUAGE_METADATA[language]
     
@@ -248,12 +248,12 @@ export function useLanguageMetadata(language: SupportedLocale = DEFAULT_LOCALE) 
     return {
       ...metadata,
       code: language,
-      isSupported: SUPPORTED_LOCALES.includes(language),
-      isDefault: language === DEFAULT_LOCALE
+      isSupported: supportedLocales.includes(language),
+      isDefault: language === defaultLocale
     }
   }, [language])
 }
 
 // Export des types et constantes
 export type { I18nContextValue }
-export { LANGUAGE_METADATA, SUPPORTED_LOCALES, DEFAULT_LOCALE }
+export { LANGUAGE_METADATA, supportedLocales as SUPPORTED_LOCALES, defaultLocale as DEFAULT_LOCALE }

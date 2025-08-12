@@ -193,14 +193,14 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Create category using service
-    const category = await CategoriesService.createCategory(body)
+    // TODO: Implement createCategory in multilingualCategoriesService
+    // const category = await multilingualCategoriesService.createCategory(body)
     
     return NextResponse.json({
-      success: true,
-      category,
-      message: 'Category created successfully'
-    }, { status: 201 })
+      success: false,
+      error: 'Create category not implemented yet',
+      message: 'POST method not yet implemented'
+    }, { status: 501 })
     
   } catch (error) {
     console.error('Error in POST /api/categories:', error)

@@ -8,7 +8,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
-import { SupportedLocale, SUPPORTED_LOCALES } from '@/middleware'
+import { SupportedLocale, supportedLocales } from '@/middleware'
 import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
 import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
 
@@ -35,7 +35,7 @@ interface ToolsPageProps {
  */
 function validateAndParseParams(params: any, searchParams: any) {
   const lang = params.lang
-  if (!SUPPORTED_LOCALES.includes(lang as SupportedLocale)) {
+  if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }
 
@@ -105,6 +105,76 @@ export async function generateMetadata({
         : category
         ? `Découvrez les meilleurs outils IA ${category}. Avis professionnels, notes et comparaisons détaillées.`
         : 'Parcourez le plus grand répertoire d\'outils IA au monde. 16 000+ outils vérifiés pour création vidéo, automatisation, machine learning et plus.',
+    },
+    'de': {
+      title: search 
+        ? `Suchergebnisse für "${search}" - KI-Tools Verzeichnis`
+        : category 
+        ? `${category} KI-Tools - Video-IA.net`
+        : page > 1 
+        ? `KI-Tools Verzeichnis - Seite ${page} | Video-IA.net`
+        : 'KI-Tools Verzeichnis - 16.000+ Beste KI-Tools | Video-IA.net',
+      description: search
+        ? `Finden Sie die besten KI-Tools für "${search}". Durchsuchen Sie verifizierte Tools mit Bewertungen, Ratings und Vergleichen.`
+        : category
+        ? `Entdecken Sie die besten ${category} KI-Tools. Professionelle Bewertungen, Ratings und detaillierte Vergleiche.`
+        : 'Durchsuchen Sie das weltweit größte Verzeichnis von KI-Tools. 16.000+ verifizierte Tools für Videoerstellung, Automatisierung, maschinelles Lernen und mehr.',
+    },
+    'nl': {
+      title: search 
+        ? `Zoekresultaten voor "${search}" - AI-Tools Directory`
+        : category 
+        ? `${category} AI-Tools - Video-IA.net`
+        : page > 1 
+        ? `AI-Tools Directory - Pagina ${page} | Video-IA.net`
+        : 'AI-Tools Directory - 16.000+ Beste AI-Tools | Video-IA.net',
+      description: search
+        ? `Vind de beste AI-tools voor "${search}". Blader door geverifieerde tools met reviews, ratings en vergelijkingen.`
+        : category
+        ? `Ontdek de beste ${category} AI-tools. Professionele reviews, ratings en gedetailleerde vergelijkingen.`
+        : `Blader door 's werelds grootste directory van AI-tools. 16.000+ geverifieerde tools voor videocreatie, automatisering, machine learning en meer.`,
+    },
+    'it': {
+      title: search 
+        ? `Risultati di ricerca per "${search}" - Directory Strumenti IA`
+        : category 
+        ? `Strumenti IA ${category} - Video-IA.net`
+        : page > 1 
+        ? `Directory Strumenti IA - Pagina ${page} | Video-IA.net`
+        : 'Directory Strumenti IA - 16.000+ Migliori Strumenti IA | Video-IA.net',
+      description: search
+        ? `Trova i migliori strumenti IA per "${search}". Sfoglia strumenti verificati con recensioni, valutazioni e confronti.`
+        : category
+        ? `Scopri i migliori strumenti IA ${category}. Recensioni professionali, valutazioni e confronti dettagliati.`
+        : 'Sfoglia la più grande directory di strumenti IA al mondo. 16.000+ strumenti verificati per creazione video, automazione, machine learning e altro.',
+    },
+    'es': {
+      title: search 
+        ? `Resultados de búsqueda para "${search}" - Directorio de Herramientas IA`
+        : category 
+        ? `Herramientas IA ${category} - Video-IA.net`
+        : page > 1 
+        ? `Directorio de Herramientas IA - Página ${page} | Video-IA.net`
+        : 'Directorio de Herramientas IA - 16.000+ Mejores Herramientas IA | Video-IA.net',
+      description: search
+        ? `Encuentra las mejores herramientas IA para "${search}". Navega herramientas verificadas con reseñas, calificaciones y comparaciones.`
+        : category
+        ? `Descubre las mejores herramientas IA ${category}. Reseñas profesionales, calificaciones y comparaciones detalladas.`
+        : 'Navega el directorio de herramientas IA más grande del mundo. 16.000+ herramientas verificadas para creación de video, automatización, machine learning y más.',
+    },
+    'pt': {
+      title: search 
+        ? `Resultados de pesquisa para "${search}" - Diretório de Ferramentas IA`
+        : category 
+        ? `Ferramentas IA ${category} - Video-IA.net`
+        : page > 1 
+        ? `Diretório de Ferramentas IA - Página ${page} | Video-IA.net`
+        : 'Diretório de Ferramentas IA - 16.000+ Melhores Ferramentas IA | Video-IA.net',
+      description: search
+        ? `Encontre as melhores ferramentas IA para "${search}". Navegue ferramentas verificadas com avaliações, classificações e comparações.`
+        : category
+        ? `Descubra as melhores ferramentas IA ${category}. Avaliações profissionais, classificações e comparações detalhadas.`
+        : 'Navegue pelo maior diretório de ferramentas IA do mundo. 16.000+ ferramentas verificadas para criação de vídeo, automação, machine learning e mais.',
     }
   }
   
@@ -125,7 +195,7 @@ export async function generateMetadata({
     alternates: {
       canonical: currentUrl,
       languages: Object.fromEntries(
-        SUPPORTED_LOCALES.map(locale => [
+        supportedLocales.map(locale => [
           locale,
           `${baseUrl}${locale === 'en' ? '' : `/${locale}`}/tools`
         ])
@@ -164,7 +234,7 @@ export default async function ToolsPage({ params, searchParams }: ToolsPageProps
         language: lang,
         page,
         limit: 24,
-        search,
+        query: search,
         category,
         sortBy,
         sortOrder,
@@ -179,7 +249,8 @@ export default async function ToolsPage({ params, searchParams }: ToolsPageProps
       })
     ])
     
-    const { tools, totalCount, totalPages, hasNextPage, hasPreviousPage } = toolsResult
+    const { tools, pagination } = toolsResult
+    const { totalCount, totalPages, hasNextPage, hasPreviousPage } = pagination
     const { categories } = categoriesResult
     
     // Messages localisés
@@ -303,6 +374,66 @@ function getLocalizedMessages(lang: SupportedLocale) {
       errorLoading: 'Erreur de Chargement',
       errorTryAgain: 'Quelque chose s\'est mal passé. Veuillez réessayer.',
       reload: 'Recharger'
+    },
+    'de': {
+      home: 'Startseite',
+      tools: 'Tools',
+      allTools: 'Alle KI-Tools',
+      searchResults: 'Suchergebnisse für',
+      toolsDescription: 'Durchsuchen Sie unsere umfassende Sammlung von KI-Tools',
+      page: 'Seite',
+      of: 'von',
+      errorLoading: 'Fehler beim Laden der Tools',
+      errorTryAgain: 'Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.',
+      reload: 'Neu laden'
+    },
+    'nl': {
+      home: 'Home',
+      tools: 'Tools',
+      allTools: 'Alle AI-Tools',
+      searchResults: 'Zoekresultaten voor',
+      toolsDescription: 'Blader door onze uitgebreide collectie AI-tools',
+      page: 'Pagina',
+      of: 'van',
+      errorLoading: 'Fout bij het Laden van Tools',
+      errorTryAgain: 'Er is iets misgegaan. Probeer het opnieuw.',
+      reload: 'Herladen'
+    },
+    'it': {
+      home: 'Home',
+      tools: 'Strumenti',
+      allTools: 'Tutti gli Strumenti IA',
+      searchResults: 'Risultati di ricerca per',
+      toolsDescription: 'Sfoglia la nostra collezione completa di strumenti IA',
+      page: 'Pagina',
+      of: 'di',
+      errorLoading: 'Errore nel Caricamento degli Strumenti',
+      errorTryAgain: 'Qualcosa è andato storto. Riprova.',
+      reload: 'Ricarica'
+    },
+    'es': {
+      home: 'Inicio',
+      tools: 'Herramientas',
+      allTools: 'Todas las Herramientas IA',
+      searchResults: 'Resultados de búsqueda para',
+      toolsDescription: 'Explora nuestra colección completa de herramientas IA',
+      page: 'Página',
+      of: 'de',
+      errorLoading: 'Error al Cargar Herramientas',
+      errorTryAgain: 'Algo salió mal. Por favor inténtalo de nuevo.',
+      reload: 'Recargar'
+    },
+    'pt': {
+      home: 'Início',
+      tools: 'Ferramentas',
+      allTools: 'Todas as Ferramentas IA',
+      searchResults: 'Resultados de pesquisa para',
+      toolsDescription: 'Navegue nossa coleção abrangente de ferramentas IA',
+      page: 'Página',
+      of: 'de',
+      errorLoading: 'Erro ao Carregar Ferramentas',
+      errorTryAgain: 'Algo deu errado. Tente novamente.',
+      reload: 'Recarregar'
     }
   }
   

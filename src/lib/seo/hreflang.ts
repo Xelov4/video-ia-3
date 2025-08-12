@@ -12,7 +12,7 @@
 
 'use client'
 
-import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
 
 // Configuration des domaines et régions
 const DOMAIN_CONFIG = {
@@ -100,7 +100,7 @@ export class HreflangManager {
     currentLanguage: SupportedLocale,
     availableLanguages?: SupportedLocale[]
   ): HreflangLink[] {
-    const languages = availableLanguages || SUPPORTED_LOCALES
+    const languages = availableLanguages || supportedLocales
     const hreflangLinks: HreflangLink[] = []
 
     // Générer les liens pour chaque langue disponible
@@ -116,7 +116,7 @@ export class HreflangManager {
     }
 
     // Ajouter le lien x-default (langue par défaut)
-    const defaultPath = this.buildLocalizedPath(basePath, DEFAULT_LOCALE)
+    const defaultPath = this.buildLocalizedPath(basePath, defaultLocale)
     hreflangLinks.push({
       hreflang: 'x-default',
       href: `${this.baseUrl}${defaultPath}`,
@@ -134,7 +134,7 @@ export class HreflangManager {
     let cleanPath = basePath.startsWith('/') ? basePath : `/${basePath}`
     
     // Retirer préfixe de langue existant
-    for (const lang of SUPPORTED_LOCALES) {
+    for (const lang of supportedLocales) {
       if (cleanPath.startsWith(`/${lang}/`) || cleanPath === `/${lang}`) {
         cleanPath = cleanPath.substring(`/${lang}`.length) || '/'
         break
@@ -142,7 +142,7 @@ export class HreflangManager {
     }
 
     // Ajouter préfixe pour langue non-défaut
-    if (language !== DEFAULT_LOCALE) {
+    if (language !== defaultLocale) {
       return `/${language}${cleanPath}`
     }
     
@@ -159,7 +159,7 @@ export class HreflangManager {
     return {
       url: canonicalUrl,
       language,
-      isDefault: language === DEFAULT_LOCALE
+      isDefault: language === defaultLocale
     }
   }
 
@@ -191,7 +191,7 @@ export class HreflangManager {
     const canonical = this.generateCanonical(basePath, currentLanguage)
 
     // Générer les locales alternatives pour Open Graph
-    const alternateLocales = (availableLanguages || SUPPORTED_LOCALES)
+    const alternateLocales = (availableLanguages || supportedLocales)
       .filter(lang => lang !== currentLanguage)
       .map(lang => LOCALE_REGION_MAP[lang])
 
@@ -230,7 +230,7 @@ export class HreflangManager {
 
     // En staging, indexer seulement l'anglais
     if (this.environment === 'staging') {
-      return language === DEFAULT_LOCALE ? 'index, follow' : 'noindex, follow'
+      return language === defaultLocale ? 'index, follow' : 'noindex, follow'
     }
 
     // En production, indexer toutes les langues
@@ -310,7 +310,7 @@ export class HreflangManager {
     let xml = '  <url>\n'
     
     // URL principale (langue par défaut)
-    const defaultUrl = `${this.baseUrl}${this.buildLocalizedPath(basePath, DEFAULT_LOCALE)}`
+    const defaultUrl = `${this.baseUrl}${this.buildLocalizedPath(basePath, defaultLocale)}`
     xml += `    <loc>${defaultUrl}</loc>\n`
     
     if (lastModified) {

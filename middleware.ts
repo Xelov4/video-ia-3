@@ -4,7 +4,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type SupportedLocale } from '@/src/lib/i18n/constants'
+
+// Constants d'internationalisation centralisées
+export const supportedLocales = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt'] as const
+export const defaultLocale = 'en' as const
+export type SupportedLocale = typeof supportedLocales[number]
+
+// Exports de compatibilité 
+export const SUPPORTED_LOCALES = supportedLocales
+export const DEFAULT_LOCALE = defaultLocale
 
 // Routes protégées qui ne doivent pas être préfixées par la langue
 const PROTECTED_ROUTES = [
@@ -29,25 +37,25 @@ function detectLanguage(request: NextRequest): SupportedLocale {
   
   // 2. Cookie utilisateur
   const cookieLang = request.cookies.get('preferred-language')?.value
-  if (cookieLang && SUPPORTED_LOCALES.includes(cookieLang as SupportedLocale)) {
+  if (cookieLang && supportedLocales.includes(cookieLang as SupportedLocale)) {
     return cookieLang as SupportedLocale
   }
   
   // 3. Accept-Language (simple)
   const acceptLanguage = request.headers.get('accept-language') || ''
-  for (const locale of SUPPORTED_LOCALES) {
+  for (const locale of supportedLocales) {
     if (acceptLanguage.toLowerCase().includes(locale)) {
       return locale
     }
   }
   
-  return DEFAULT_LOCALE
+  return defaultLocale
 }
 
 function extractLanguageFromUrl(pathname: string): SupportedLocale | null {
   const segments = pathname.split('/').filter(Boolean)
   const firstSegment = segments[0]
-  return SUPPORTED_LOCALES.includes(firstSegment as SupportedLocale) 
+  return supportedLocales.includes(firstSegment as SupportedLocale) 
     ? firstSegment as SupportedLocale 
     : null
 }
@@ -61,7 +69,7 @@ function buildLocalizedUrl(url: URL, locale: SupportedLocale): URL {
   const segments = newUrl.pathname.split('/').filter(Boolean)
   
   // Supprimer langue existante si présente
-  if (SUPPORTED_LOCALES.includes(segments[0] as SupportedLocale)) {
+  if (supportedLocales.includes(segments[0] as SupportedLocale)) {
     segments.shift()
   }
   
@@ -150,8 +158,3 @@ export const config = {
   ]
 }
 
-// Export pour usage dans l'app
-export { 
-  SUPPORTED_LOCALES as supportedLocales,
-  DEFAULT_LOCALE as defaultLocale
-}

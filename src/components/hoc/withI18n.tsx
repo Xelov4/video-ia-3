@@ -42,7 +42,7 @@ export function withI18n<P extends object>(
     const injectedProps: WithI18nProps = {
       t,
       currentLanguage,
-      changeLanguage,
+      changeLanguage: (language: string) => changeLanguage(language as any),
       formatDate,
       formatNumber,
       isRTL

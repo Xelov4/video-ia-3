@@ -10,7 +10,7 @@
  */
 
 import { MetadataRoute } from 'next'
-import { SUPPORTED_LOCALES } from '@/middleware'
+import { supportedLocales } from '@/middleware'
 import { toolsService } from '@/src/lib/database/services/tools'
 import { CategoriesService } from '@/src/lib/database/services/categories'
 
@@ -52,8 +52,7 @@ async function getSitemapData() {
     // Récupération parallèle des données
     const [toolsResult, categories] = await Promise.all([
       toolsService.searchTools({ 
-        limit: 50000,
-        useCache: true 
+        limit: 50000
       }).catch(() => ({ tools: [] })),
       CategoriesService.getAllCategories().catch(() => [])
     ])
@@ -80,7 +79,7 @@ function generateHomepageEntries(): SitemapEntry[] {
   const entries: SitemapEntry[] = []
   const currentDate = new Date()
 
-  SUPPORTED_LOCALES.forEach(locale => {
+  supportedLocales.forEach(locale => {
     const langPrefix = locale === 'en' ? '' : `/${locale}`
     const priority = locale === 'en' ? SEO_CONFIG.priorities.homepage : SEO_CONFIG.priorities.homepage * 0.95
 
@@ -121,7 +120,7 @@ function generateMainPagesEntries(): SitemapEntry[] {
     }
   ]
 
-  SUPPORTED_LOCALES.forEach(locale => {
+  supportedLocales.forEach(locale => {
     const langPrefix = locale === 'en' ? '' : `/${locale}`
     const langMultiplier = locale === 'en' ? 1.0 : 0.95
 
@@ -146,7 +145,7 @@ function generateCategoryEntries(categories: any[]): SitemapEntry[] {
   const entries: SitemapEntry[] = []
   const currentDate = new Date()
 
-  SUPPORTED_LOCALES.forEach(locale => {
+  supportedLocales.forEach(locale => {
     const langPrefix = locale === 'en' ? '' : `/${locale}`
     const langMultiplier = locale === 'en' ? 1.0 : 0.95
 
@@ -171,7 +170,7 @@ function generateToolEntries(tools: any[]): SitemapEntry[] {
   const entries: SitemapEntry[] = []
   const currentDate = new Date()
 
-  SUPPORTED_LOCALES.forEach(locale => {
+  supportedLocales.forEach(locale => {
     const langPrefix = locale === 'en' ? '' : `/${locale}`
     const langMultiplier = locale === 'en' ? 1.0 : 0.95
 
@@ -249,7 +248,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const fallbackEntries: MetadataRoute.Sitemap = []
     const currentDate = new Date()
 
-    SUPPORTED_LOCALES.forEach(locale => {
+    supportedLocales.forEach(locale => {
       const langPrefix = locale === 'en' ? '' : `/${locale}`
       const priority = locale === 'en' ? 1.0 : 0.9
 

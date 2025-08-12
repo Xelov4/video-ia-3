@@ -12,7 +12,7 @@
 
 'use client'
 
-import { SupportedLocale, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, defaultLocale } from '@/middleware'
 import { UrlMapping } from './url-mapper'
 
 // Types pour les redirections
@@ -256,7 +256,7 @@ export class RedirectManager {
     originalUrl: string, 
     context?: { language?: SupportedLocale; query?: Record<string, string> }
   ): { url: string; status: number; preserveQuery: boolean } {
-    const { language = DEFAULT_LOCALE, query } = context || {}
+    const { language = defaultLocale, query } = context || {}
     let destinationUrl = rule.destination
 
     // Traitement des captures de regex
@@ -270,7 +270,7 @@ export class RedirectManager {
     }
 
     // Remplacer le placeholder de langue
-    if (language !== DEFAULT_LOCALE) {
+    if (language !== defaultLocale) {
       destinationUrl = destinationUrl.replace('{lang}', language)
     } else {
       destinationUrl = destinationUrl.replace('/{lang}', '')

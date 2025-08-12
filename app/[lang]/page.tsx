@@ -7,7 +7,7 @@
 
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { SupportedLocale, SUPPORTED_LOCALES } from '@/middleware'
+import { SupportedLocale, supportedLocales } from '@/middleware'
 
 // Interface pour props de page
 interface HomePageProps {
@@ -20,7 +20,7 @@ interface HomePageProps {
  * Validation des paramètres
  */
 function validateLanguageParam(lang: string): SupportedLocale {
-  if (!SUPPORTED_LOCALES.includes(lang as SupportedLocale)) {
+  if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }
   return lang as SupportedLocale
@@ -102,7 +102,7 @@ export async function generateMetadata({
     alternates: {
       canonical: currentUrl,
       languages: Object.fromEntries(
-        SUPPORTED_LOCALES.map(locale => [
+        supportedLocales.map(locale => [
           locale,
           locale === 'en' ? baseUrl : `${baseUrl}/${locale}`
         ])
@@ -115,7 +115,7 @@ export async function generateMetadata({
  * Génération des paramètres statiques pour build
  */
 export function generateStaticParams() {
-  return SUPPORTED_LOCALES.map((lang) => ({
+  return supportedLocales.map((lang) => ({
     lang: lang
   }))
 }

@@ -7,7 +7,7 @@
 
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { SupportedLocale, SUPPORTED_LOCALES } from '@/middleware'
+import { SupportedLocale, supportedLocales } from '@/middleware'
 
 // Interface pour paramètres
 interface ToolPageProps {
@@ -102,7 +102,7 @@ async function getToolData(slug: string, lang: SupportedLocale) {
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
   const { lang, slug } = params
   
-  if (!SUPPORTED_LOCALES.includes(lang)) {
+  if (!supportedLocales.includes(lang)) {
     notFound()
   }
   
@@ -130,6 +130,31 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
       titleSuffix: 'Outil IA Guide & Avis | Video-IA.net',
       descriptionTemplate: (name: string, category: string) => 
         `Guide complet de ${name} - Outil IA ${category}. Fonctionnalités, prix, avis, alternatives et tutoriels. Commencez dès aujourd\'hui !`
+    },
+    'de': {
+      titleSuffix: 'KI-Tool Test & Leitfaden | Video-IA.net',
+      descriptionTemplate: (name: string, category: string) => 
+        `Vollständiger Leitfaden zu ${name} - ${category} KI-Tool. Funktionen, Preise, Bewertungen, Alternativen und Tutorials. Starten Sie noch heute!`
+    },
+    'nl': {
+      titleSuffix: 'AI-Tool Review & Gids | Video-IA.net',
+      descriptionTemplate: (name: string, category: string) => 
+        `Volledige gids voor ${name} - ${category} AI-tool. Functies, prijzen, reviews, alternatieven en tutorials. Begin vandaag nog!`
+    },
+    'it': {
+      titleSuffix: 'Recensione e Guida Strumento IA | Video-IA.net',
+      descriptionTemplate: (name: string, category: string) => 
+        `Guida completa a ${name} - Strumento IA ${category}. Funzionalità, prezzi, recensioni, alternative e tutorial. Inizia oggi stesso!`
+    },
+    'es': {
+      titleSuffix: 'Reseña y Guía de Herramienta IA | Video-IA.net',
+      descriptionTemplate: (name: string, category: string) => 
+        `Guía completa de ${name} - Herramienta IA ${category}. Características, precios, reseñas, alternativas y tutoriales. ¡Comienza hoy!`
+    },
+    'pt': {
+      titleSuffix: 'Análise e Guia da Ferramenta IA | Video-IA.net',
+      descriptionTemplate: (name: string, category: string) => 
+        `Guia completo do ${name} - Ferramenta IA ${category}. Recursos, preços, avaliações, alternativas e tutoriais. Comece hoje!`
     }
   }
   
@@ -167,7 +192,7 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
     alternates: {
       canonical: currentUrl,
       languages: Object.fromEntries(
-        SUPPORTED_LOCALES.map(locale => [
+        supportedLocales.map(locale => [
           locale,
           `${baseUrl}${locale === 'en' ? '' : `/${locale}`}/tools/${slug}`
         ])
@@ -182,7 +207,7 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 export async function generateStaticParams() {
   const params = []
   
-  for (const lang of SUPPORTED_LOCALES) {
+  for (const lang of supportedLocales) {
     for (const slug of Object.keys(MOCK_TOOLS)) {
       params.push({
         lang,
@@ -200,7 +225,7 @@ export async function generateStaticParams() {
 export default async function ToolDetailPage({ params }: ToolPageProps) {
   const { lang, slug } = params
   
-  if (!SUPPORTED_LOCALES.includes(lang)) {
+  if (!supportedLocales.includes(lang)) {
     notFound()
   }
   
@@ -423,6 +448,61 @@ function getLocalizedMessages(lang: SupportedLocale) {
       about: 'À Propos',
       features: 'Fonctionnalités',
       similarTools: 'Outils Similaires'
+    },
+    'de': {
+      home: 'Startseite',
+      tools: 'Tools',
+      qualityScore: 'Qualitätsbewertung',
+      views: 'Aufrufe',
+      pricing: 'Preise',
+      visitTool: 'Tool Besuchen',
+      about: 'Über',
+      features: 'Funktionen',
+      similarTools: 'Ähnliche Tools'
+    },
+    'nl': {
+      home: 'Home',
+      tools: 'Tools',
+      qualityScore: 'Kwaliteitsscore',
+      views: 'Weergaven',
+      pricing: 'Prijzen',
+      visitTool: 'Tool Bezoeken',
+      about: 'Over',
+      features: 'Functies',
+      similarTools: 'Vergelijkbare Tools'
+    },
+    'it': {
+      home: 'Home',
+      tools: 'Strumenti',
+      qualityScore: 'Punteggio Qualità',
+      views: 'Visualizzazioni',
+      pricing: 'Prezzi',
+      visitTool: 'Visita Strumento',
+      about: 'Informazioni',
+      features: 'Funzionalità',
+      similarTools: 'Strumenti Simili'
+    },
+    'es': {
+      home: 'Inicio',
+      tools: 'Herramientas',
+      qualityScore: 'Puntuación de Calidad',
+      views: 'Visualizaciones',
+      pricing: 'Precios',
+      visitTool: 'Visitar Herramienta',
+      about: 'Acerca de',
+      features: 'Características',
+      similarTools: 'Herramientas Similares'
+    },
+    'pt': {
+      home: 'Início',
+      tools: 'Ferramentas',
+      qualityScore: 'Pontuação de Qualidade',
+      views: 'Visualizações',
+      pricing: 'Preços',
+      visitTool: 'Visitar Ferramenta',
+      about: 'Sobre',
+      features: 'Recursos',
+      similarTools: 'Ferramentas Similares'
     }
   }
   

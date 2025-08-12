@@ -12,7 +12,7 @@
 
 'use client'
 
-import { SupportedLocale, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, defaultLocale } from '@/middleware'
 
 // Types pour Open Graph
 export interface OpenGraphConfig {
@@ -127,7 +127,7 @@ export class OpenGraphManager {
   }
 
   private translate(key: string, language: SupportedLocale): string {
-    return this.translations[key]?.[language] || this.translations[key]?.[DEFAULT_LOCALE] || key
+    return this.translations[key]?.[language] || this.translations[key]?.[defaultLocale] || key
   }
 
   /**
@@ -315,7 +315,7 @@ export class OpenGraphManager {
   private buildLocalizedUrl(path: string, language: SupportedLocale): string {
     const cleanPath = path.startsWith('/') ? path : `/${path}`
     
-    if (language === DEFAULT_LOCALE) {
+    if (language === defaultLocale) {
       return `${this.baseUrl}${cleanPath}`
     }
     

@@ -1,13 +1,13 @@
 'use client'
 
 import { SupportedLocale } from '@/middleware'
-import { DatabaseTool } from '@/src/lib/database/services/tools'
+import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
 import { CategoryWithTranslation } from '@/src/lib/database/services/multilingual-categories'
 import { ToolsGrid } from './ToolsGrid'
 import { ToolCard } from './ToolCard'
 
 interface ToolsPageClientProps {
-  tools: DatabaseTool[]
+  tools: ToolWithTranslation[]
   categories: CategoryWithTranslation[]
   totalCount: number
   currentPage: number

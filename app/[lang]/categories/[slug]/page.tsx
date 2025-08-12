@@ -23,7 +23,7 @@ import { toolsService } from '@/src/lib/database/services/tools'
 import { CategoriesService } from '@/src/lib/database/services/categories'
 import { ToolsGrid } from '@/src/components/tools/ToolsGrid'
 import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline'
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type SupportedLocale } from '@/src/lib/i18n/constants'
+import { supportedLocales, defaultLocale, type SupportedLocale } from '@/middleware'
 
 interface CategoryPageProps {
   params: { 
@@ -42,7 +42,7 @@ interface CategoryPageProps {
 function validateAndParseParams(params: any, searchParams: any) {
   const lang = params.lang as SupportedLocale
   
-  if (!SUPPORTED_LOCALES.includes(lang)) {
+  if (!supportedLocales.includes(lang)) {
     notFound()
   }
   
@@ -79,6 +79,18 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       'nl': {
         title: 'Categorie niet gevonden | Video-IA.net',
         description: 'Deze AI-tools categorie bestaat niet of is verwijderd.'
+      },
+      'it': {
+        title: 'Categoria non trovata | Video-IA.net',
+        description: 'Questa categoria di strumenti IA non esiste o è stata rimossa.'
+      },
+      'es': {
+        title: 'Categoría no encontrada | Video-IA.net',
+        description: 'Esta categoría de herramientas de IA no existe o ha sido eliminada.'
+      },
+      'pt': {
+        title: 'Categoria não encontrada | Video-IA.net',
+        description: 'Esta categoria de ferramentas de IA não existe ou foi removida.'
       }
     }
     
@@ -114,6 +126,21 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       title: `${category.name} - ${category.toolCount} AI-tools | Video-IA.net`,
       description: category.description || `Ontdek de beste AI-tools in de categorie ${category.name}. ${category.toolCount} tools geselecteerd en getest door onze experts.`,
       keywords: `${category.name}, AI-tools ${category.name.toLowerCase()}, kunstmatige intelligentie ${category.name.toLowerCase()}`
+    },
+    'it': {
+      title: `${category.name} - ${category.toolCount} Strumenti IA | Video-IA.net`,
+      description: category.description || `Scopri i migliori strumenti di intelligenza artificiale nella categoria ${category.name}. ${category.toolCount} strumenti selezionati e testati dai nostri esperti.`,
+      keywords: `${category.name}, strumenti IA ${category.name.toLowerCase()}, intelligenza artificiale ${category.name.toLowerCase()}`
+    },
+    'es': {
+      title: `${category.name} - ${category.toolCount} Herramientas IA | Video-IA.net`,
+      description: category.description || `Descubre las mejores herramientas de inteligencia artificial en la categoría ${category.name}. ${category.toolCount} herramientas seleccionadas y probadas por nuestros expertos.`,
+      keywords: `${category.name}, herramientas IA ${category.name.toLowerCase()}, inteligencia artificial ${category.name.toLowerCase()}`
+    },
+    'pt': {
+      title: `${category.name} - ${category.toolCount} Ferramentas IA | Video-IA.net`,
+      description: category.description || `Descubra as melhores ferramentas de inteligência artificial na categoria ${category.name}. ${category.toolCount} ferramentas selecionadas e testadas pelos nossos especialistas.`,
+      keywords: `${category.name}, ferramentas IA ${category.name.toLowerCase()}, inteligência artificial ${category.name.toLowerCase()}`
     }
   }
 
@@ -132,7 +159,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     alternates: {
       canonical: currentUrl,
       languages: Object.fromEntries(
-        SUPPORTED_LOCALES.map(locale => [
+        supportedLocales.map(locale => [
           locale,
           `${baseUrl}${locale === 'en' ? '' : `/${locale}`}/categories/${slug}`
         ])
@@ -208,6 +235,30 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       similarCategories: 'vergelijkbare categorieën',
       toolsInCategory: 'Tools in deze categorie',
       toolsFound: 'tools gevonden'
+    },
+    'it': {
+      home: 'Home',
+      categories: 'Categorie',
+      tools: 'strumenti',
+      similarCategories: 'categorie simili',
+      toolsInCategory: 'Strumenti in questa categoria',
+      toolsFound: 'strumenti trovati'
+    },
+    'es': {
+      home: 'Inicio',
+      categories: 'Categorías',
+      tools: 'herramientas',
+      similarCategories: 'categorías similares',
+      toolsInCategory: 'Herramientas en esta categoría',
+      toolsFound: 'herramientas encontradas'
+    },
+    'pt': {
+      home: 'Início',
+      categories: 'Categorias',
+      tools: 'ferramentas',
+      similarCategories: 'categorias similares',
+      toolsInCategory: 'Ferramentas nesta categoria',
+      toolsFound: 'ferramentas encontradas'
     }
   }
 

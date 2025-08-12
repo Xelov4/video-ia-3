@@ -18,7 +18,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { ChevronDownIcon, LanguageIcon } from '@heroicons/react/24/outline'
-import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
 
 // Configuration des langues avec drapeaux et labels natifs
 interface LanguageConfig {
@@ -91,7 +91,7 @@ export default function LanguageSwitcher({
     const segments = pathname.split('/').filter(Boolean)
     
     // Si le premier segment est une langue supportée, le remplacer
-    if (SUPPORTED_LOCALES.includes(segments[0] as SupportedLocale)) {
+    if (supportedLocales.includes(segments[0] as SupportedLocale)) {
       segments[0] = targetLang
     } else {
       // Sinon, ajouter la langue au début

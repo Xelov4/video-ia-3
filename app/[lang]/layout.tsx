@@ -8,7 +8,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Inter } from 'next/font/google'
-import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/src/lib/i18n/constants'
+import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
 
 import Header from '@/src/components/layout/Header'
 import Footer from '@/src/components/layout/Footer'
@@ -29,7 +29,7 @@ interface LayoutProps {
  * Validation des paramètres langue + edge cases
  */
 function validateLanguageParam(lang: string): SupportedLocale {
-  if (!SUPPORTED_LOCALES.includes(lang as SupportedLocale)) {
+  if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }
   return lang as SupportedLocale
@@ -90,7 +90,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = validateLanguageParam(params.lang)
   const metadata = METADATA_BY_LANGUAGE[lang]
-  const isDefault = lang === DEFAULT_LOCALE
+  const isDefault = lang === defaultLocale
   
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
   const currentUrl = isDefault ? baseUrl : `${baseUrl}/${lang}`
@@ -99,9 +99,9 @@ export async function generateMetadata({
   const alternates = {
     canonical: currentUrl,
     languages: Object.fromEntries(
-      SUPPORTED_LOCALES.map(locale => [
+      supportedLocales.map(locale => [
         locale,
-        locale === DEFAULT_LOCALE ? baseUrl : `${baseUrl}/${locale}`
+        locale === defaultLocale ? baseUrl : `${baseUrl}/${locale}`
       ])
     )
   }
@@ -168,7 +168,7 @@ export async function generateMetadata({
  * Génération des paramètres statiques pour build
  */
 export function generateStaticParams() {
-  return SUPPORTED_LOCALES.map((lang) => ({
+  return supportedLocales.map((lang) => ({
     lang: lang
   }))
 }
@@ -187,12 +187,12 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         
         {/* Hreflang tags pour SEO (généré côté server) */}
-        {SUPPORTED_LOCALES.map((locale) => (
+        {supportedLocales.map((locale) => (
           <link
             key={locale}
             rel="alternate"
             hrefLang={locale}
-            href={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${locale === DEFAULT_LOCALE ? '' : `/${locale}`}`}
+            href={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${locale === defaultLocale ? '' : `/${locale}`}`}
           />
         ))}
         <link
@@ -210,13 +210,13 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
               "@type": "WebSite",
               "name": "Video-IA.net",
               "description": METADATA_BY_LANGUAGE[lang].description,
-              "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${lang === DEFAULT_LOCALE ? '' : `/${lang}`}`,
+              "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${lang === defaultLocale ? '' : `/${lang}`}`,
               "inLanguage": lang,
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
                   "@type": "EntryPoint",
-                  "urlTemplate": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${lang === DEFAULT_LOCALE ? '' : `/${lang}`}/tools?search={search_term_string}`
+                  "urlTemplate": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${lang === defaultLocale ? '' : `/${lang}`}/tools?search={search_term_string}`
                 },
                 "query-input": "required name=search_term_string"
               }

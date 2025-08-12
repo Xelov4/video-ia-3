@@ -12,7 +12,7 @@
 
 'use client'
 
-import { SupportedLocale, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, defaultLocale } from '@/middleware'
 
 // Types pour le mapping d'URLs
 export interface UrlMapping {
@@ -210,7 +210,7 @@ export class UrlMapper {
     headers?: Record<string, string>
     query?: Record<string, string>
   }): UrlMapping | null {
-    const { language = DEFAULT_LOCALE, userAgent, headers, query } = context || {}
+    const { language = defaultLocale, userAgent, headers, query } = context || {}
 
     // Vérifier cache direct
     const cachedMapping = this.urlMappings.get(legacyUrl)
@@ -289,7 +289,7 @@ export class UrlMapper {
     }
 
     // Remplacer le placeholder {lang}
-    if (language !== DEFAULT_LOCALE) {
+    if (language !== defaultLocale) {
       newUrl = newUrl.replace('{lang}', language)
     } else {
       newUrl = newUrl.replace('/{lang}', '')

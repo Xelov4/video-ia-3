@@ -12,7 +12,7 @@
 
 'use client'
 
-import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
 import { userPrefsManager } from './storage'
 
 // Types pour le système de détection
@@ -113,7 +113,7 @@ export class LanguageDetector {
     const pathSegments = url.split('/').filter(Boolean)
     const firstSegment = pathSegments[0]
 
-    if (SUPPORTED_LOCALES.includes(firstSegment as SupportedLocale)) {
+    if (supportedLocales.includes(firstSegment as SupportedLocale)) {
       return {
         language: firstSegment as SupportedLocale,
         confidence: 0.9,
@@ -136,7 +136,7 @@ export class LanguageDetector {
 
     if (langCookie) {
       const language = langCookie.split('=')[1].trim() as SupportedLocale
-      if (SUPPORTED_LOCALES.includes(language)) {
+      if (supportedLocales.includes(language)) {
         return {
           language,
           confidence: 0.8,
@@ -158,7 +158,7 @@ export class LanguageDetector {
     try {
       const prefs = await userPrefsManager.loadPreferences()
       
-      if (prefs.language.primary && SUPPORTED_LOCALES.includes(prefs.language.primary)) {
+      if (prefs.language.primary && supportedLocales.includes(prefs.language.primary)) {
         // Calculer confiance basée sur l'usage
         const usage = prefs.statistics.languageUsage[prefs.language.primary] || 0
         const confidence = Math.min(0.75 + (usage * 0.05), 0.95)
@@ -191,7 +191,7 @@ export class LanguageDetector {
     // Analyser les langues par ordre de préférence
     for (const browserLang of browserInfo.languages) {
       const lang = this.normalizeLanguageCode(browserLang)
-      if (SUPPORTED_LOCALES.includes(lang as SupportedLocale)) {
+      if (supportedLocales.includes(lang as SupportedLocale)) {
         const position = browserInfo.languages.indexOf(browserLang)
         const confidence = Math.max(0.3, 0.7 - (position * 0.1))
 
@@ -222,7 +222,7 @@ export class LanguageDetector {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
       const geoLang = this.getLanguageFromTimezone(timezone)
 
-      if (geoLang && SUPPORTED_LOCALES.includes(geoLang)) {
+      if (geoLang && supportedLocales.includes(geoLang)) {
         return {
           language: geoLang,
           confidence: 0.4,
@@ -251,7 +251,7 @@ export class LanguageDetector {
       const mostUsed = Object.entries(usage)
         .sort(([, a], [, b]) => b - a)[0]
 
-      if (mostUsed && SUPPORTED_LOCALES.includes(mostUsed[0] as SupportedLocale)) {
+      if (mostUsed && supportedLocales.includes(mostUsed[0] as SupportedLocale)) {
         const totalUsage = Object.values(usage).reduce((a, b) => a + b, 0)
         const confidence = Math.min(0.6 + (mostUsed[1] / totalUsage) * 0.3, 0.85)
 
@@ -285,7 +285,7 @@ export class LanguageDetector {
 
     const detectedLang = this.analyzeTextLanguage(textContent.substring(0, 500))
     
-    if (detectedLang.confidence > 0.6 && SUPPORTED_LOCALES.includes(detectedLang.language)) {
+    if (detectedLang.confidence > 0.6 && supportedLocales.includes(detectedLang.language)) {
       return {
         language: detectedLang.language,
         confidence: detectedLang.confidence * 0.5, // Réduire confiance car moins fiable
@@ -306,7 +306,7 @@ export class LanguageDetector {
   private computeFinalResult(results: DetectionResult[]): DetectionResult {
     if (results.length === 0) {
       return {
-        language: DEFAULT_LOCALE,
+        language: defaultLocale,
         confidence: 1.0,
         source: 'default'
       }
@@ -345,7 +345,7 @@ export class LanguageDetector {
 
     if (!bestCandidate) {
       return {
-        language: DEFAULT_LOCALE,
+        language: defaultLocale,
         confidence: 1.0,
         source: 'default'
       }
@@ -452,7 +452,7 @@ export class LanguageDetector {
       }
     }
 
-    let bestMatch = DEFAULT_LOCALE
+    let bestMatch = defaultLocale
     let maxScore = 0
 
     for (const [lang, data] of Object.entries(patterns) as [SupportedLocale, any][]) {

@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { SUPPORTED_LOCALES } from '@/middleware'
+import { supportedLocales } from '@/middleware'
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
@@ -16,7 +16,7 @@ export async function GET() {
   const allowCrawling = process.env.ALLOW_CRAWLING !== 'false'
   
   // Génération des sitemaps par langue
-  const sitemapUrls = SUPPORTED_LOCALES.map(locale => 
+  const sitemapUrls = supportedLocales.map(locale => 
     `Sitemap: ${baseUrl}/sitemap-${locale}.xml`
   ).join('\n')
   

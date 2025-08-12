@@ -16,7 +16,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/src/lib/i18n/context'
 import { useTranslation } from '@/src/hooks/useTranslation'
-import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
 
 // Types pour les préférences utilisateur avancées
 interface UserLanguagePreferences {
@@ -65,7 +65,7 @@ export function useUserLanguagePreferences() {
           // Créer préférences par défaut
           const defaultPrefs: UserLanguagePreferences = {
             primaryLanguage: currentLanguage,
-            fallbackLanguages: [DEFAULT_LOCALE],
+            fallbackLanguages: [defaultLocale],
             autoDetect: true,
             rememberChoice: true,
             lastUsed: new Date(),
@@ -79,7 +79,7 @@ export function useUserLanguagePreferences() {
         // Fallback vers préférences par défaut
         const fallback: UserLanguagePreferences = {
           primaryLanguage: currentLanguage,
-          fallbackLanguages: [DEFAULT_LOCALE],
+          fallbackLanguages: [defaultLocale],
           autoDetect: true,
           rememberChoice: true,
           lastUsed: new Date(),
@@ -152,7 +152,7 @@ export function useUserLanguagePreferences() {
    * Obtenir la langue recommandée basée sur l'usage
    */
   const getRecommendedLanguage = useCallback((): SupportedLocale => {
-    if (!preferences) return DEFAULT_LOCALE
+    if (!preferences) return defaultLocale
 
     // Trier par fréquence d'usage
     const sortedByUsage = Object.entries(preferences.usageCount)
@@ -167,17 +167,17 @@ export function useUserLanguagePreferences() {
    */
   const detectPreferredLanguage = useCallback((): SupportedLocale => {
     if (!preferences?.autoDetect) {
-      return preferences?.primaryLanguage || DEFAULT_LOCALE
+      return preferences?.primaryLanguage || defaultLocale
     }
 
     // 1. Langue de la session courante
-    if (currentLanguage !== DEFAULT_LOCALE) {
+    if (currentLanguage !== defaultLocale) {
       return currentLanguage
     }
 
     // 2. Langue la plus utilisée
     const recommended = getRecommendedLanguage()
-    if (recommended !== DEFAULT_LOCALE) {
+    if (recommended !== defaultLocale) {
       return recommended
     }
 
@@ -187,13 +187,13 @@ export function useUserLanguagePreferences() {
       
       for (const browserLang of browserLangs) {
         const lang = browserLang.split('-')[0] as SupportedLocale
-        if (SUPPORTED_LOCALES.includes(lang)) {
+        if (supportedLocales.includes(lang)) {
           return lang
         }
       }
     }
 
-    return DEFAULT_LOCALE
+    return defaultLocale
   }, [preferences, currentLanguage, getRecommendedLanguage])
 
   return {
@@ -205,7 +205,7 @@ export function useUserLanguagePreferences() {
     detectPreferredLanguage,
     
     // Statistiques utiles
-    mostUsedLanguage: preferences ? getRecommendedLanguage() : DEFAULT_LOCALE,
+    mostUsedLanguage: preferences ? getRecommendedLanguage() : defaultLocale,
     totalLanguageChanges: preferences ? Object.values(preferences.usageCount).reduce((a, b) => a + b, 0) : 0,
     languageStats: preferences?.usageCount || {}
   }
@@ -488,7 +488,7 @@ export function useContentLanguageDetection() {
    */
   const detectLanguage = useCallback((text: string): { language: SupportedLocale; confidence: number } => {
     if (!text || text.length < 10) {
-      return { language: DEFAULT_LOCALE, confidence: 0 }
+      return { language: defaultLocale, confidence: 0 }
     }
 
     // Patterns simples pour détection de langue
@@ -502,7 +502,7 @@ export function useContentLanguageDetection() {
       pt: [/\b(o|a|os|as|de|do|da|e|ou|em|com|por|para)\b/gi, /ção\b/gi]
     }
 
-    let bestMatch: SupportedLocale = DEFAULT_LOCALE
+    let bestMatch: SupportedLocale = defaultLocale
     let maxScore = 0
 
     for (const [lang, regexes] of Object.entries(patterns) as [SupportedLocale, RegExp[]][]) {

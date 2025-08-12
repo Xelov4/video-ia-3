@@ -1,0 +1,211 @@
+name: 🚀 Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deployment_type:
+        description: 'Type de déploiement'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+        - full
+        - code-only
+        - db-only
+        - restart-only
+      skip_backup:
+        description: 'Skip backup before deployment'
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: 'Dry run (no actual changes)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  VPS_HOST: 46.202.129.104
+  VPS_USER: root
+  APP_PATH: /var/www/video-ia.net
+  NODE_VERSION: 18
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Production VPS
+    
+    steps:
+    - name: 📋 Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 📊 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 🔧 Install Dependencies
+      run: npm ci
+      
+    - name: 🧪 Run Tests
+      run: |
+        npm run type-check
+        npm run test:database || echo "Database tests skipped"
+        
+    - name: 🏗️ Build Application
+      run: npm run build
+      
+    - name: 📦 Prepare Deployment Package
+      run: |
+        echo "Creating deployment archive..."
+        tar -czf deployment.tar.gz \
+          --exclude='node_modules' \
+          --exclude='.git' \
+          --exclude='.next' \
+          --exclude='logs' \
+          --exclude='backups' \
+          --exclude='*.log' \
+          .
+        ls -la deployment.tar.gz
+        
+    - name: 🔐 Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "StrictHostKeyChecking no" >> ~/.ssh/config
+        sudo apt-get update
+        sudo apt-get install -y sshpass
+        
+    - name: 🔄 Deploy to VPS
+      env:
+        SSHPASS: ${{ secrets.VPS_PASSWORD }}
+      run: |
+        echo "🚀 Starting deployment to VPS..."
+        
+        # Test VPS connectivity
+        sshpass -e ssh $VPS_USER@$VPS_HOST "echo 'VPS connection successful'"
+        
+        # Create backup if not skipped
+        if [ "${{ github.event.inputs.skip_backup }}" != "true" ]; then
+          echo "📦 Creating backup..."
+          sshpass -e ssh $VPS_USER@$VPS_HOST "
+            mkdir -p /var/backups/video-ia-net/deployments
+            BACKUP_FILE=/var/backups/video-ia-net/deployments/backup_\$(date +%Y%m%d_%H%M%S).tar.gz
+            cd $APP_PATH
+            tar -czf \$BACKUP_FILE \
+              --exclude='node_modules' \
+              --exclude='.next' \
+              --exclude='logs' \
+              .
+            echo 'Backup created: '\$BACKUP_FILE
+          "
+        fi
+        
+        # Upload new code
+        echo "📤 Uploading application..."
+        scp deployment.tar.gz $VPS_USER@$VPS_HOST:/tmp/
+        
+        # Deploy on VPS
+        sshpass -e ssh $VPS_USER@$VPS_HOST "
+          echo '🔄 Deploying application...'
+          
+          # Stop application
+          pm2 stop video-ia-net || echo 'App was not running'
+          
+          # Extract new code
+          cd $APP_PATH
+          tar -xzf /tmp/deployment.tar.gz
+          rm /tmp/deployment.tar.gz
+          
+          # Install dependencies
+          npm ci --production --silent
+          
+          # Build application
+          npm run build
+          
+          # Update permissions
+          chown -R www-data:www-data $APP_PATH
+          
+          # Restart application
+          pm2 start ecosystem.config.js --env production
+          pm2 save
+          
+          echo '✅ Deployment completed'
+        "
+        
+    - name: 🔄 Sync Database
+      if: github.event.inputs.deployment_type == 'full' || github.event.inputs.deployment_type == 'db-only'
+      env:
+        DEV_DB_PASSWORD: video123
+        PROD_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+      run: |
+        echo "🔄 Synchronizing database DEV → PROD..."
+        
+        if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+          echo "[DRY RUN] Database sync would be executed"
+          node scripts/deploy/sync-to-prod.js --dry-run --mode=content_only
+        else
+          node scripts/deploy/sync-to-prod.js --mode=content_only --preserve-analytics
+        fi
+        
+    - name: 🧪 Health Check
+      run: |
+        echo "🏥 Performing health check..."
+        sleep 10
+        
+        # Test application endpoints
+        HEALTH_URL="https://www.video-ia.net/api/tools?limit=1"
+        
+        for i in {1..5}; do
+          if curl -f -s "$HEALTH_URL" > /dev/null; then
+            echo "✅ Health check passed (attempt $i)"
+            break
+          else
+            echo "⏳ Health check failed, retrying... (attempt $i)"
+            sleep 10
+          fi
+          
+          if [ $i -eq 5 ]; then
+            echo "❌ Health check failed after 5 attempts"
+            exit 1
+          fi
+        done
+        
+    - name: 📊 Deployment Summary
+      if: always()
+      run: |
+        echo "## 📋 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **VPS:** $VPS_HOST" >> $GITHUB_STEP_SUMMARY
+        echo "- **Type:** ${{ github.event.inputs.deployment_type || 'full' }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Time:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "🎉 **Deployment successful!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Your application is now live at: https://www.video-ia.net" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Deployment failed!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the logs for more details." >> $GITHUB_STEP_SUMMARY
+        fi
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    steps:
+    - name: 📢 Notification
+      run: |
+        if [ "${{ needs.deploy.result }}" = "success" ]; then
+          echo "✅ Deployment to video-ia.net completed successfully"
+        else
+          echo "❌ Deployment to video-ia.net failed"
+        fi

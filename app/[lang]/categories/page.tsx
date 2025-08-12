@@ -7,7 +7,7 @@
 
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { SupportedLocale, SUPPORTED_LOCALES } from '@/middleware'
+import { SupportedLocale, supportedLocales } from '@/middleware'
 import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
 import CategoriesControls from '@/src/components/categories/CategoriesControls'
 
@@ -28,7 +28,7 @@ interface CategoriesPageProps {
  */
 function validateAndParseParams(params: any, searchParams: any) {
   const lang = params.lang
-  if (!SUPPORTED_LOCALES.includes(lang as SupportedLocale)) {
+  if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }
 
@@ -56,7 +56,7 @@ function validateAndParseParams(params: any, searchParams: any) {
 export async function generateMetadata({ params }: { params: { lang: string } }): Promise<Metadata> {
   const lang = params.lang as SupportedLocale
   
-  if (!SUPPORTED_LOCALES.includes(lang)) {
+  if (!supportedLocales.includes(lang)) {
     notFound()
   }
   
@@ -72,8 +72,27 @@ export async function generateMetadata({ params }: { params: { lang: string } })
     'fr': {
       title: 'Catégories d\'Outils IA - Parcourir par Type | Video-IA.net',
       description: 'Explorez 140+ catégories d\'outils IA incluant création vidéo, automatisation, machine learning et plus. Trouvez l\'outil IA parfait pour vos besoins.'
+    },
+    'de': {
+      title: 'KI-Tools Kategorien - Nach Typ durchstöbern | Video-IA.net',
+      description: 'Erkunden Sie 140+ KI-Tools-Kategorien einschließlich Videoerstellung, Automatisierung, maschinelles Lernen und mehr. Finden Sie das perfekte KI-Tool für Ihre Bedürfnisse.'
+    },
+    'nl': {
+      title: 'AI Tools Categorieën - Bladeren per Type | Video-IA.net',
+      description: 'Verken 140+ AI-tools categorieën inclusief videocreatie, automatisering, machine learning en meer. Vind de perfecte AI-tool voor uw behoeften.'
+    },
+    'it': {
+      title: 'Categorie Strumenti IA - Sfoglia per Tipo | Video-IA.net',
+      description: 'Esplora 140+ categorie di strumenti IA incluse creazione video, automazione, machine learning e altro. Trova lo strumento IA perfetto per le tue esigenze.'
+    },
+    'es': {
+      title: 'Categorías de Herramientas IA - Navegar por Tipo | Video-IA.net',
+      description: 'Explora 140+ categorías de herramientas IA incluyendo creación de video, automatización, machine learning y más. Encuentra la herramienta IA perfecta para tus necesidades.'
+    },
+    'pt': {
+      title: 'Categorias de Ferramentas IA - Navegar por Tipo | Video-IA.net',
+      description: 'Explore 140+ categorias de ferramentas IA incluindo criação de vídeo, automação, machine learning e mais. Encontre a ferramenta IA perfeita para suas necessidades.'
     }
-    // Ajouter autres langues...
   }
   
   const content = metadata[lang] || metadata['en']
@@ -92,7 +111,7 @@ export async function generateMetadata({ params }: { params: { lang: string } })
     alternates: {
       canonical: currentUrl,
       languages: Object.fromEntries(
-        SUPPORTED_LOCALES.map(locale => [
+        supportedLocales.map(locale => [
           locale,
           `${baseUrl}${locale === 'en' ? '' : `/${locale}`}/categories`
         ])
@@ -303,6 +322,96 @@ function getLocalizedMessages(lang: SupportedLocale) {
       errorLoading: 'Erreur de Chargement',
       errorTryAgain: 'Quelque chose s\'est mal passé. Veuillez réessayer.',
       reload: 'Recharger'
+    },
+    'de': {
+      home: 'Startseite',
+      categories: 'Kategorien',
+      allCategories: 'Alle KI-Tools-Kategorien',
+      categoriesDescription: 'Erkunden Sie unsere umfassende Sammlung von KI-Tools-Kategorien',
+      totalTools: 'Tools insgesamt',
+      tools: 'Tools',
+      sortBy: 'Sortieren nach',
+      mostPopular: 'Beliebteste',
+      leastPopular: 'Weniger Beliebte',
+      alphabetical: 'A-Z',
+      reverseAlphabetical: 'Z-A',
+      gridView: 'Raster',
+      listView: 'Liste',
+      errorLoading: 'Fehler beim Laden der Kategorien',
+      errorTryAgain: 'Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.',
+      reload: 'Neu laden'
+    },
+    'nl': {
+      home: 'Home',
+      categories: 'Categorieën',
+      allCategories: 'Alle AI-Tools Categorieën',
+      categoriesDescription: 'Verken onze uitgebreide collectie AI-tools categorieën',
+      totalTools: 'tools in totaal',
+      tools: 'tools',
+      sortBy: 'Sorteren op',
+      mostPopular: 'Populairste',
+      leastPopular: 'Minst Populair',
+      alphabetical: 'A-Z',
+      reverseAlphabetical: 'Z-A',
+      gridView: 'Raster',
+      listView: 'Lijst',
+      errorLoading: 'Fout bij het Laden van Categorieën',
+      errorTryAgain: 'Er is iets misgegaan. Probeer het opnieuw.',
+      reload: 'Herladen'
+    },
+    'it': {
+      home: 'Home',
+      categories: 'Categorie',
+      allCategories: 'Tutte le Categorie di Strumenti IA',
+      categoriesDescription: 'Esplora la nostra collezione completa di categorie di strumenti IA',
+      totalTools: 'strumenti totali',
+      tools: 'strumenti',
+      sortBy: 'Ordina per',
+      mostPopular: 'Più Popolari',
+      leastPopular: 'Meno Popolari',
+      alphabetical: 'A-Z',
+      reverseAlphabetical: 'Z-A',
+      gridView: 'Griglia',
+      listView: 'Lista',
+      errorLoading: 'Errore nel Caricamento delle Categorie',
+      errorTryAgain: 'Qualcosa è andato storto. Riprova.',
+      reload: 'Ricarica'
+    },
+    'es': {
+      home: 'Inicio',
+      categories: 'Categorías',
+      allCategories: 'Todas las Categorías de Herramientas IA',
+      categoriesDescription: 'Explora nuestra colección completa de categorías de herramientas IA',
+      totalTools: 'herramientas en total',
+      tools: 'herramientas',
+      sortBy: 'Ordenar por',
+      mostPopular: 'Más Populares',
+      leastPopular: 'Menos Populares',
+      alphabetical: 'A-Z',
+      reverseAlphabetical: 'Z-A',
+      gridView: 'Cuadrícula',
+      listView: 'Lista',
+      errorLoading: 'Error al Cargar Categorías',
+      errorTryAgain: 'Algo salió mal. Por favor inténtalo de nuevo.',
+      reload: 'Recargar'
+    },
+    'pt': {
+      home: 'Início',
+      categories: 'Categorias',
+      allCategories: 'Todas as Categorias de Ferramentas IA',
+      categoriesDescription: 'Explore nossa coleção abrangente de categorias de ferramentas IA',
+      totalTools: 'ferramentas no total',
+      tools: 'ferramentas',
+      sortBy: 'Ordenar por',
+      mostPopular: 'Mais Populares',
+      leastPopular: 'Menos Populares',
+      alphabetical: 'A-Z',
+      reverseAlphabetical: 'Z-A',
+      gridView: 'Grade',
+      listView: 'Lista',
+      errorLoading: 'Erro ao Carregar Categorias',
+      errorTryAgain: 'Algo deu errado. Tente novamente.',
+      reload: 'Recarregar'
     }
   }
   

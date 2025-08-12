@@ -16,7 +16,7 @@
 
 'use client'
 
-import { SupportedLocale, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, defaultLocale } from '@/middleware'
 
 // Types pour le système de stockage
 interface StorageItem<T> {
@@ -368,7 +368,7 @@ export class UserPreferencesManager {
 
     const defaultPreferences: UserPreferencesV2 = {
       language: {
-        primary: DEFAULT_LOCALE,
+        primary: defaultLocale,
         fallbacks: ['en'],
         autoDetect: true,
         detectFromContent: false

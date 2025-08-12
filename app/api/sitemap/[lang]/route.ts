@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { SupportedLocale, SUPPORTED_LOCALES } from '@/middleware'
+import { SupportedLocale, supportedLocales } from '@/middleware'
 import { toolsService } from '@/src/lib/database/services/tools'
 import { CategoriesService } from '@/src/lib/database/services/categories'
 
@@ -55,7 +55,7 @@ function buildAlternateUrls(basePath: string): { [key: string]: string } {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
   const alternates: { [key: string]: string } = {}
   
-  SUPPORTED_LOCALES.forEach(locale => {
+  supportedLocales.forEach(locale => {
     if (locale === 'en') {
       alternates[locale] = `${baseUrl}${basePath}`
       alternates['x-default'] = `${baseUrl}${basePath}` // Langue par défaut
@@ -75,8 +75,7 @@ async function getSitemapData(lang: SupportedLocale) {
     // Récupération parallèle des données avec fallbacks
     const [toolsResult, categories] = await Promise.all([
       toolsService.searchTools({ 
-        limit: 5000, // Limite raisonnable pour éviter timeout
-        useCache: true 
+        limit: 5000 // Limite raisonnable pour éviter timeout
       }).catch(() => ({ tools: [], pagination: { totalPages: 0, hasNextPage: false } })),
       CategoriesService.getAllCategories().catch(() => [])
     ])
@@ -106,7 +105,7 @@ export async function GET(
   const lang = params.lang as SupportedLocale
   
   // Validation langue
-  if (!SUPPORTED_LOCALES.includes(lang)) {
+  if (!supportedLocales.includes(lang)) {
     return NextResponse.json({ error: 'Invalid language' }, { status: 404 })
   }
   
@@ -246,7 +245,7 @@ export async function HEAD(
 ) {
   const lang = params.lang as SupportedLocale
   
-  if (!SUPPORTED_LOCALES.includes(lang)) {
+  if (!supportedLocales.includes(lang)) {
     return new NextResponse(null, { status: 404 })
   }
   

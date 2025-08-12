@@ -11,7 +11,7 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo } from 'react'
-import { SupportedLocale, SUPPORTED_LOCALES, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
 
 /**
  * Hook principal pour gérer la langue courante
@@ -24,19 +24,19 @@ export function useLanguage() {
     const segments = pathname.split('/').filter(Boolean)
     const firstSegment = segments[0] as SupportedLocale
     
-    return SUPPORTED_LOCALES.includes(firstSegment) 
+    return supportedLocales.includes(firstSegment) 
       ? firstSegment 
-      : DEFAULT_LOCALE
+      : defaultLocale
   }, [pathname])
 
   // Vérifier si c'est la langue par défaut
-  const isDefaultLanguage = currentLanguage === DEFAULT_LOCALE
+  const isDefaultLanguage = currentLanguage === defaultLocale
 
   return {
     currentLanguage,
     isDefaultLanguage,
-    supportedLanguages: SUPPORTED_LOCALES,
-    defaultLanguage: DEFAULT_LOCALE
+    supportedLanguages: supportedLocales,
+    defaultLanguage: defaultLocale
   }
 }
 
@@ -61,7 +61,7 @@ export function useLocalizedRouting() {
     const cleanPath = path.startsWith('/') ? path : `/${path}`
     
     // Construire URL localisée
-    const localizedPath = targetLanguage === DEFAULT_LOCALE 
+    const localizedPath = targetLanguage === defaultLocale 
       ? cleanPath
       : `/${targetLanguage}${cleanPath}`
     
@@ -81,7 +81,7 @@ export function useLocalizedRouting() {
   ) => {
     const cleanPath = path.startsWith('/') ? path : `/${path}`
     
-    return targetLanguage === DEFAULT_LOCALE 
+    return targetLanguage === defaultLocale 
       ? cleanPath
       : `/${targetLanguage}${cleanPath}`
   }, [currentLanguage])
@@ -94,7 +94,7 @@ export function useLocalizedRouting() {
     
     // Extraire path sans langue actuelle
     let pathWithoutLang = pathname
-    const currentPrefix = currentLanguage === DEFAULT_LOCALE ? '' : `/${currentLanguage}`
+    const currentPrefix = currentLanguage === defaultLocale ? '' : `/${currentLanguage}`
     
     if (currentPrefix && pathWithoutLang.startsWith(currentPrefix)) {
       pathWithoutLang = pathWithoutLang.substring(currentPrefix.length) || '/'
@@ -132,7 +132,7 @@ export function useAlternateUrls() {
   const alternateUrls = useMemo(() => {
     // Extraire path sans langue
     let pathWithoutLang = pathname
-    const currentPrefix = currentLanguage === DEFAULT_LOCALE ? '' : `/${currentLanguage}`
+    const currentPrefix = currentLanguage === defaultLocale ? '' : `/${currentLanguage}`
     
     if (currentPrefix && pathWithoutLang.startsWith(currentPrefix)) {
       pathWithoutLang = pathWithoutLang.substring(currentPrefix.length) || '/'
@@ -146,8 +146,8 @@ export function useAlternateUrls() {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
 
     // Générer URLs pour toutes les langues
-    return SUPPORTED_LOCALES.reduce((acc, lang) => {
-      const localizedPath = lang === DEFAULT_LOCALE 
+    return supportedLocales.reduce((acc, lang) => {
+      const localizedPath = lang === defaultLocale 
         ? pathWithoutLang
         : `/${lang}${pathWithoutLang}`
       
@@ -171,7 +171,7 @@ export function useLanguagePreferences() {
       
       if (langCookie) {
         const lang = langCookie.split('=')[1].trim() as SupportedLocale
-        if (SUPPORTED_LOCALES.includes(lang)) {
+        if (supportedLocales.includes(lang)) {
           return lang
         }
       }
@@ -180,12 +180,12 @@ export function useLanguagePreferences() {
     // 2. Langue navigateur
     if (typeof navigator !== 'undefined') {
       const browserLang = navigator.language.split('-')[0] as SupportedLocale
-      if (SUPPORTED_LOCALES.includes(browserLang)) {
+      if (supportedLocales.includes(browserLang)) {
         return browserLang
       }
     }
 
-    return DEFAULT_LOCALE
+    return defaultLocale
   }, [])
 
   return { detectPreferredLanguage }
@@ -206,7 +206,7 @@ export function useI18nMetadata() {
       href: url
     })),
     canonicalUrl: alternateUrls[currentLanguage],
-    defaultUrl: alternateUrls[DEFAULT_LOCALE]
+    defaultUrl: alternateUrls[defaultLocale]
   }), [currentLanguage, alternateUrls])
 
   return metadata

@@ -12,7 +12,7 @@
 
 'use client'
 
-import { SupportedLocale, DEFAULT_LOCALE } from '@/middleware'
+import { SupportedLocale, defaultLocale } from '@/middleware'
 
 // Types pour Schema.org
 export interface BaseSchema {
@@ -181,7 +181,7 @@ export class SchemaGenerator {
   }
 
   private translate(key: string, language: SupportedLocale): string {
-    return this.translations[key]?.[language] || this.translations[key]?.[DEFAULT_LOCALE] || key
+    return this.translations[key]?.[language] || this.translations[key]?.[defaultLocale] || key
   }
 
   /**
@@ -247,7 +247,7 @@ export class SchemaGenerator {
         '@type': 'SearchAction',
         target: {
           '@type': 'EntryPoint',
-          urlTemplate: `${this.baseUrl}/${language === DEFAULT_LOCALE ? '' : language + '/'}search?q={search_term_string}`
+          urlTemplate: `${this.baseUrl}/${language === defaultLocale ? '' : language + '/'}search?q={search_term_string}`
         },
         'query-input': 'required name=search_term_string'
       },
@@ -379,18 +379,18 @@ export class SchemaGenerator {
             tool: {
               ...tool,
               toolDescription: tool.overview,
-              toolLink: `${this.baseUrl}/${language === DEFAULT_LOCALE ? '' : language + '/'}tools/${tool.toolName.toLowerCase().replace(/\s+/g, '-')}`,
+              toolLink: `${this.baseUrl}/${language === defaultLocale ? '' : language + '/'}tools/${tool.toolName.toLowerCase().replace(/\s+/g, '-')}`,
               imageUrl: undefined,
               updatedAt: tool.updatedAt
             },
             language,
             availableLanguages: [language],
-            basePath: `/${language === DEFAULT_LOCALE ? '' : language + '/'}tools/${tool.toolName.toLowerCase().replace(/\s+/g, '-')}`
+            basePath: `/${language === defaultLocale ? '' : language + '/'}tools/${tool.toolName.toLowerCase().replace(/\s+/g, '-')}`
           })
         }))
       },
       breadcrumb: this.generateBreadcrumbSchema(breadcrumbs),
-      inLanguage: language === DEFAULT_LOCALE ? 'en-US' : `${language}-${language.toUpperCase()}`
+      inLanguage: language === defaultLocale ? 'en-US' : `${language}-${language.toUpperCase()}`
     }
   }
 

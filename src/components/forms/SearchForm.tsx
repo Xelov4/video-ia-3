@@ -74,8 +74,8 @@ export default function SearchForm({
       }
       
       // Analytics
-      if (typeof window !== 'undefined' && window.gtag) {
-        window.gtag('event', 'search', {
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'search', {
           search_term: query.trim(),
           page_path: window.location.pathname
         })
