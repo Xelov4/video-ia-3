@@ -45,6 +45,7 @@
     "sync:bidirectional": "node scripts/deploy/sync-bidirectional.js",
     "deploy:quick": "./scripts/deploy/quick-deploy.sh",
     "deploy:vps-setup": "./scripts/deploy/setup-vps-complete.sh",
+    "deploy:production": "./scripts/deploy/deploy-production-complete.sh",
     "validate:databases": "node scripts/deploy/database-analyzer.js --compare-all --verbose",
     "test:deployment": "./scripts/deploy/test-deployment.sh",
     "sync:dev-to-prod": "node scripts/deploy/sync-bidirectional.js --mode=dev-to-prod",
