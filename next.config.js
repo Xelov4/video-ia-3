@@ -141,6 +141,11 @@ const nextConfig = {
     optimizeCss: true,
     optimizeServerReact: true,
     typedRoutes: false // Désactivé pour compatibilité middleware
+  },
+  
+  // TypeScript checking activé pour un build propre
+  typescript: {
+    ignoreBuildErrors: false
   }
 }
 

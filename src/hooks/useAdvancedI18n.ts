@@ -69,7 +69,7 @@ export function useUserLanguagePreferences() {
             autoDetect: true,
             rememberChoice: true,
             lastUsed: new Date(),
-            usageCount: { [currentLanguage]: 1 }
+            usageCount: { en: 0, fr: 0, it: 0, es: 0, de: 0, nl: 0, pt: 0, [currentLanguage]: 1 }
           }
           setPreferences(defaultPrefs)
           savePreferences(defaultPrefs)
@@ -83,7 +83,7 @@ export function useUserLanguagePreferences() {
           autoDetect: true,
           rememberChoice: true,
           lastUsed: new Date(),
-          usageCount: { [currentLanguage]: 1 }
+          usageCount: { en: 0, fr: 0, it: 0, es: 0, de: 0, nl: 0, pt: 0, [currentLanguage]: 1 }
         }
         setPreferences(fallback)
       } finally {

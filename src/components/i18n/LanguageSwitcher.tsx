@@ -121,8 +121,8 @@ export default function LanguageSwitcher({
 
     try {
       // Analytics tracking
-      if (typeof window !== 'undefined' && window.gtag) {
-        window.gtag('event', 'language_change', {
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'language_change', {
           from_language: currentLanguage,
           to_language: targetLang,
           page_path: pathname

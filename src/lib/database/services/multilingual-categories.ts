@@ -157,8 +157,8 @@ class MultilingualCategoriesService {
 
         // Utilisation du count optimisé ou fallback vers category.toolCount
         const actualToolCount = includeCounts ? 
-          (toolCountsMap[category.name] ?? category.toolCount) : 
-          category.toolCount
+          (toolCountsMap[category.name] ?? (category.toolCount || 0)) : 
+          (category.toolCount || 0)
 
         return {
           ...category,
@@ -238,7 +238,7 @@ class MultilingualCategoriesService {
           resolvedLanguage: requestedTranslation ? language : this.DEFAULT_LANGUAGE,
           translationSource,
           emoji: getCategoryEmojiString(category.name),
-          actualToolCount: category.toolCount
+          actualToolCount: category.toolCount || 0
         }
       })
 
@@ -383,7 +383,7 @@ class MultilingualCategoriesService {
           resolvedLanguage: requestedTranslation ? language : this.DEFAULT_LANGUAGE,
           translationSource,
           emoji: getCategoryEmojiString(category.name),
-          actualToolCount: category.toolCount
+          actualToolCount: category.toolCount || 0
         }
       })
 

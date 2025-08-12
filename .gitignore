@@ -47,3 +47,7 @@ public/screenshots/
 *.temp
 
 /generated/prisma
+
+# Ignorer les gros fichiers de backup
+backups/*.sql
+backups/*.backup

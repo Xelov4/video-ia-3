@@ -5,7 +5,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { DatabaseTool } from '@/src/lib/database/services/tools'
+import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
 import { 
   EyeIcon, 
   HeartIcon, 
@@ -16,14 +16,14 @@ import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolCardProps {
-  tool: DatabaseTool
+  tool: ToolWithTranslation
   showCategory?: boolean
   size?: 'small' | 'medium' | 'large'
   lang?: string
 }
 
 export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'en' }: ToolCardProps) => {
-  const qualityScore = tool.quality_score || 0
+  const qualityScore = tool.qualityScore || 0
   const rating = (qualityScore / 2) || 0
   
   const cardSizes = {
@@ -97,9 +97,9 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'e
     }
   }
 
-  const imageUrl = isValidImageUrl(tool.image_url) 
-    ? tool.image_url! 
-    : `https://picsum.photos/400/250?random=${encodeURIComponent(tool.tool_name)}`
+  const imageUrl = isValidImageUrl((tool as any).logoUrl || (tool as any).screenshotUrl) 
+    ? ((tool as any).logoUrl || (tool as any).screenshotUrl)! 
+    : `https://picsum.photos/400/250?random=${encodeURIComponent(tool.displayName)}`
 
   return (
     <div className="group bg-gray-800 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-gray-700">
@@ -107,7 +107,7 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'e
       <div className="relative h-48 overflow-hidden">
         <Image
           src={imageUrl}
-          alt={tool.tool_name}
+          alt={tool.displayName}
           fill
           className="object-cover group-hover:scale-110 transition-transform duration-300"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -137,13 +137,13 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'e
       {/* Content */}
       <div className={cardSizes[size]}>
         {/* Category (if shown) */}
-        {showCategory && tool.tool_category && (
+        {showCategory && tool.toolCategory && (
           <div className="mb-3">
             <Link
-              href={`/${lang}/categories/${encodeURIComponent(tool.tool_category.toLowerCase().replace(/\s+/g, '-'))}`}
+              href={`/${lang}/categories/${encodeURIComponent(tool.toolCategory.toLowerCase().replace(/\s+/g, '-'))}`}
               className="inline-flex items-center px-2 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full hover:bg-blue-500/30 transition-colors"
             >
-              {tool.tool_category}
+              {tool.toolCategory}
             </Link>
           </div>
         )}
@@ -151,13 +151,13 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'e
         {/* Title */}
         <h3 className="text-lg font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
           <Link href={`/${lang}/tools/${tool.slug || tool.id}`} className="hover:underline">
-            {tool.tool_name}
+            {tool.displayName}
           </Link>
         </h3>
 
         {/* Description */}
         <p className="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed">
-          {tool.overview || tool.tool_description?.substring(0, 150) + '...' || t.noDescription}
+          {tool.displayOverview || tool.displayDescription?.substring(0, 150) + '...' || t.noDescription}
         </p>
 
         {/* Rating */}
@@ -186,11 +186,11 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'e
         <div className="flex items-center justify-between text-xs text-gray-400 mb-6">
           <div className="flex items-center">
             <EyeIcon className="w-3 h-3 mr-1" />
-            {formatNumber(tool.view_count || 0)}
+            {formatNumber(tool.viewCount || 0)}
           </div>
           <div className="flex items-center">
             <HeartIcon className="w-3 h-3 mr-1" />
-            {formatNumber(tool.favorite_count || 0)}
+            {formatNumber(tool.favoriteCount || 0)}
           </div>
         </div>
 
@@ -202,9 +202,9 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'e
           >
             {t.viewDetails}
           </Link>
-          {tool.tool_link && (
+          {tool.toolLink && (
             <a
-              href={tool.tool_link}
+              href={tool.toolLink}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-2 border border-white/30 text-white rounded-xl hover:bg-white/10 transition-colors"

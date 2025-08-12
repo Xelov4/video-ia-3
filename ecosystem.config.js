@@ -15,7 +15,7 @@ module.exports = {
       name: 'video-ia-net',
       script: 'node_modules/next/dist/bin/next',
       args: 'start',
-      cwd: '/var/www/video-ia.net',
+      cwd: '/var/www/video-ia-net',
       
       // Clustering
       instances: 'max', // Utilise tous les CPU disponibles
@@ -26,7 +26,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3000,
         // Base de données production
-        DATABASE_URL: 'postgresql://video_ia_user:Buzzerbeater23@localhost:5432/video_ia_net',
+        DATABASE_URL: 'postgresql://video_ia_user:video123@localhost:5432/video_ia_net',
         
         // Configuration Next.js
         NEXT_TELEMETRY_DISABLED: 1,
@@ -40,10 +40,10 @@ module.exports = {
       min_uptime: '10s',
       max_memory_restart: '1G',
       
-      // Logs
-      log_file: '/var/log/pm2/video-ia-net.log',
-      out_file: '/var/log/pm2/video-ia-net-out.log',
-      error_file: '/var/log/pm2/video-ia-net-error.log',
+      // Logs centralisés
+      log_file: '/var/www/configs/logs/pm2/video-ia-net.log',
+      out_file: '/var/www/configs/logs/pm2/video-ia-net-out.log',
+      error_file: '/var/www/configs/logs/pm2/video-ia-net-error.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       merge_logs: true,
       
@@ -75,7 +75,7 @@ module.exports = {
       host: '46.202.129.104',
       ref: 'origin/main',
       repo: 'git@github.com:YOUR_USERNAME/video-ia.net.git',
-      path: '/var/www/video-ia.net',
+      path: '/var/www/video-ia-net',
       
       // Hooks de déploiement
       'pre-deploy': 'git reset --hard && git clean -fd',
@@ -84,7 +84,7 @@ module.exports = {
       // Variables d'environnement pour le déploiement
       env: {
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://video_ia_user:Buzzerbeater23@localhost:5432/video_ia_net'
+        DATABASE_URL: 'postgresql://video_ia_user:video123@localhost:5432/video_ia_net'
       }
     }
   }

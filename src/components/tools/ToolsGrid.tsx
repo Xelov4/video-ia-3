@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { DatabaseTool } from '@/src/lib/database/services/tools'
+import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
 import { ToolCard } from './ToolCard'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
 import { 
@@ -19,7 +19,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 interface ToolsGridProps {
-  tools: DatabaseTool[]
+  tools: ToolWithTranslation[]
   totalCount: number
   currentPage: number
   totalPages: number

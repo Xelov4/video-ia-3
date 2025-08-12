@@ -15,6 +15,7 @@
 
 import { prisma } from '../client'
 import { Tool, ToolTranslation, Language, Prisma } from '@prisma/client'
+import { multilingualCategoriesService } from './multilingual-categories'
 
 // Types de base
 export type SupportedLanguage = 'en' | 'fr' | 'it' | 'es' | 'de' | 'nl' | 'pt'

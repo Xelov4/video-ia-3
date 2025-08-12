@@ -390,7 +390,7 @@ export class UserPreferencesManager {
         maxCacheSize: 1000
       },
       statistics: {
-        languageUsage: {},
+        languageUsage: { en: 0, fr: 0, it: 0, es: 0, de: 0, nl: 0, pt: 0 },
         lastLanguageChange: new Date(),
         totalSessions: 0,
         averageSessionDuration: 0
@@ -454,7 +454,7 @@ export class UserPreferencesManager {
     
     for (const key in source) {
       if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-        result[key] = this.deepMerge(result[key] || {}, source[key] as any)
+        result[key] = this.deepMerge((result[key] as any) || {}, source[key] as any)
       } else {
         result[key] = source[key] as any
       }

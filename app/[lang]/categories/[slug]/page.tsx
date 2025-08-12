@@ -19,7 +19,7 @@ import { Suspense } from 'react'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { toolsService } from '@/src/lib/database/services/tools'
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
 import { CategoriesService } from '@/src/lib/database/services/categories'
 import { ToolsGrid } from '@/src/components/tools/ToolsGrid'
 import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline'
@@ -195,9 +195,28 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // Load tools and related categories
   const [toolsResult, allCategories, relatedCategories] = await Promise.all([
-    toolsService.searchTools(searchParams_api).catch((error: any) => {
+    multilingualToolsService.searchTools({
+      language: lang as any,
+      category: params.slug,
+      query: searchParams_api.query,
+      featured: searchParams_api.featured,
+      page: searchParams_api.page,
+      limit: searchParams_api.limit,
+      sortBy: searchParams_api.sortBy as any,
+      sortOrder: searchParams_api.sortOrder as any
+    }).catch((error: any) => {
       console.error('Failed to load tools:', error)
-      return { tools: [], totalCount: 0, hasMore: false, totalPages: 0, currentPage: 1, hasNextPage: false, hasPreviousPage: false }
+      return { 
+        tools: [], 
+        pagination: { 
+          totalCount: 0, 
+          totalPages: 0, 
+          page: 1, 
+          hasNextPage: false, 
+          hasPreviousPage: false, 
+          limit: 10 
+        } 
+      }
     }),
     CategoriesService.getAllCategories().catch(() => []),
     CategoriesService.getRelatedCategories(category.name, 4).catch(() => [])
@@ -312,17 +331,17 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               {t.toolsInCategory}
             </h2>
             <p className="text-gray-300">
-              {toolsResult.totalCount} {t.toolsFound}
+              {toolsResult.pagination?.totalCount || 0} {t.toolsFound}
             </p>
           </div>
           
           <ToolsGrid
             tools={toolsResult.tools}
-            totalCount={toolsResult.totalCount}
-            currentPage={toolsResult.currentPage}
-            totalPages={toolsResult.totalPages}
-            hasNextPage={toolsResult.hasNextPage}
-            hasPreviousPage={toolsResult.hasPreviousPage}
+            totalCount={toolsResult.pagination?.totalCount || 0}
+            currentPage={toolsResult.pagination?.page || 1}
+            totalPages={toolsResult.pagination?.totalPages || 0}
+            hasNextPage={toolsResult.pagination?.hasNextPage || false}
+            hasPreviousPage={toolsResult.pagination?.hasPreviousPage || false}
             showCategory={false}
             lang={lang}
           />

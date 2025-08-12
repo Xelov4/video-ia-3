@@ -258,7 +258,7 @@ export function withFullI18n<P extends object>(
 
     // Appliquer les HOCs dans l'ordre approprié
     if (options.enableMemo) {
-      EnhancedComponent = withI18nMemo(EnhancedComponent, options.memoDependencies)
+      EnhancedComponent = withI18nMemo(EnhancedComponent, options.memoDependencies) as unknown as ComponentType<P>
     }
 
     if (options.enableRTL) {
@@ -270,18 +270,21 @@ export function withFullI18n<P extends object>(
     }
 
     if (options.preloadKeys?.length) {
-      EnhancedComponent = withPreloadedTranslations(options.preloadKeys)(EnhancedComponent)
+      EnhancedComponent = withPreloadedTranslations(options.preloadKeys)(EnhancedComponent as any) as ComponentType<P>
     }
 
     // Toujours appliquer l'injection i18n de base
     EnhancedComponent = withI18n(EnhancedComponent as any)
 
     // Wrapper avec ErrorBoundary
-    const FinalComponent = (props: P) => (
-      <ErrorBoundary fallback={options.fallbackComponent}>
-        <EnhancedComponent {...props} />
-      </ErrorBoundary>
-    )
+    const FinalComponent = (props: P) => {
+      const FallbackComponent = options.fallbackComponent || (() => <div>Error</div>)
+      return (
+        <ErrorBoundary fallback={<FallbackComponent />}>
+          <EnhancedComponent {...props} />
+        </ErrorBoundary>
+      )
+    }
 
     FinalComponent.displayName = 
       `withFullI18n(${WrappedComponent.displayName || WrappedComponent.name})`
