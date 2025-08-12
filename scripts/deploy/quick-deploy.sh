@@ -97,16 +97,22 @@ check_prerequisites() {
     error "Ce script doit être exécuté dans un repository Git"
   fi
   
-  # Vérifier les changements non commités
-  if ! $FORCE && [[ -n $(git status --porcelain) ]]; then
+  # Vérifier les changements non commités (ignorer les fichiers de build)
+  UNCOMMITTED_CHANGES=$(git status --porcelain | grep -v "^.M .next/" | grep -v "^.M tsconfig.tsbuildinfo")
+  if ! $FORCE && [[ -n "$UNCOMMITTED_CHANGES" ]]; then
     warning "Des changements non commités ont été détectés:"
-    git status --short
+    echo "$UNCOMMITTED_CHANGES"
     echo ""
     echo "Options:"
     echo "  1. Commiter vos changements avec: git add . && git commit -m 'Deploy changes'"
     echo "  2. Utiliser --force pour ignorer cette vérification"
     echo "  3. Stash vos changements avec: git stash"
     exit 1
+  fi
+  
+  # Informer si seuls les fichiers de build ont changé
+  if [[ -n $(git status --porcelain) && -z "$UNCOMMITTED_CHANGES" ]]; then
+    log "Seuls les fichiers de build Next.js ont changé (ignorés pour le déploiement)"
   fi
   
   success "Prérequis vérifiés"
