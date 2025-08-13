@@ -143,6 +143,9 @@ const nextConfig = {
     typedRoutes: false // Désactivé pour compatibilité middleware
   },
   
+  // Configuration pour éviter les erreurs de prerendering
+  // output: 'standalone', // Disabled for now
+  
   // TypeScript checking activé pour un build propre
   typescript: {
     ignoreBuildErrors: false
