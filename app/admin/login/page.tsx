@@ -149,9 +149,17 @@ const LoginPage = () => {
           {/* Default Credentials Info */}
           <div className="mt-8 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
             <div className="text-blue-200 text-sm">
-              <div className="font-medium mb-1">Identifiants par défaut :</div>
-              <div>Email: admin@video-ia.net</div>
-              <div>Mot de passe: admin123</div>
+              <div className="font-medium mb-1">Comptes d'administration disponibles :</div>
+              <div className="mt-2 p-2 bg-blue-600/20 rounded border border-blue-500/30">
+                <div className="font-medium text-blue-100">Compte Principal</div>
+                <div>Email: admin@video-ia.net</div>
+                <div>Mot de passe: VideoIA2024!</div>
+              </div>
+              <div className="mt-2 p-2 bg-green-600/20 rounded border border-green-500/30">
+                <div className="font-medium text-green-100">Compte Secondaire</div>
+                <div>Email: admin2@video-ia.net</div>
+                <div>Mot de passe: SecurePass2024!</div>
+              </div>
             </div>
           </div>
 
