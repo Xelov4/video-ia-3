@@ -14,7 +14,7 @@ import { formatNumber } from '@/src/lib/utils/formatNumbers'
 export const dynamic = 'force-dynamic'
 
 interface ToolsPageProps {
-  searchParams: Promise<{
+  searchParams: {
     page?: string
     search?: string
     category?: string
@@ -68,7 +68,7 @@ export default async function AdminToolsPage({ searchParams }: ToolsPageProps) {
       <SearchAndFilters />
 
       {/* Tools Table */}
-      <Suspense fallback={<div>Chargement...</div>}
+      <Suspense fallback={<div>Chargement...</div>}>
         <ToolsTable
           tools={result.tools}
           pagination={{

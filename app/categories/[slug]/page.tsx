@@ -24,8 +24,8 @@ import { ToolsGrid } from '@/src/components/tools/ToolsGrid'
 import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline'
 
 interface CategoryPageProps {
-  params: Promise<{ slug: string }
-  searchParams: Promise<{
+  params: { slug: string }
+  searchParams: {
     search?: string
     featured?: string
     sort?: string

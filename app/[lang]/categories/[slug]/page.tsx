@@ -26,11 +26,11 @@ import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline'
 import { supportedLocales, defaultLocale, type SupportedLocale } from '@/middleware'
 
 interface CategoryPageProps {
-  params: Promise<{ 
+  params: { 
     lang: string
     slug: string 
   }
-  searchParams: Promise<{
+  searchParams: {
     search?: string
     featured?: string
     sort?: string
@@ -40,7 +40,7 @@ interface CategoryPageProps {
 }
 
 function validateAndParseParams(params: any, searchParams: any) {
-  const lang = (await params).lang as SupportedLocale
+  const lang = params.lang as SupportedLocale
   
   if (!supportedLocales.includes(lang)) {
     notFound()

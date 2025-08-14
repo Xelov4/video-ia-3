@@ -45,7 +45,7 @@ import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolPageProps {
-  params: Promise<{ slug: string }
+  params: { slug: string }
 }
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
@@ -444,13 +444,13 @@ export default async function ToolPage({ params }: ToolPageProps) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Statut:</span>
-                      <span className={`font-bold ${isActive ? 'text-green-600' : 'text-red-600'}`}
+                      <span className={`font-bold ${isActive ? 'text-green-600' : 'text-red-600'}`}>
                         {isActive ? 'Actif' : 'Inactif'}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Mis en avant:</span>
-                      <span className={`font-bold ${isFeatured ? 'text-yellow-600' : 'text-gray-600'}`}
+                      <span className={`font-bold ${isFeatured ? 'text-yellow-600' : 'text-gray-600'}`}>
                         {isFeatured ? 'Oui' : 'Non'}
                       </span>
                     </div>

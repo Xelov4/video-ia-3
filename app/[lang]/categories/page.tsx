@@ -13,21 +13,21 @@ import CategoriesControls from '@/src/components/categories/CategoriesControls'
 
 // Interface pour paramètres
 interface CategoriesPageProps {
-  params: Promise<{
+  params: {
     lang: SupportedLocale
-  }>
-  searchParams: Promise<{
+  }
+  searchParams: {
     sort?: 'name' | 'count'
     order?: 'asc' | 'desc'
     view?: 'grid' | 'list'
-  }>
+  }
 }
 
 /**
  * Validation paramètres
  */
 function validateAndParseParams(params: any, searchParams: any) {
-  const lang = (await params).lang
+  const lang = params.lang
   if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }
@@ -53,8 +53,8 @@ function validateAndParseParams(params: any, searchParams: any) {
 /**
  * Métadonnées SEO
  */
-export async function generateMetadata({ params }: { params: Promise<{ lang: string } }): Promise<Metadata> {
-  const lang = (await params).lang as SupportedLocale
+export async function generateMetadata({ params }: { params: { lang: string } }): Promise<Metadata> {
+  const lang = params.lang as SupportedLocale
   
   if (!supportedLocales.includes(lang)) {
     notFound()

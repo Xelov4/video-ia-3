@@ -98,7 +98,7 @@ export default function AdminUsersPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {users.map((user) => (
-                  <tr key={user.id}
+                  <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {user.name}
@@ -117,7 +117,7 @@ export default function AdminUsersPage() {
                         user.is_active 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
-                      }`}
+                      }`}>
                         {user.is_active ? 'Actif' : 'Inactif'}
                       </span>
                     </td>
