@@ -37,7 +37,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const toolId = parseInt(params.id)
+    // Next.js 15 requires awaiting params
+    const { id } = await params
+    const toolId = parseInt(id)
     
     if (isNaN(toolId)) {
       return NextResponse.json(
@@ -114,7 +116,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const toolId = parseInt(params.id)
+    // Next.js 15 requires awaiting params
+    const { id } = await params
+    const toolId = parseInt(id)
     
     if (isNaN(toolId)) {
       return NextResponse.json(
@@ -222,7 +226,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const toolId = parseInt(params.id)
+    // Next.js 15 requires awaiting params
+    const { id } = await params
+    const toolId = parseInt(id)
     
     if (isNaN(toolId)) {
       return NextResponse.json(

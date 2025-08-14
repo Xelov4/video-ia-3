@@ -3,17 +3,8 @@
  * Handles CRUD operations for tools in the database
  */
 
-import { Pool } from 'pg';
+import { getPool } from '../postgres';
 import { ToolAnalysis } from '@/src/types/analysis';
-
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'video_ia_net',
-  user: process.env.DB_USER || 'video_ia_user',
-  password: process.env.DB_PASSWORD || 'video123',
-  ssl: false
-});
 
 export interface DatabaseTool {
   id: number;
@@ -117,14 +108,14 @@ export class ToolsService {
 
       // Get total count
       const countQuery = query.replace('SELECT *', 'SELECT COUNT(*)');
-      const countResult = await pool.query(countQuery, params);
+      const countResult = await getPool().query(countQuery, params);
       const total = parseInt(countResult.rows[0].count);
 
       // Get paginated results
       query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
       params.push(limit, (page - 1) * limit);
 
-      const result = await pool.query(query, params);
+      const result = await getPool().query(query, params);
       
       return {
         tools: result.rows.map(row => ({
@@ -146,7 +137,7 @@ export class ToolsService {
    */
   async getToolById(id: number): Promise<DatabaseTool | null> {
     try {
-      const result = await pool.query('SELECT * FROM tools WHERE id = $1', [id]);
+      const result = await getPool().query('SELECT * FROM tools WHERE id = $1', [id]);
       
       if (result.rows.length === 0) {
         return null;
@@ -170,7 +161,7 @@ export class ToolsService {
    */
   async getToolBySlug(slug: string): Promise<DatabaseTool | null> {
     try {
-      const result = await pool.query('SELECT * FROM tools WHERE slug = $1', [slug]);
+      const result = await getPool().query('SELECT * FROM tools WHERE slug = $1', [slug]);
       
       if (result.rows.length === 0) {
         return null;
@@ -204,7 +195,7 @@ export class ToolsService {
         RETURNING *
       `;
       
-      const result = await pool.query(query, [id, ...values]);
+      const result = await getPool().query(query, [id, ...values]);
       
       if (result.rows.length === 0) {
         throw new Error('Tool not found');
@@ -243,7 +234,7 @@ export class ToolsService {
         RETURNING *
       `;
       
-      const result = await pool.query(query, [id, ...values]);
+      const result = await getPool().query(query, [id, ...values]);
       
       if (result.rows.length === 0) {
         throw new Error('Tool not found');
@@ -341,7 +332,7 @@ export class ToolsService {
         LIMIT $1
       `;
       
-      const result = await pool.query(query, [limit]);
+      const result = await getPool().query(query, [limit]);
       
       return result.rows.map(row => ({
         ...row,
@@ -367,7 +358,7 @@ export class ToolsService {
         LIMIT $1
       `;
       
-      const result = await pool.query(query, [limit]);
+      const result = await getPool().query(query, [limit]);
       
       return result.rows.map(row => ({
         ...row,
@@ -394,7 +385,7 @@ export class ToolsService {
   }> {
     try {
       const [toolsResult, categoriesResult] = await Promise.all([
-        pool.query(`
+        getPool().query(`
           SELECT 
             COUNT(*) as total_tools,
             COUNT(CASE WHEN is_active = true THEN 1 END) as active_tools,
@@ -403,7 +394,7 @@ export class ToolsService {
             COALESCE(SUM(click_count), 0) as total_clicks
           FROM tools
         `),
-        pool.query('SELECT COUNT(DISTINCT tool_category) as categories FROM tools')
+        getPool().query('SELECT COUNT(DISTINCT tool_category) as categories FROM tools')
       ]);
 
       const stats = toolsResult.rows[0];
@@ -428,7 +419,7 @@ export class ToolsService {
    */
   async incrementViewCount(id: number): Promise<void> {
     try {
-      await pool.query(
+      await getPool().query(
         'UPDATE tools SET view_count = COALESCE(view_count, 0) + 1 WHERE id = $1',
         [id]
       );
@@ -443,7 +434,7 @@ export class ToolsService {
    */
   async getRelatedTools(toolId: number, category: string, limit: number = 4): Promise<DatabaseTool[]> {
     try {
-      const result = await pool.query(`
+      const result = await getPool().query(`
         SELECT * FROM tools 
         WHERE tool_category = $1 
           AND id != $2 
@@ -532,7 +523,7 @@ export class ToolsService {
 
       // Get total count
       const countQuery = `SELECT COUNT(*) FROM tools WHERE ${whereClause}`;
-      const countResult = await pool.query(countQuery, queryParams);
+      const countResult = await getPool().query(countQuery, queryParams);
       const totalCount = parseInt(countResult.rows[0].count);
 
       // Get paginated results
@@ -549,7 +540,7 @@ export class ToolsService {
         LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
       `;
       
-      const result = await pool.query(dataQuery, [...queryParams, limit, offset]);
+      const result = await getPool().query(dataQuery, [...queryParams, limit, offset]);
       
       const tools = result.rows.map(row => ({
         ...row,
