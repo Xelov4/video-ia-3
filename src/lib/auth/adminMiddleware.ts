@@ -13,7 +13,6 @@ const ADMIN_PROTECTED_ROUTES = [
   '/admin/categories', 
   '/admin/users',
   '/admin/settings',
-  '/admin/analytics',
   '/admin/scraper',
 ]
 

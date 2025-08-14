@@ -13,7 +13,6 @@ import {
   WrenchScrewdriverIcon,
   FolderIcon,
   DocumentTextIcon,
-  ChartBarIcon,
   CogIcon,
   UsersIcon,
   BookOpenIcon,
@@ -26,7 +25,6 @@ const navigation = [
   { name: 'Catégories', href: '/admin/categories', icon: FolderIcon },
   { name: 'Articles', href: '/admin/articles', icon: DocumentTextIcon },
   { name: 'Utilisateurs', href: '/admin/users', icon: UsersIcon },
-  { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon },
   { name: 'Scraper', href: '/admin/scraper', icon: ComputerDesktopIcon },
   { name: 'Paramètres', href: '/admin/settings', icon: CogIcon },
 ]

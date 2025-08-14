@@ -11,8 +11,7 @@ import {
   WrenchScrewdriverIcon,
   FolderPlusIcon,
   DocumentPlusIcon,
-  ComputerDesktopIcon,
-  ChartBarIcon
+  ComputerDesktopIcon
 } from '@heroicons/react/24/outline'
 
 const actions = [
@@ -50,13 +49,6 @@ const actions = [
     href: '/admin/scraper',
     icon: ComputerDesktopIcon,
     color: 'bg-indigo-500 hover:bg-indigo-600'
-  },
-  {
-    name: 'Voir les analytics',
-    description: 'Statistiques détaillées',
-    href: '/admin/analytics',
-    icon: ChartBarIcon,
-    color: 'bg-teal-500 hover:bg-teal-600'
   }
 ]
 
