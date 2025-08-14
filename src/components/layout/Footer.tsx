@@ -13,14 +13,18 @@
  * - SEO-optimized structure
  * - Responsive design
  * - Full multilingual support
+ * - Admin access link with authentication check
  * 
  * @author Video-IA.net Development Team
  */
 
+'use client'
+
 import Link from 'next/link'
-import { SparklesIcon } from '@heroicons/react/24/outline'
+import { SparklesIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
 import { SupportedLocale } from '@/middleware'
+import { useSession } from 'next-auth/react'
 
 interface FooterProps {
   currentLanguage: SupportedLocale
@@ -34,6 +38,7 @@ export default function Footer({
   totalCategoriesCount = 140 
 }: FooterProps) {
   const currentYear = new Date().getFullYear()
+  const { data: session } = useSession()
 
   // Traductions par langue
   const translations = {
@@ -63,7 +68,8 @@ export default function Footer({
       copyright: 'All rights reserved.',
       privacyPolicy: 'Privacy Policy',
       termsOfUse: 'Terms of Use',
-      cookies: 'Cookies'
+      cookies: 'Cookies',
+      admin: 'Administration'
     },
     'fr': {
       tagline: 'Répertoire d\'outils IA',
@@ -91,7 +97,8 @@ export default function Footer({
       copyright: 'Tous droits réservés.',
       privacyPolicy: 'Politique de confidentialité',
       termsOfUse: 'Conditions d\'utilisation',
-      cookies: 'Cookies'
+      cookies: 'Cookies',
+      admin: 'Administration'
     },
     'es': {
       tagline: 'Directorio de Herramientas IA',
@@ -119,7 +126,8 @@ export default function Footer({
       copyright: 'Todos los derechos reservados.',
       privacyPolicy: 'Política de privacidad',
       termsOfUse: 'Términos de uso',
-      cookies: 'Cookies'
+      cookies: 'Cookies',
+      admin: 'Administración'
     },
     'it': {
       tagline: 'Directory Strumenti IA',
@@ -147,7 +155,8 @@ export default function Footer({
       copyright: 'Tutti i diritti riservati.',
       privacyPolicy: 'Politica sulla privacy',
       termsOfUse: 'Termini di utilizzo',
-      cookies: 'Cookie'
+      cookies: 'Cookie',
+      admin: 'Amministrazione'
     },
     'de': {
       tagline: 'KI-Tools Verzeichnis',
@@ -175,7 +184,8 @@ export default function Footer({
       copyright: 'Alle Rechte vorbehalten.',
       privacyPolicy: 'Datenschutzrichtlinie',
       termsOfUse: 'Nutzungsbedingungen',
-      cookies: 'Cookies'
+      cookies: 'Cookies',
+      admin: 'Administration'
     },
     'nl': {
       tagline: 'AI Tools Directory',
@@ -203,7 +213,8 @@ export default function Footer({
       copyright: 'Alle rechten voorbehouden.',
       privacyPolicy: 'Privacybeleid',
       termsOfUse: 'Gebruiksvoorwaarden',
-      cookies: 'Cookies'
+      cookies: 'Cookies',
+      admin: 'Beheer'
     },
     'pt': {
       tagline: 'Diretório de Ferramentas IA',
@@ -231,7 +242,8 @@ export default function Footer({
       copyright: 'Todos os direitos reservados.',
       privacyPolicy: 'Política de privacidade',
       termsOfUse: 'Termos de uso',
-      cookies: 'Cookies'
+      cookies: 'Cookies',
+      admin: 'Administração'
     }
   }
 
@@ -262,6 +274,13 @@ export default function Footer({
     { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/changelog`, label: t.changelog },
     { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/support`, label: t.support },
     { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/terms`, label: t.terms },
+    // Admin link - only show if user is authenticated or redirect to login
+    { 
+      href: session ? '/admin' : '/admin/login',
+      label: t.admin,
+      icon: <ShieldCheckIcon className="w-4 h-4" />,
+      isAdmin: true
+    },
   ]
 
   const socialLinks = [
@@ -387,9 +406,18 @@ export default function Footer({
                 <li key={resource.href}>
                   <Link
                     href={resource.href}
-                    className="text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium"
+                    className={`text-gray-300 hover:text-white hover:gradient-text transition-all duration-200 text-base font-medium flex items-center space-x-2 ${
+                      resource.isAdmin && session ? 'text-purple-400' : ''
+                    }`}
+                    title={resource.isAdmin && !session ? 'Log in to access admin panel' : undefined}
                   >
-                    {resource.label}
+                    {resource.icon && <span>{resource.icon}</span>}
+                    <span>{resource.label}</span>
+                    {resource.isAdmin && session && (
+                      <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                        Connected
+                      </span>
+                    )}
                   </Link>
                 </li>
               ))}

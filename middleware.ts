@@ -1,9 +1,11 @@
 /**
  * Middleware pour Video-IA.net
  * Gère le routing multilingue pour les routes publiques
+ * et l'authentification admin
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { adminAuthMiddleware } from './src/lib/auth/adminMiddleware'
 
 // Constants d'internationalisation centralisées
 export const supportedLocales = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt'] as const
@@ -80,12 +82,17 @@ function buildLocalizedUrl(url: URL, locale: SupportedLocale): URL {
 }
 
 /**
- * Middleware i18n (pour routes publiques)
+ * Main middleware combining i18n and admin authentication
  */
-export default function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  // Bypass pour routes protégées
+  // Handle admin routes first (authentication)
+  if (pathname.startsWith('/admin')) {
+    return await adminAuthMiddleware(request)
+  }
+  
+  // Bypass pour autres routes protégées (API, assets, etc.)
   if (isProtectedRoute(pathname)) {
     return NextResponse.next()
   }

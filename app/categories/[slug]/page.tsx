@@ -91,7 +91,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const [toolsResult, allCategories, relatedCategories] = await Promise.all([
     multilingualToolsService.searchTools({
       language: 'en',
-      category: params.slug,
+      category: category.name, // Use category name instead of slug
       query: searchParams_api.query,
       featured: searchParams_api.featured,
       page: searchParams_api.page,
@@ -176,6 +176,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             hasNextPage={toolsResult.pagination?.hasNextPage || false}
             hasPreviousPage={toolsResult.pagination?.hasPreviousPage || false}
             showCategory={false}
+            lang="fr"
           />
         </div>
       </div>
