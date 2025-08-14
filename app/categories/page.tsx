@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 }
 
 interface CategoriesPageProps {
-  searchParams: {
+  searchParams: Promise<{
     search?: string
   }
 }
@@ -214,7 +214,7 @@ function CategoryCard({ category, featured = false }: CategoryCardProps) {
         featured 
           ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-2 border-purple-200' 
           : 'bg-gradient-to-br from-gray-50 to-white border border-gray-200 group-hover:border-purple-200 group-hover:bg-gradient-to-br group-hover:from-purple-50/50 group-hover:to-pink-50/50'
-      } transition-all duration-300 group-hover:scale-110`}>
+      } transition-all duration-300 group-hover:scale-110`}
         <span className="text-3xl animate-pulse">
           {getCategoryEmojiString(category.name)}
         </span>
@@ -226,7 +226,7 @@ function CategoryCard({ category, featured = false }: CategoryCardProps) {
           featured 
             ? 'text-gray-900 group-hover:text-blue-600' 
             : 'text-gray-900 group-hover:text-blue-600'
-        }`}>
+        }`}
           {category.name}
         </h3>
         
@@ -239,7 +239,7 @@ function CategoryCard({ category, featured = false }: CategoryCardProps) {
         <div className="flex items-center justify-between">
           <span className={`text-sm font-medium ${
             featured ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'
-          } transition-colors`}>
+          } transition-colors`}
             {category.toolCount || 0} outil{(category.toolCount || 0) !== 1 ? 's' : ''}
           </span>
           

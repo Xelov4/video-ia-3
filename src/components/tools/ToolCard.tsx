@@ -99,19 +99,28 @@ export const ToolCard = ({ tool, showCategory = true, size = 'medium', lang = 'e
 
   const imageUrl = isValidImageUrl((tool as any).logoUrl || (tool as any).screenshotUrl) 
     ? ((tool as any).logoUrl || (tool as any).screenshotUrl)! 
-    : `https://picsum.photos/400/250?random=${encodeURIComponent(tool.displayName)}`
+    : null
 
   return (
     <div className="group bg-gray-800 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-gray-700">
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
-        <Image
-          src={imageUrl}
-          alt={tool.displayName}
-          fill
-          className="object-cover group-hover:scale-110 transition-transform duration-300"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={tool.displayName}
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
+            <div className="text-center text-gray-400">
+              <div className="text-4xl mb-2">🛠️</div>
+              <div className="text-sm font-medium">{tool.displayName}</div>
+            </div>
+          </div>
+        )}
         
         {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent" />

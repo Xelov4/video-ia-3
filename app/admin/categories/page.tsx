@@ -89,7 +89,7 @@ export default function AdminCategoriesPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {categories.map((category) => (
-                  <tr key={category.id}>
+                  <tr key={category.id}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <span className="text-sm font-medium text-gray-900">
@@ -108,7 +108,7 @@ export default function AdminCategoriesPage() {
                         category.is_featured 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      }`}
                         {category.is_featured ? 'Oui' : 'Non'}
                       </span>
                     </td>

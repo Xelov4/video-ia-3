@@ -43,7 +43,7 @@ interface Category {
   slug: string
 }
 
-export default function AdminToolEditPage({ params }: { params: { id: string } }) {
+export default function AdminToolEditPage({ params }: { params: Promise<{ id: string } }) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [tool, setTool] = useState<Tool | null>(null)
@@ -241,7 +241,7 @@ export default function AdminToolEditPage({ params }: { params: { id: string } }
               >
                 <option value="">Sélectionner une catégorie</option>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.name}>
+                  <option key={category.id} value={category.name}
                     {category.name}
                   </option>
                 ))}

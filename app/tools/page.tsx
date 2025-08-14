@@ -23,7 +23,7 @@ import { CategoriesService } from '@/src/lib/database/services/categories'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     search?: string
     category?: string
     featured?: string
@@ -103,7 +103,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
       </div>
 
       {/* Tools Listing Section */}
-      <Suspense fallback={<ToolsListingLoading />}>
+      <Suspense fallback={<ToolsListingLoading />}
         <ToolsListing 
           initialTools={toolsResult.tools}
           initialCategories={categories}

@@ -11,9 +11,9 @@ import { SupportedLocale, supportedLocales } from '@/middleware'
 
 // Interface pour props de page
 interface HomePageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLocale
-  }
+  }>
 }
 
 /**
@@ -32,9 +32,10 @@ function validateLanguageParam(lang: string): SupportedLocale {
 export async function generateMetadata({ 
   params 
 }: {
-  params: { lang: string }
+  params: Promise<{ lang: string }
 }): Promise<Metadata> {
-  const lang = validateLanguageParam(params.lang)
+  const { lang: langParam } = await params
+  const lang = validateLanguageParam(langParam)
   
   // Contenu SEO optimisé par langue
   const seoContent = {
@@ -124,7 +125,8 @@ export function generateStaticParams() {
  * Homepage Component avec contenu multilingue
  */
 export default async function HomePage({ params }: HomePageProps) {
-  const lang = validateLanguageParam(params.lang)
+  const { lang: langParam } = await params
+  const lang = validateLanguageParam(langParam)
   
   // Données mockées pour l'instant
   const mockData = {

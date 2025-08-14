@@ -17,24 +17,24 @@ import LoadingSpinner from '@/src/components/ui/LoadingSpinner'
 
 // Interface pour les paramètres de page et query
 interface ToolsPageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLocale
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     page?: string
     search?: string
     category?: string
     sort?: 'name' | 'created_at' | 'view_count' | 'quality_score'
     order?: 'asc' | 'desc'
     view?: 'grid' | 'list'
-  }
+  }>
 }
 
 /**
  * Validation des paramètres avec valeurs par défaut
  */
 function validateAndParseParams(params: any, searchParams: any) {
-  const lang = params.lang
+  const lang = (await params).lang
   if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }

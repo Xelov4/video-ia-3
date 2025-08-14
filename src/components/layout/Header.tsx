@@ -100,7 +100,7 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      router.push(`/tools?search=${encodeURIComponent(searchQuery.trim())}`)
+      router.push(`/${currentLanguage === 'en' ? '' : currentLanguage}/tools?search=${encodeURIComponent(searchQuery.trim())}`)
       setSearchQuery('')
       setIsMenuOpen(false)
     }
@@ -111,28 +111,28 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
    */
   const navigationLinks = [
     { 
-      href: '/', 
+      href: `/${currentLanguage === 'en' ? '' : currentLanguage}`, 
       label: nav.home, 
       icon: SparklesIcon,
-      active: pathname === '/' 
+      active: pathname === '/' || pathname === `/${currentLanguage}` 
     },
     { 
-      href: '/tools', 
+      href: `/${currentLanguage === 'en' ? '' : currentLanguage}/tools`, 
       label: nav.tools, 
       icon: CommandLineIcon,
-      active: pathname.startsWith('/tools') 
+      active: pathname.startsWith('/tools') || pathname.startsWith(`/${currentLanguage}/tools`) 
     },
     { 
-      href: '/categories', 
+      href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories`, 
       label: nav.categories, 
       icon: BeakerIcon,
-      active: pathname.startsWith('/categories') 
+      active: pathname.startsWith('/categories') || pathname.startsWith(`/${currentLanguage}/categories`) 
     },
     { 
-      href: '/about', 
+      href: `/${currentLanguage === 'en' ? '' : currentLanguage}/about`, 
       label: nav.about, 
       icon: InformationCircleIcon,
-      active: pathname === '/about' 
+      active: pathname === '/about' || pathname === `/${currentLanguage}/about` 
     },
   ]
 
@@ -146,7 +146,7 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
         <div className="flex items-center h-20">
           {/* Enhanced Logo and Brand */}
           <div className="flex items-center flex-shrink-0">
-            <Link href="/" className="flex items-center space-x-4 group">
+            <Link href={`/${currentLanguage === 'en' ? '' : currentLanguage}`} className="flex items-center space-x-4 group">
               <div className="relative w-14 h-14 bg-gradient-to-br from-purple-600 via-pink-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl group-hover:shadow-purple-500/50 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-400/50 to-pink-400/50 rounded-3xl animate-pulse"></div>
                 <SparklesIcon className="w-8 h-8 text-white relative z-10 group-hover:animate-spin" />

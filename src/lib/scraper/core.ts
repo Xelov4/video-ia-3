@@ -14,7 +14,7 @@ import { ScrapingResult, SocialLinks, ContactInfo } from '@/src/types/scraper';
 export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
   try {
     const browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
@@ -27,7 +27,7 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
       timeout: 30000 
     });
 
-    await page.waitForTimeout(3000);
+    await page.waitForSelector('body', { timeout: 3000 }).catch(() => {});
     await page.setViewport({ width: 1920, height: 1080 });
     
     const screenshot = await page.screenshot({
@@ -37,7 +37,7 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
       optimizeForSpeed: true
     });
 
-    const screenshotUrl = await saveScreenshot(screenshot, url);
+    const screenshotUrl = await saveScreenshot(Buffer.from(screenshot), url);
     const logoUrl = await extractLogo(page, url);
 
     const content = await page.evaluate(() => {

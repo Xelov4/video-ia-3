@@ -977,13 +977,13 @@ export default function ScraperPage() {
                       </div>
                       <div>
                         <span className="text-sm font-medium text-gray-400">Niveau gratuit:</span>
-                        <span className={`ml-2 ${result.pricingDetails.freeTier ? 'text-green-400' : 'text-red-400'}`}>
+                        <span className={`ml-2 ${result.pricingDetails.freeTier ? 'text-green-400' : 'text-red-400'}`}
                           {result.pricingDetails.freeTier ? '✅ Oui' : '❌ Non'}
                         </span>
                       </div>
                       <div>
                         <span className="text-sm font-medium text-gray-400">Plans payants:</span>
-                        <span className={`ml-2 ${result.pricingDetails.paidPlans ? 'text-green-400' : 'text-red-400'}`}>
+                        <span className={`ml-2 ${result.pricingDetails.paidPlans ? 'text-green-400' : 'text-red-400'}`}
                           {result.pricingDetails.paidPlans ? '✅ Oui' : '❌ Non'}
                         </span>
                       </div>
@@ -1004,7 +1004,7 @@ export default function ScraperPage() {
                     <div className="space-y-3">
                       <div>
                         <span className="text-sm font-medium text-gray-400">Programme disponible:</span>
-                        <span className={`ml-2 ${result.affiliateInfo.hasAffiliateProgram ? 'text-green-400' : 'text-red-400'}`}>
+                        <span className={`ml-2 ${result.affiliateInfo.hasAffiliateProgram ? 'text-green-400' : 'text-red-400'}`}
                           {result.affiliateInfo.hasAffiliateProgram ? '✅ Oui' : '❌ Non'}
                         </span>
                       </div>
@@ -1042,7 +1042,7 @@ export default function ScraperPage() {
                       <span className="text-sm font-medium text-white">{result.confidence}%</span>
                     </div>
                     <div className="w-full bg-gray-600 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${result.confidence}%` }}></div>
+                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${result.confidence}%` }}</div>
                     </div>
                   </div>
                   <div>
@@ -1051,7 +1051,7 @@ export default function ScraperPage() {
                       <span className="text-sm font-medium text-white">{result.dataCompleteness}%</span>
                     </div>
                     <div className="w-full bg-gray-600 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: `${result.dataCompleteness}%` }}></div>
+                      <div className="bg-green-500 h-2 rounded-full" style={{ width: `${result.dataCompleteness}%` }}</div>
                     </div>
                   </div>
                 </div>
@@ -1097,7 +1097,7 @@ export default function ScraperPage() {
                   {logs.map((log) => (
                     <div key={log.id} className="flex items-start space-x-3">
                       <span className="text-gray-500 text-xs mt-1">{log.timestamp}</span>
-                      <span className={`${getLogColor(log.type)}`}>{getLogIcon(log.type)}</span>
+                      <span className={`${getLogColor(log.type)}`}{getLogIcon(log.type)}</span>
                       <span className="text-gray-300 flex-1">{log.message}</span>
                     </div>
                   ))}

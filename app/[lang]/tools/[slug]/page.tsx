@@ -11,7 +11,7 @@ import { SupportedLocale, supportedLocales } from '@/middleware'
 
 // Interface pour paramètres
 interface ToolPageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLocale
     slug: string
   }

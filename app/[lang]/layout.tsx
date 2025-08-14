@@ -20,9 +20,9 @@ const inter = Inter({ subsets: ['latin'] })
 // Interface pour paramètres de page
 interface LayoutProps {
   children: React.ReactNode
-  params: {
+  params: Promise<{
     lang: SupportedLocale
-  }
+  }>
 }
 
 /**
@@ -86,9 +86,10 @@ const METADATA_BY_LANGUAGE: Record<SupportedLocale, {
 export async function generateMetadata({ 
   params 
 }: {
-  params: { lang: string }
+  params: Promise<{ lang: string }
 }): Promise<Metadata> {
-  const lang = validateLanguageParam(params.lang)
+  const { lang: langParam } = await params
+  const lang = validateLanguageParam(langParam)
   const metadata = METADATA_BY_LANGUAGE[lang]
   const isDefault = lang === defaultLocale
   
@@ -176,8 +177,9 @@ export function generateStaticParams() {
 /**
  * Layout Component avec Context i18n
  */
-export default function LanguageLayout({ children, params }: LayoutProps) {
-  const lang = validateLanguageParam(params.lang)
+export default async function LanguageLayout({ children, params }: LayoutProps) {
+  const { lang: langParam } = await params
+  const lang = validateLanguageParam(langParam)
   
   return (
     <html lang={lang} suppressHydrationWarning>
