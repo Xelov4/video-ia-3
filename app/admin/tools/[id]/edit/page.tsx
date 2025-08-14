@@ -325,11 +325,12 @@ export default function AdminToolEditPage({ params }: PageProps) {
     try {
       console.log('Saving tool and translations...')
 
-      // Save main tool data
+      // Save main tool data (exclude system fields)
+      const { id, created_at, updated_at, last_checked_at, ...toolDataToSave } = tool
       const toolResponse = await fetch(`/api/tools/${toolId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tool),
+        body: JSON.stringify(toolDataToSave),
       })
 
       if (!toolResponse.ok) {

@@ -185,8 +185,11 @@ export class ToolsService {
    */
   async updateTool(id: number, updateData: ToolUpdateData): Promise<DatabaseTool> {
     try {
-      const fields = Object.keys(updateData).map((key, index) => `${key} = $${index + 2}`);
-      const values = Object.values(updateData);
+      // Filter out system fields to avoid conflicts
+      const { id: _, created_at, updated_at, last_checked_at, ...filteredData } = updateData as any;
+      
+      const fields = Object.keys(filteredData).map((key, index) => `${key} = $${index + 2}`);
+      const values = Object.values(filteredData);
       
       const query = `
         UPDATE tools 
