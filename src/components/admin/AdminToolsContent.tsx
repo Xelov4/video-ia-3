@@ -1,14 +1,16 @@
 /**
  * Admin Tools Content Component
- * Simple and efficient tools management interface
+ * Simple and efficient tools management interface using UniversalSearchFilters
  */
 
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline'
+import { useRouter } from 'next/navigation'
+import { UniversalSearchFilters } from '@/src/components/common/UniversalSearchFilters'
+import { getSearchFiltersConfig } from '@/src/config/searchFilters'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
+import type { FilterState } from '@/src/types/search'
 
 interface Tool {
   id: number
@@ -48,36 +50,26 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
-  // Local state for filters
-  const [search, setSearch] = useState(searchParams.search || '')
-  const [category, setCategory] = useState(searchParams.category || '')
-  const [featured, setFeatured] = useState(searchParams.featured || '')
-  const [sortBy, setSortBy] = useState(searchParams.sortBy || 'created_at')
-  const [sortOrder, setSortOrder] = useState(searchParams.sortOrder || 'desc')
-  const [showFilters, setShowFilters] = useState(false)
 
-  // Simple categories for now
-  const categories = [
-    { name: 'AI Assistant', count: 2500 },
-    { name: 'Content Creation', count: 3200 },
-    { name: 'Image Generation', count: 1800 },
-    { name: 'Video Generation', count: 1200 },
-    { name: 'Audio Generation', count: 800 },
-    { name: 'Developer Tools', count: 1500 }
-  ]
+  // Configuration pour le composant de recherche
+  const searchConfig = getSearchFiltersConfig('admin-tools', 'tools', handleFiltersChange)
 
-  // Load tools
+  // Gestionnaire de changement de filtres
+  function handleFiltersChange(filters: FilterState) {
+    loadToolsWithFilters(filters)
+  }
+
+  // Load tools from URL params (initial load)
   useEffect(() => {
-    loadTools()
+    loadToolsFromParams()
   }, [searchParams])
 
-  const loadTools = async () => {
+  const loadToolsFromParams = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      // Build query string
+      // Build query string from searchParams
       const params = new URLSearchParams()
       if (searchParams.search) params.set('search', searchParams.search)
       if (searchParams.category) params.set('category', searchParams.category)
@@ -104,6 +96,50 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
       setTools(generateMockTools())
       setPagination({
         currentPage: parseInt(searchParams.page || '1'),
+        totalPages: 336,
+        totalCount: 16765,
+        hasNextPage: true,
+        hasPreviousPage: false
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Charger les outils avec filtres depuis le composant universel
+  const loadToolsWithFilters = async (filters: FilterState) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Build query string from filters
+      const params = new URLSearchParams()
+      if (filters.search) params.set('search', filters.search)
+      if (filters.category) params.set('category', filters.category)
+      if (filters.featured) params.set('featured', filters.featured)
+      if (filters.status) params.set('status', filters.status)
+      if (filters.qualityScore) params.set('qualityScore', filters.qualityScore)
+      if (filters.sortBy) params.set('sortBy', filters.sortBy)
+      if (filters.sortOrder) params.set('sortOrder', filters.sortOrder)
+
+      // Fetch tools from API
+      const response = await fetch(`/api/admin/tools?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      setTools(data.tools || [])
+      setPagination(data.pagination || null)
+    } catch (err) {
+      console.error('Error loading tools with filters:', err)
+      setError(err instanceof Error ? err.message : 'Erreur de chargement')
+      
+      // Fallback: show mock data for development
+      setTools(generateMockTools())
+      setPagination({
+        currentPage: 1,
         totalPages: 336,
         totalCount: 16765,
         hasNextPage: true,
@@ -144,26 +180,6 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
     return mockTools
   }
 
-  const handleSearch = () => {
-    const params = new URLSearchParams()
-    if (search) params.set('search', search)
-    if (category) params.set('category', category)
-    if (featured) params.set('featured', featured)
-    if (sortBy !== 'created_at') params.set('sortBy', sortBy)
-    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder)
-    
-    router.push(`?${params.toString()}`)
-  }
-
-  const handleClear = () => {
-    setSearch('')
-    setCategory('')
-    setFeatured('')
-    setSortBy('created_at')
-    setSortOrder('desc')
-    router.push('?')
-  }
-
   if (error && !tools.length) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6">
@@ -171,7 +187,7 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
           <h3 className="text-lg font-medium text-red-800 mb-2">Erreur de chargement</h3>
           <p className="text-red-700 mb-4">{error}</p>
           <button
-            onClick={loadTools}
+            onClick={loadToolsFromParams}
             className="bg-red-100 text-red-800 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-200"
           >
             Réessayer
@@ -183,109 +199,8 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
 
   return (
     <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-        {/* Mobile Filter Toggle */}
-        <div className="lg:hidden mb-4">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center justify-between w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
-          >
-            <span className="flex items-center">
-              <FunnelIcon className="w-4 h-4 mr-2" />
-              Filtres et recherche
-            </span>
-            <span className={`transform transition-transform ${showFilters ? 'rotate-180' : ''}`}>
-              ▼
-            </span>
-          </button>
-        </div>
-
-        {/* Filters Container */}
-        <div className={`space-y-4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-          {/* Search Bar */}
-          <div className="w-full">
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher des outils..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Filters Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-            {/* Category Filter */}
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Toutes les catégories</option>
-              {categories.map((cat) => (
-                <option key={cat.name} value={cat.name}>
-                  {cat.name} ({cat.count})
-                </option>
-              ))}
-            </select>
-
-            {/* Featured Filter */}
-            <select
-              value={featured}
-              onChange={(e) => setFeatured(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Tous les outils</option>
-              <option value="true">En vedette</option>
-              <option value="false">Non en vedette</option>
-            </select>
-
-            {/* Sort By */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="created_at">Date de création</option>
-              <option value="updated_at">Date de modification</option>
-              <option value="view_count">Nombre de vues</option>
-              <option value="quality_score">Score qualité</option>
-              <option value="tool_name">Nom</option>
-            </select>
-
-            {/* Sort Order */}
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="desc">Décroissant</option>
-              <option value="asc">Croissant</option>
-            </select>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-            <button
-              onClick={handleSearch}
-              className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Rechercher
-            </button>
-            <button
-              onClick={handleClear}
-              className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Effacer
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Universal Search and Filters */}
+      <UniversalSearchFilters config={searchConfig} />
 
       {/* Tools Display */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">

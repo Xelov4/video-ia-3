@@ -17,7 +17,7 @@
 
 import { Suspense } from 'react'
 import { Metadata } from 'next'
-import ToolsListing from '@/src/components/tools/ToolsListing'
+import ToolsListingWithUniversalFilters from '@/src/components/tools/ToolsListingWithUniversalFilters'
 import { toolsService } from '@/src/lib/database/services/tools'
 import { CategoriesService } from '@/src/lib/database/services/categories'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
@@ -104,7 +104,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
 
       {/* Tools Listing Section */}
       <Suspense fallback={<ToolsListingLoading />}>
-        <ToolsListing 
+        <ToolsListingWithUniversalFilters 
           initialTools={toolsResult.tools}
           initialCategories={categories}
           totalCount={toolsResult.totalCount}
