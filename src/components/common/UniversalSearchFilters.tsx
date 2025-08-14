@@ -15,7 +15,7 @@ import {
   CheckIcon
 } from '@heroicons/react/24/outline'
 import { useSearchFilters } from '@/src/hooks/useSearchFilters'
-import type { SearchFiltersConfig, FilterOption } from '@/src/types/search'
+import type { SearchFiltersConfig, FilterOption, FilterState } from '@/src/types/search'
 
 interface UniversalSearchFiltersProps {
   config: SearchFiltersConfig
@@ -125,12 +125,12 @@ export function UniversalSearchFilters({
         <div className={`${isExpanded ? 'block' : 'hidden lg:block'}`}>
           <select
             value={Array.isArray(currentValue) ? '' : currentValue}
-            onChange={(e) => updateFilter(key, e.target.value)}
+            onChange={(e) => updateFilter(key as any, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:border-gray-400 transition-all duration-200"
           >
             <option value="">{placeholder}</option>
-            {options.map((option) => (
-              <option key={option.value} value={option.value} disabled={option.disabled}>
+            {options.map((option, index) => (
+              <option key={`${key}-${option.value}-${index}`} value={option.value} disabled={option.disabled}>
                 {option.emoji && `${option.emoji} `}{option.label}
                 {option.count !== undefined && ` (${option.count})`}
               </option>
@@ -172,8 +172,8 @@ export function UniversalSearchFilters({
               onChange={(e) => updateFilter('sortBy', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
             >
-              {metadata.sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
+              {metadata.sortOptions.map((option, index) => (
+                <option key={`sort-${option.value}-${index}`} value={option.value}>
                   {option.label}
                 </option>
               ))}
@@ -326,11 +326,15 @@ export function UniversalSearchFilters({
                   hasTools: 'Contenu'
                 }
 
-                return renderSelect(
-                  key,
-                  options,
-                  labels[key] || key,
-                  options[0]?.label || 'Sélectionner'
+                return (
+                  <div key={`filter-${key}`}>
+                    {renderSelect(
+                      key,
+                      options,
+                      labels[key] || key,
+                      options[0]?.label || 'Sélectionner'
+                    )}
+                  </div>
                 )
               })}
 

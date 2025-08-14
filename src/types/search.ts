@@ -59,7 +59,8 @@ export interface FilterState {
   hasTools: string
   sortBy: string
   sortOrder: 'asc' | 'desc'
-  [key: string]: string | string[]
+  page?: string
+  [key: string]: string | string[] | undefined
 }
 
 export interface SearchFiltersConfig {

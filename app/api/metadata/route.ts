@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
             id: cat.id,
             name: cat.name,
             slug: cat.slug,
-            count: cat.actualToolCount || cat.toolCount,
+            count: cat.actualToolCount || cat.toolCount || 0,
             emoji: cat.emoji,
             featured: cat.isFeatured
           })),
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
             id: cat.id,
             name: cat.name,
             slug: cat.slug,
-            count: cat.actualToolCount || cat.toolCount,
+            count: cat.actualToolCount || cat.toolCount || 0,
             emoji: cat.emoji,
             featured: cat.isFeatured,
             hasTools: (cat.actualToolCount || cat.toolCount) > 0

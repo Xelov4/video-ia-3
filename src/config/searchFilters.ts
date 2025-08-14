@@ -57,7 +57,7 @@ export const adminToolsPageConfig = (onFiltersChange: (filters: any) => void): S
   showSearch: true,
   showSort: true,
   showFilters: true,
-  showMobileToggle: true,
+  showMobileToggle: false,
   showResultsCount: true,
   showClearAll: true,
   enableUrlSync: true,
