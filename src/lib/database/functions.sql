@@ -1,4 +1,4 @@
--- Fonctions SQL supplémentaires pour Supabase
+-- Fonctions SQL supplémentaires pour PostgreSQL
 
 -- Fonction pour incrémenter le compteur de vues
 CREATE OR REPLACE FUNCTION increment_view_count(tool_id INTEGER)

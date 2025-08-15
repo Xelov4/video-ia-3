@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script de setup automatique de la base de données Video-IA.net
-# Utilise Supabase pour le PostgreSQL managed
+# Utilise PostgreSQL direct
 
 set -e
 
@@ -13,8 +13,8 @@ if [ -z "$DB_HOST" ] || [ -z "$DB_PASSWORD" ]; then
     echo "❌ Variables d'environnement manquantes!"
     echo "Définissez DB_HOST, DB_PASSWORD, etc. dans votre .env"
     echo ""
-    echo "Exemple pour Supabase:"
-    echo "DB_HOST=db.xxxxx.supabase.co"
+    echo "Exemple pour PostgreSQL local:"
+    echo "DB_HOST=localhost"
     echo "DB_NAME=postgres"
     echo "DB_USER=postgres"
     echo "DB_PASSWORD=your_password"

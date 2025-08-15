@@ -534,7 +534,7 @@ const getToolsWithTranslations = async (language: string, limit: number = 50) =>
 
 ### Required Infrastructure
 - **Application Server**: Vercel, Netlify, or VPS with Node.js 18+
-- **Database**: PostgreSQL (Supabase, PlanetScale, or AWS RDS)
+- **Database**: PostgreSQL (direct connection or managed services)
 - **Cache**: Redis (Upstash, Redis Cloud, or ElastiCache)
 - **Storage**: Cloudinary, AWS S3, or similar CDN
 - **Monitoring**: Sentry for error tracking, DataDog for performance

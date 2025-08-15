@@ -27,5 +27,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "scripts/**/*", "src/components/ui/ResultsDisplay.tsx", "src/lib/database/supabase.ts", "tests/**/*", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "src/lib/monitoring/**/*", "src/lib/performance/**/*"]
+  "exclude": ["node_modules", "scripts/**/*", "src/components/ui/ResultsDisplay.tsx", "tests/**/*", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "src/lib/monitoring/**/*", "src/lib/performance/**/*"]
 } 
