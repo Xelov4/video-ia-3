@@ -20,9 +20,9 @@ const inter = Inter({ subsets: ['latin'] })
 // Interface pour paramètres de page
 interface LayoutProps {
   children: React.ReactNode
-  params: {
+  params: Promise<{
     lang: SupportedLocale
-  }
+  }>
 }
 
 /**
@@ -86,14 +86,15 @@ const METADATA_BY_LANGUAGE: Record<SupportedLocale, {
 export async function generateMetadata({ 
   params 
 }: {
-  params: { lang: string }
+  params: Promise<{ lang: string }>
 }): Promise<Metadata> {
-  const lang = validateLanguageParam(params.lang)
-  const metadata = METADATA_BY_LANGUAGE[lang]
-  const isDefault = lang === defaultLocale
+  const { lang } = await params
+  const validatedLang = validateLanguageParam(lang)
+  const metadata = METADATA_BY_LANGUAGE[validatedLang]
+  const isDefault = validatedLang === defaultLocale
   
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
-  const currentUrl = isDefault ? baseUrl : `${baseUrl}/${lang}`
+  const currentUrl = isDefault ? baseUrl : `${baseUrl}/${validatedLang}`
   
   // Génération des alternate languages pour SEO
   const alternates = {
@@ -120,11 +121,11 @@ export async function generateMetadata({
       description: metadata.description,
       url: currentUrl,
       siteName: 'Video-IA.net',
-      locale: lang === 'en' ? 'en_US' : lang === 'fr' ? 'fr_FR' : `${lang}_${lang.toUpperCase()}`,
+      locale: validatedLang === 'en' ? 'en_US' : validatedLang === 'fr' ? 'fr_FR' : `${validatedLang}_${validatedLang.toUpperCase()}`,
       type: 'website',
       images: [
         {
-          url: `${baseUrl}/images/og-image-${lang}.jpg`,
+          url: `${baseUrl}/images/og-image-${validatedLang}.jpg`,
           width: 1200,
           height: 630,
           alt: metadata.title
@@ -137,7 +138,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: metadata.title,
       description: metadata.description,
-      images: [`${baseUrl}/images/twitter-image-${lang}.jpg`]
+      images: [`${baseUrl}/images/twitter-image-${validatedLang}.jpg`]
     },
     
     // Alternates pour SEO multilingue
@@ -176,11 +177,12 @@ export function generateStaticParams() {
 /**
  * Layout Component avec Context i18n
  */
-export default function LanguageLayout({ children, params }: LayoutProps) {
-  const lang = validateLanguageParam(params.lang)
+export default async function LanguageLayout({ children, params }: LayoutProps) {
+  const { lang } = await params
+  const validatedLang = validateLanguageParam(lang)
   
   return (
-    <html lang={lang} suppressHydrationWarning>
+    <html lang={validatedLang} suppressHydrationWarning>
       <head>
         {/* Préchargement DNS pour performance */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
@@ -209,14 +211,14 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
               "@context": "https://schema.org",
               "@type": "WebSite",
               "name": "Video-IA.net",
-              "description": METADATA_BY_LANGUAGE[lang].description,
-              "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${lang === defaultLocale ? '' : `/${lang}`}`,
-              "inLanguage": lang,
+              "description": METADATA_BY_LANGUAGE[validatedLang].description,
+              "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${validatedLang === defaultLocale ? '' : `/${validatedLang}`}`,
+              "inLanguage": validatedLang,
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
                   "@type": "EntryPoint",
-                  "urlTemplate": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${lang === defaultLocale ? '' : `/${lang}`}/tools?search={search_term_string}`
+                  "urlTemplate": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${validatedLang === defaultLocale ? '' : `/${validatedLang}`}/tools?search={search_term_string}`
                 },
                 "query-input": "required name=search_term_string"
               }
@@ -226,9 +228,9 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
       </head>
       <body className={inter.className} suppressHydrationWarning>
         {/* Context Provider Global */}
-        <I18nProvider currentLanguage={lang}>
+        <I18nProvider currentLanguage={validatedLang}>
           {/* Header avec contexte langue */}
-          <Header currentLanguage={lang} />
+          <Header currentLanguage={validatedLang} />
           
           {/* Contenu principal */}
           <main className="min-h-screen">
@@ -236,7 +238,7 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
           </main>
           
           {/* Footer avec contexte langue */}
-          <Footer currentLanguage={lang} />
+          <Footer currentLanguage={validatedLang} />
         </I18nProvider>
         
         {/* Analytics et scripts de tracking */}
@@ -259,7 +261,7 @@ export default function LanguageLayout({ children, params }: LayoutProps) {
                         page_location: window.location.href,
                         custom_map: { custom_parameter: 'language' }
                       });
-                      gtag('event', 'page_view', { language: '${lang}' });
+                      gtag('event', 'page_view', { language: '${validatedLang}' });
                     `
                   }}
                 />

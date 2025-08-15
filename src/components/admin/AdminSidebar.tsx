@@ -31,6 +31,7 @@ const navigation = [
   { name: 'Articles', href: '/admin/articles', icon: DocumentTextIcon },
   { name: 'Utilisateurs', href: '/admin/users', icon: UsersIcon },
   { name: 'Scraper', href: '/admin/scraper', icon: ComputerDesktopIcon },
+  { name: 'Robots.txt', href: '/admin/robots', icon: DocumentTextIcon },
   { name: 'Paramètres', href: '/admin/settings', icon: CogIcon },
 ]
 

@@ -9,11 +9,11 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SupportedLocale, supportedLocales } from '@/middleware'
 
-// Interface pour props de page
+// Interface pour paramètres de page
 interface HomePageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLocale
-  }
+  }>
 }
 
 /**
@@ -32,9 +32,10 @@ function validateLanguageParam(lang: string): SupportedLocale {
 export async function generateMetadata({ 
   params 
 }: {
-  params: { lang: string }
+  params: Promise<{ lang: string }>
 }): Promise<Metadata> {
-  const lang = validateLanguageParam(params.lang)
+  const { lang } = await params
+  const validatedLang = validateLanguageParam(lang)
   
   // Contenu SEO optimisé par langue
   const seoContent = {
@@ -75,9 +76,9 @@ export async function generateMetadata({
     }
   }
   
-  const content = seoContent[lang]
+  const content = seoContent[validatedLang]
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
-  const currentUrl = lang === 'en' ? baseUrl : `${baseUrl}/${lang}`
+  const currentUrl = validatedLang === 'en' ? baseUrl : `${baseUrl}/${validatedLang}`
   
   return {
     title: content.title,
@@ -89,7 +90,7 @@ export async function generateMetadata({
       description: content.description,
       url: currentUrl,
       siteName: 'Video-IA.net',
-      locale: lang === 'en' ? 'en_US' : lang === 'fr' ? 'fr_FR' : `${lang}_${lang.toUpperCase()}`,
+      locale: validatedLang === 'en' ? 'en_US' : validatedLang === 'fr' ? 'fr_FR' : `${validatedLang}_${validatedLang.toUpperCase()}`,
       type: 'website',
     },
     
@@ -124,7 +125,8 @@ export function generateStaticParams() {
  * Homepage Component avec contenu multilingue
  */
 export default async function HomePage({ params }: HomePageProps) {
-  const lang = validateLanguageParam(params.lang)
+  const { lang } = await params
+  const validatedLang = validateLanguageParam(lang)
   
   // Données mockées pour l'instant
   const mockData = {
@@ -152,10 +154,10 @@ export default async function HomePage({ params }: HomePageProps) {
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6">
-            {getLocalizedText(lang, 'heroTitle')}
+            {getLocalizedText(validatedLang, 'heroTitle')}
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            {getLocalizedText(lang, 'heroSubtitle')}
+            {getLocalizedText(validatedLang, 'heroSubtitle')}
           </p>
           
           {/* Stats */}
@@ -164,38 +166,38 @@ export default async function HomePage({ params }: HomePageProps) {
               <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                 {mockData.totalTools.toLocaleString()}
               </div>
-              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(lang, 'tools')}</div>
+              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(validatedLang, 'tools')}</div>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                 {mockData.totalCategories}
               </div>
-              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(lang, 'categories')}</div>
+              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(validatedLang, 'categories')}</div>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
                 150+
               </div>
-              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(lang, 'featured')}</div>
+              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(validatedLang, 'featured')}</div>
             </div>
           </div>
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href={`/${lang}/tools`}
+              href={`/${validatedLang}/tools`}
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
             >
-              {getLocalizedText(lang, 'exploreTools')}
+              {getLocalizedText(validatedLang, 'exploreTools')}
               <svg className="ml-3 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </a>
             <a
-              href={`/${lang}/categories`}
+              href={`/${validatedLang}/categories`}
               className="inline-flex items-center px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition-all duration-300"
             >
-              {getLocalizedText(lang, 'browseCategories')}
+              {getLocalizedText(validatedLang, 'browseCategories')}
             </a>
           </div>
         </div>
@@ -205,7 +207,7 @@ export default async function HomePage({ params }: HomePageProps) {
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-            {getLocalizedText(lang, 'featuredTools')}
+            {getLocalizedText(validatedLang, 'featuredTools')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {mockData.featuredTools.map((tool) => (
@@ -220,10 +222,10 @@ export default async function HomePage({ params }: HomePageProps) {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{tool.name}</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{tool.description}</p>
                 <a
-                  href={`/${lang}/tools/${tool.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  href={`/${validatedLang}/tools/${tool.name.toLowerCase().replace(/\s+/g, '-')}`}
                   className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                 >
-                  {getLocalizedText(lang, 'learnMore')}
+                  {getLocalizedText(validatedLang, 'learnMore')}
                   <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -238,13 +240,13 @@ export default async function HomePage({ params }: HomePageProps) {
       <section className="py-16 px-4 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-            {getLocalizedText(lang, 'popularCategories')}
+            {getLocalizedText(validatedLang, 'popularCategories')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {mockData.popularCategories.map((category) => (
               <a
                 key={category.id}
-                href={`/${lang}/categories/${category.slug}`}
+                href={`/${validatedLang}/categories/${category.slug}`}
                 className="group flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-blue-50 dark:hover:bg-gray-600 transition-all duration-300 hover:scale-105"
               >
                 <div className="text-4xl mb-3">{category.emoji}</div>
@@ -252,17 +254,17 @@ export default async function HomePage({ params }: HomePageProps) {
                   {category.name}
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {category.toolCount} {getLocalizedText(lang, 'tools')}
+                  {category.toolCount} {getLocalizedText(validatedLang, 'tools')}
                 </p>
               </a>
             ))}
           </div>
           <div className="text-center mt-8">
             <a
-              href={`/${lang}/categories`}
+              href={`/${validatedLang}/categories`}
               className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
             >
-              {getLocalizedText(lang, 'viewAllCategories')}
+              {getLocalizedText(validatedLang, 'viewAllCategories')}
               <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -275,19 +277,19 @@ export default async function HomePage({ params }: HomePageProps) {
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className="text-4xl font-bold mb-6">
-            {getLocalizedText(lang, 'stayUpdated')}
+            {getLocalizedText(validatedLang, 'stayUpdated')}
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            {getLocalizedText(lang, 'stayUpdatedDescription')}
+            {getLocalizedText(validatedLang, 'stayUpdatedDescription')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
             <input
               type="email"
-              placeholder={getLocalizedText(lang, 'emailPlaceholder')}
+              placeholder={getLocalizedText(validatedLang, 'emailPlaceholder')}
               className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
             />
             <button className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
-              {getLocalizedText(lang, 'subscribe')}
+              {getLocalizedText(validatedLang, 'subscribe')}
             </button>
           </div>
         </div>

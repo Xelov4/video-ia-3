@@ -8,91 +8,64 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SupportedLocale, supportedLocales } from '@/middleware'
+import { toolsService } from '@/src/lib/database/services/tools'
 
-// Interface pour paramètres
+// Interface pour paramètres de page
 interface ToolPageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLocale
     slug: string
-  }
+  }>
 }
 
-/**
- * Données mockées pour les outils populaires
- */
-const MOCK_TOOLS = {
-  'midjourney': {
-    id: 1,
-    displayName: 'Midjourney',
-    displayDescription: 'AI-powered image generation tool that creates stunning artwork from text descriptions',
-    toolCategory: 'Image Generation',
-    toolLink: 'https://midjourney.com',
-    qualityScore: 9.2,
-    viewCount: 150000,
-    featured: true,
-    emoji: '🎨',
-    pricing: 'Paid',
-    tags: ['AI Art', 'Image Generation', 'Creative']
-  },
-  'chatgpt': {
-    id: 2,
-    displayName: 'ChatGPT',
-    displayDescription: 'Advanced AI chatbot for conversations, writing assistance, and problem solving',
-    toolCategory: 'Chatbot',
-    toolLink: 'https://chat.openai.com',
-    qualityScore: 9.5,
-    viewCount: 250000,
-    featured: true,
-    emoji: '🤖',
-    pricing: 'Freemium',
-    tags: ['AI Chat', 'Writing', 'Assistant']
-  },
-  'jasper': {
-    id: 3,
-    displayName: 'Jasper',
-    displayDescription: 'AI writing assistant for content creation, marketing copy, and creative writing',
-    toolCategory: 'Writing',
-    toolLink: 'https://jasper.ai',
-    qualityScore: 8.8,
-    viewCount: 120000,
-    featured: true,
-    emoji: '✍️',
-    pricing: 'Paid',
-    tags: ['Content Writing', 'Marketing', 'AI Assistant']
-  },
-  'dall-e': {
-    id: 4,
-    displayName: 'DALL-E',
-    displayDescription: 'AI system that creates realistic images and art from natural language descriptions',
-    toolCategory: 'Art',
-    toolLink: 'https://openai.com/dall-e-2',
-    qualityScore: 9.0,
-    viewCount: 180000,
-    featured: true,
-    emoji: '🎭',
-    pricing: 'Paid',
-    tags: ['AI Art', 'Image Generation', 'Creative']
-  }
+// Interface pour les outils avec données enrichies
+interface EnrichedTool {
+  id: number
+  slug: string
+  displayName: string
+  displayDescription: string
+  displayOverview: string
+  toolCategory: string
+  toolLink: string
+  targetAudience?: string[]
+  keyFeatures?: string[]
+  useCases?: string[]
+  tags?: string[]
+  imageUrl?: string
+  featured: boolean
 }
 
 /**
  * Validation et récupération des données outil
  */
-async function getToolData(slug: string, lang: SupportedLocale) {
-  // Utiliser les données mockées pour l'instant
-  const tool = MOCK_TOOLS[slug as keyof typeof MOCK_TOOLS]
-  
-  if (!tool) {
+async function getToolData(slug: string, lang: SupportedLocale): Promise<EnrichedTool | null> {
+  try {
+    // Récupérer l'outil depuis la base de données
+    const tool = await toolsService.getToolBySlug(slug)
+    
+    if (!tool || !tool.is_active) {
+      return null
+    }
+    
+    // Transformer les données pour l'interface
+    return {
+      id: tool.id,
+      slug: tool.slug,
+      displayName: tool.tool_name,
+      displayDescription: tool.tool_description || tool.overview || '',
+      displayOverview: tool.overview || '',
+      toolCategory: tool.tool_category || '',
+      toolLink: tool.tool_link || '',
+      targetAudience: tool.target_audience ? tool.target_audience.split(',').map(s => s.trim()).filter(Boolean) : [],
+      keyFeatures: tool.key_features ? tool.key_features.split(',').map(s => s.trim()).filter(Boolean) : [],
+      useCases: tool.use_cases ? tool.use_cases.split(',').map(s => s.trim()).filter(Boolean) : [],
+      tags: tool.tags ? tool.tags.split(',').map(s => s.trim()).filter(Boolean) : [],
+      imageUrl: tool.image_url || undefined,
+      featured: tool.featured || false
+    }
+  } catch (error) {
+    console.error('Error fetching tool data:', error)
     return null
-  }
-  
-  return {
-    ...tool,
-    slug: slug,
-    // Ajouter des traductions basiques
-    displayName: tool.displayName,
-    displayDescription: tool.displayDescription,
-    toolCategory: tool.toolCategory
   }
 }
 
@@ -100,7 +73,7 @@ async function getToolData(slug: string, lang: SupportedLocale) {
  * Génération métadonnées SEO dynamiques
  */
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
-  const { lang, slug } = params
+  const { lang, slug } = await params
   
   if (!supportedLocales.includes(lang)) {
     notFound()
@@ -207,13 +180,22 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
 export async function generateStaticParams() {
   const params = []
   
-  for (const lang of supportedLocales) {
-    for (const slug of Object.keys(MOCK_TOOLS)) {
-      params.push({
-        lang,
-        slug
-      })
+  try {
+    // Récupérer tous les outils actifs de la base de données
+    const { tools } = await toolsService.getAllTools(1, 1000) // Récupérer tous les outils
+    
+    for (const lang of supportedLocales) {
+      for (const tool of tools) {
+        if (tool.slug && tool.is_active) {
+          params.push({
+            lang,
+            slug: tool.slug
+          })
+        }
+      }
     }
+  } catch (error) {
+    console.error('Error generating static params:', error)
   }
   
   return params
@@ -223,7 +205,7 @@ export async function generateStaticParams() {
  * Page Component Principal
  */
 export default async function ToolDetailPage({ params }: ToolPageProps) {
-  const { lang, slug } = params
+  const { lang, slug } = await params
   
   if (!supportedLocales.includes(lang)) {
     notFound()
@@ -261,7 +243,7 @@ export default async function ToolDetailPage({ params }: ToolPageProps) {
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
             <div className="flex-1">
               <div className="flex items-center gap-4 mb-4">
-                <div className="text-4xl">{tool.emoji}</div>
+                <div className="text-4xl">🛠️</div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                     {tool.displayName}
@@ -273,63 +255,40 @@ export default async function ToolDetailPage({ params }: ToolPageProps) {
               </div>
               
               <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-                {tool.displayDescription}
+                {tool.displayOverview || tool.displayDescription}
               </p>
               
               {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {tool.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              {tool.tags && tool.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {tool.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             
-            {/* CTA et métriques */}
+            {/* CTA */}
             <div className="lg:w-80">
               <div className="bg-white dark:bg-gray-700 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-600">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {messages.qualityScore}
-                  </span>
-                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {tool.qualityScore}/10
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {messages.views}
-                  </span>
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {tool.viewCount.toLocaleString()}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {messages.pricing}
-                  </span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {tool.pricing}
-                  </span>
-                </div>
-                
-                <a
-                  href={tool.toolLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  {messages.visitTool}
-                  <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
+                {tool.toolLink && (
+                  <a
+                    href={tool.toolLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {messages.visitTool}
+                    <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -347,79 +306,141 @@ export default async function ToolDetailPage({ params }: ToolPageProps) {
                 {messages.about}
               </h2>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                {tool.displayDescription} {tool.displayDescription} {tool.displayDescription}
+                {tool.displayDescription || tool.displayOverview || messages.noDescription}
               </p>
             </section>
+
+            {/* Public cible */}
+            {tool.targetAudience && tool.targetAudience.length > 0 && (
+              <section className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                  {messages.targetAudience}
+                </h2>
+                <ul className="space-y-3">
+                  {tool.targetAudience.map((audience, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {audience}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
             
-            {/* Fonctionnalités */}
-            <section className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                {messages.features}
-              </h2>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Advanced AI-powered functionality
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    User-friendly interface
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    High-quality output
-                  </span>
-                </li>
-              </ul>
-            </section>
+            {/* Fonctionnalités clés */}
+            {tool.keyFeatures && tool.keyFeatures.length > 0 && (
+              <section className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                  {messages.features}
+                </h2>
+                <ul className="space-y-3">
+                  {tool.keyFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {/* Cas d'usage */}
+            {tool.useCases && tool.useCases.length > 0 && (
+              <section className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                  {messages.useCases}
+                </h2>
+                <ul className="space-y-3">
+                  {tool.useCases.map((useCase, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {useCase}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
           
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Outils similaires */}
-            <section className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                {messages.similarTools}
-              </h3>
-              <div className="space-y-3">
-                {Object.entries(MOCK_TOOLS)
-                  .filter(([key]) => key !== slug)
-                  .slice(0, 3)
-                  .map(([key, similarTool]) => (
-                    <a
-                      key={key}
-                      href={`/${lang}/tools/${key}`}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <div className="text-2xl">{similarTool.emoji}</div>
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {similarTool.displayName}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {similarTool.toolCategory}
-                        </div>
-                      </div>
-                    </a>
-                  ))}
-              </div>
-            </section>
+            <SimilarToolsSection 
+              toolId={tool.id}
+              category={tool.toolCategory}
+              lang={lang}
+              messages={messages}
+            />
           </div>
         </div>
       </main>
     </div>
   )
+}
+
+/**
+ * Composant pour afficher les outils similaires
+ */
+async function SimilarToolsSection({ 
+  toolId, 
+  category, 
+  lang, 
+  messages 
+}: { 
+  toolId: number
+  category: string
+  lang: string
+  messages: any 
+}) {
+  try {
+    const relatedTools = await toolsService.getRelatedTools(toolId, category, 3)
+    
+    if (relatedTools.length === 0) {
+      return null
+    }
+
+    return (
+      <section className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          {messages.similarTools}
+        </h3>
+        <div className="space-y-3">
+          {relatedTools.map((relatedTool) => (
+            <a
+              key={relatedTool.id}
+              href={`/${lang}/tools/${relatedTool.slug || relatedTool.id}`}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <div className="text-2xl">🛠️</div>
+              <div>
+                <div className="font-medium text-gray-900 dark:text-white">
+                  {relatedTool.tool_name}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {relatedTool.tool_category}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  } catch (error) {
+    console.error('Error loading related tools:', error)
+    return null
+  }
 }
 
 /**
@@ -430,79 +451,79 @@ function getLocalizedMessages(lang: SupportedLocale) {
     'en': {
       home: 'Home',
       tools: 'Tools',
-      qualityScore: 'Quality Score',
-      views: 'Views',
-      pricing: 'Pricing',
       visitTool: 'Visit Tool',
       about: 'About',
-      features: 'Features',
-      similarTools: 'Similar Tools'
+      features: 'Key Features',
+      targetAudience: 'Target Audience',
+      useCases: 'Use Cases',
+      similarTools: 'Similar Tools',
+      noDescription: 'No description available'
     },
     'fr': {
       home: 'Accueil',
       tools: 'Outils',
-      qualityScore: 'Score Qualité',
-      views: 'Vues',
-      pricing: 'Prix',
       visitTool: 'Visiter l\'Outil',
       about: 'À Propos',
-      features: 'Fonctionnalités',
-      similarTools: 'Outils Similaires'
+      features: 'Fonctionnalités Clés',
+      targetAudience: 'Public Cible',
+      useCases: 'Cas d\'Usage',
+      similarTools: 'Outils Similaires',
+      noDescription: 'Aucune description disponible'
     },
     'de': {
       home: 'Startseite',
       tools: 'Tools',
-      qualityScore: 'Qualitätsbewertung',
-      views: 'Aufrufe',
-      pricing: 'Preise',
       visitTool: 'Tool Besuchen',
       about: 'Über',
-      features: 'Funktionen',
-      similarTools: 'Ähnliche Tools'
+      features: 'Hauptfunktionen',
+      targetAudience: 'Zielgruppe',
+      useCases: 'Anwendungsfälle',
+      similarTools: 'Ähnliche Tools',
+      noDescription: 'Keine Beschreibung verfügbar'
     },
     'nl': {
       home: 'Home',
       tools: 'Tools',
-      qualityScore: 'Kwaliteitsscore',
-      views: 'Weergaven',
-      pricing: 'Prijzen',
       visitTool: 'Tool Bezoeken',
       about: 'Over',
-      features: 'Functies',
-      similarTools: 'Vergelijkbare Tools'
+      features: 'Belangrijkste Functies',
+      targetAudience: 'Doelgroep',
+      useCases: 'Gebruiksgevallen',
+      similarTools: 'Vergelijkbare Tools',
+      noDescription: 'Geen beschrijving beschikbaar'
     },
     'it': {
       home: 'Home',
       tools: 'Strumenti',
-      qualityScore: 'Punteggio Qualità',
-      views: 'Visualizzazioni',
-      pricing: 'Prezzi',
       visitTool: 'Visita Strumento',
       about: 'Informazioni',
-      features: 'Funzionalità',
-      similarTools: 'Strumenti Simili'
+      features: 'Funzionalità Principali',
+      targetAudience: 'Pubblico Target',
+      useCases: 'Casi d\'Uso',
+      similarTools: 'Strumenti Simili',
+      noDescription: 'Nessuna descrizione disponibile'
     },
     'es': {
       home: 'Inicio',
       tools: 'Herramientas',
-      qualityScore: 'Puntuación de Calidad',
-      views: 'Visualizaciones',
-      pricing: 'Precios',
       visitTool: 'Visitar Herramienta',
       about: 'Acerca de',
-      features: 'Características',
-      similarTools: 'Herramientas Similares'
+      features: 'Características Principales',
+      targetAudience: 'Público Objetivo',
+      useCases: 'Casos de Uso',
+      similarTools: 'Herramientas Similares',
+      noDescription: 'Sin descripción disponible'
     },
     'pt': {
       home: 'Início',
       tools: 'Ferramentas',
-      qualityScore: 'Pontuação de Qualidade',
-      views: 'Visualizações',
-      pricing: 'Preços',
       visitTool: 'Visitar Ferramenta',
       about: 'Sobre',
-      features: 'Recursos',
-      similarTools: 'Ferramentas Similares'
+      features: 'Principais Recursos',
+      targetAudience: 'Público-Alvo',
+      useCases: 'Casos de Uso',
+      similarTools: 'Ferramentas Similares',
+      noDescription: 'Nenhuma descrição disponível'
     }
   }
   

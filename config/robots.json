@@ -1,0 +1,7 @@
+{
+  "content": "# Production robots.txt - Video-IA.net\n# Allow all crawlers access to all content\n\nUser-agent: *\nAllow: /\n\n# Specific rules for major search engines\nUser-agent: Googlebot\nAllow: /\nCrawl-delay: 1\n\nUser-agent: Bingbot\nAllow: /\nCrawl-delay: 1\n\nUser-agent: Slurp\nAllow: /\nCrawl-delay: 2\n\n# Block admin and API routes\nDisallow: /admin/\nDisallow: /api/\nDisallow: /_next/\nDisallow: /.*\\.json$\n\n# Allow specific API routes for SEO\nAllow: /api/sitemap/\nAllow: /api/robots\n\n# Multilingual sitemaps\nSitemap: https://video-ia.net/sitemap-fr.xml\nSitemap: https://video-va.net/sitemap-en.xml\nSitemap: https://video-ia.net/sitemap.xml\n\n# Additional directives\nHost: https://video-ia.net",
+  "lastModified": "2025-08-14T12:25:30.978Z",
+  "version": "1.0.0",
+  "environment": "production"
+}
+
