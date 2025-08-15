@@ -39,26 +39,27 @@ interface CategoryPageProps {
   }
 }
 
-function validateAndParseParams(params: any, searchParams: any) {
-  const lang = params.lang as SupportedLocale
+async function validateAndParseParams(params: any, searchParams: any) {
+  const { lang, slug } = await params
   
   if (!supportedLocales.includes(lang)) {
     notFound()
   }
   
+  const { search, featured, sort, order, page } = await searchParams
   return {
     lang,
-    slug: params.slug as string,
-    search: searchParams.search || '',
-    featured: searchParams.featured || '',
-    sort: searchParams.sort || 'created_at',
-    order: searchParams.order || 'desc',
-    page: searchParams.page || '1'
+    slug: slug as string,
+    search: search || '',
+    featured: featured || '',
+    sort: sort || 'created_at',
+    order: order || 'desc',
+    page: page || '1'
   }
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
-  const { lang, slug } = validateAndParseParams(params, {})
+  const { lang, slug } = await validateAndParseParams(params, {})
   
   const category = await CategoriesService.getCategoryBySlug(slug).catch(() => null)
   
@@ -169,7 +170,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const { lang, slug, search, featured, sort, order, page } = validateAndParseParams(params, searchParams)
+  const { lang, slug, search, featured, sort, order, page } = await validateAndParseParams(params, searchParams)
 
   // Load category information
   const category = await CategoriesService.getCategoryBySlug(slug).catch(() => null)

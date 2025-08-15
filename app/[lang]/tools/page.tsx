@@ -31,32 +31,33 @@ interface ToolsPageProps {
 }
 
 /**
- * Validation des paramètres avec valeurs par défaut
+ * Validation des paramètres de la page
  */
-function validateAndParseParams(params: any, searchParams: any) {
-  const lang = params.lang
+async function validateAndParseParams(params: any, searchParams: any) {
+  const { lang } = await params
   if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }
 
-  const page = Math.max(1, parseInt(searchParams.page || '1'))
-  const search = searchParams.search || undefined
-  const category = searchParams.category || undefined
-  const sortBy = (['name', 'created_at', 'view_count', 'quality_score'].includes(searchParams.sort)) 
-    ? searchParams.sort as 'name' | 'created_at' | 'view_count' | 'quality_score'
+  const { page, search, category, sort, order, view } = await searchParams
+  const pageNum = Math.max(1, parseInt(page || '1'))
+  const searchQuery = search || undefined
+  const categoryFilter = category || undefined
+  const sortBy = (['name', 'created_at', 'view_count', 'quality_score'].includes(sort)) 
+    ? sort as 'name' | 'created_at' | 'view_count' | 'quality_score'
     : 'created_at'
-  const sortOrder = (['asc', 'desc'].includes(searchParams.order)) 
-    ? searchParams.order as 'asc' | 'desc' 
+  const sortOrder = (['asc', 'desc'].includes(order)) 
+    ? order as 'asc' | 'desc' 
     : 'desc'
-  const viewMode = (['grid', 'list'].includes(searchParams.view)) 
-    ? searchParams.view as 'grid' | 'list' 
+  const viewMode = (['grid', 'list'].includes(view)) 
+    ? view as 'grid' | 'list' 
     : 'grid'
 
   return {
     lang: lang as SupportedLocale,
-    page,
-    search,
-    category,
+    page: pageNum,
+    search: searchQuery,
+    category: categoryFilter,
     sortBy,
     sortOrder,
     viewMode
@@ -70,7 +71,7 @@ export async function generateMetadata({
   params, 
   searchParams 
 }: ToolsPageProps): Promise<Metadata> {
-  const { lang, search, category, page } = validateAndParseParams(params, searchParams)
+  const { lang, search, category, page } = await validateAndParseParams(params, searchParams)
   
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
   const langPrefix = lang === 'en' ? '' : `/${lang}`
@@ -132,7 +133,7 @@ export async function generateMetadata({
         ? `Vind de beste AI-tools voor "${search}". Blader door geverifieerde tools met reviews, ratings en vergelijkingen.`
         : category
         ? `Ontdek de beste ${category} AI-tools. Professionele reviews, ratings en gedetailleerde vergelijkingen.`
-        : `Blader door 's werelds grootste directory van AI-tools. 16.000+ geverifieerde tools voor videocreatie, automatisering, machine learning en meer.`,
+        : 'Blader door \'s werelds grootste directory van AI-tools. 16.000+ geverifieerde tools voor videocreatie, automatisering, machine learning en meer.',
     },
     'it': {
       title: search 
@@ -143,35 +144,35 @@ export async function generateMetadata({
         ? `Directory Strumenti IA - Pagina ${page} | Video-IA.net`
         : 'Directory Strumenti IA - 16.000+ Migliori Strumenti IA | Video-IA.net',
       description: search
-        ? `Trova i migliori strumenti IA per "${search}". Sfoglia strumenti verificati con recensioni, valutazioni e confronti.`
+        ? `Trova i migliori strumenti IA corrispondenti a "${search}". Sfoglia strumenti verificati con recensioni, valutazioni e confronti.`
         : category
         ? `Scopri i migliori strumenti IA ${category}. Recensioni professionali, valutazioni e confronti dettagliati.`
         : 'Sfoglia la più grande directory di strumenti IA al mondo. 16.000+ strumenti verificati per creazione video, automazione, machine learning e altro.',
     },
     'es': {
       title: search 
-        ? `Resultados de búsqueda para "${search}" - Directorio de Herramientas IA`
+        ? `Resultados de búsqueda para "${search}" - Directorio Herramientas IA`
         : category 
         ? `Herramientas IA ${category} - Video-IA.net`
         : page > 1 
-        ? `Directorio de Herramientas IA - Página ${page} | Video-IA.net`
-        : 'Directorio de Herramientas IA - 16.000+ Mejores Herramientas IA | Video-IA.net',
+        ? `Directorio Herramientas IA - Página ${page} | Video-IA.net`
+        : 'Directorio Herramientas IA - 16.000+ Mejores Herramientas IA | Video-IA.net',
       description: search
-        ? `Encuentra las mejores herramientas IA para "${search}". Navega herramientas verificadas con reseñas, calificaciones y comparaciones.`
+        ? `Encuentra las mejores herramientas IA que coincidan con "${search}". Navega por herramientas verificadas con reseñas, calificaciones y comparaciones.`
         : category
         ? `Descubre las mejores herramientas IA ${category}. Reseñas profesionales, calificaciones y comparaciones detalladas.`
-        : 'Navega el directorio de herramientas IA más grande del mundo. 16.000+ herramientas verificadas para creación de video, automatización, machine learning y más.',
+        : 'Navega por el directorio de herramientas IA más grande del mundo. 16.000+ herramientas verificadas para creación de video, edición, automatización y más.',
     },
     'pt': {
       title: search 
-        ? `Resultados de pesquisa para "${search}" - Diretório de Ferramentas IA`
+        ? `Resultados da pesquisa para "${search}" - Diretório Ferramentas IA`
         : category 
         ? `Ferramentas IA ${category} - Video-IA.net`
         : page > 1 
-        ? `Diretório de Ferramentas IA - Página ${page} | Video-IA.net`
-        : 'Diretório de Ferramentas IA - 16.000+ Melhores Ferramentas IA | Video-IA.net',
+        ? `Diretório Ferramentas IA - Página ${page} | Video-IA.net`
+        : 'Diretório Ferramentas IA - 16.000+ Melhores Ferramentas IA | Video-IA.net',
       description: search
-        ? `Encontre as melhores ferramentas IA para "${search}". Navegue ferramentas verificadas com avaliações, classificações e comparações.`
+        ? `Encontre as melhores ferramentas IA correspondentes a "${search}". Navegue por ferramentas verificadas com avaliações, classificações e comparações.`
         : category
         ? `Descubra as melhores ferramentas IA ${category}. Avaliações profissionais, classificações e comparações detalhadas.`
         : 'Navegue pelo maior diretório de ferramentas IA do mundo. 16.000+ ferramentas verificadas para criação de vídeo, automação, machine learning e mais.',
@@ -179,7 +180,9 @@ export async function generateMetadata({
   }
   
   const content = metadata[lang] || metadata['en']
-  const currentUrl = buildQueryString(searchParams) ? `${basePageUrl}?${buildQueryString(searchParams)}` : basePageUrl
+  const currentUrl = search || category || page > 1 
+    ? `${basePageUrl}?${await buildQueryString(searchParams)}`
+    : basePageUrl
   
   return {
     title: content.title,
@@ -207,15 +210,16 @@ export async function generateMetadata({
 /**
  * Construction de l'URL de requête pour les métadonnées
  */
-function buildQueryString(searchParams: any): string {
+async function buildQueryString(searchParams: any): Promise<string> {
   const params = new URLSearchParams()
+  const resolvedSearchParams = await searchParams
   
-  if (searchParams.search) params.set('search', searchParams.search)
-  if (searchParams.category) params.set('category', searchParams.category)
-  if (searchParams.sort) params.set('sort', searchParams.sort)
-  if (searchParams.order) params.set('order', searchParams.order)
-  if (searchParams.view) params.set('view', searchParams.view)
-  if (searchParams.page && searchParams.page !== '1') params.set('page', searchParams.page)
+  if (resolvedSearchParams.search) params.set('search', resolvedSearchParams.search)
+  if (resolvedSearchParams.category) params.set('category', resolvedSearchParams.category)
+  if (resolvedSearchParams.sort) params.set('sort', resolvedSearchParams.sort)
+  if (resolvedSearchParams.order) params.set('order', resolvedSearchParams.order)
+  if (resolvedSearchParams.view) params.set('view', resolvedSearchParams.view)
+  if (resolvedSearchParams.page && resolvedSearchParams.page !== '1') params.set('page', resolvedSearchParams.page)
   
   return params.toString()
 }
@@ -224,7 +228,7 @@ function buildQueryString(searchParams: any): string {
  * Page Component Principal
  */
 export default async function ToolsPage({ params, searchParams }: ToolsPageProps) {
-  const { lang, page, search, category, sortBy, sortOrder, viewMode } = validateAndParseParams(params, searchParams)
+  const { lang, page, search, category, sortBy, sortOrder, viewMode } = await validateAndParseParams(params, searchParams)
   
   try {
     // Récupération parallèle des données

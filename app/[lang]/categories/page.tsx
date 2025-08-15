@@ -26,20 +26,21 @@ interface CategoriesPageProps {
 /**
  * Validation paramètres
  */
-function validateAndParseParams(params: any, searchParams: any) {
-  const lang = params.lang
+async function validateAndParseParams(params: any, searchParams: any) {
+  const { lang } = await params
   if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }
 
-  const sortBy = (['name', 'count'].includes(searchParams.sort)) 
-    ? searchParams.sort as 'name' | 'count'
+  const { sort, order, view } = await searchParams
+  const sortBy = (['name', 'count'].includes(sort)) 
+    ? sort as 'name' | 'count'
     : 'count'
-  const sortOrder = (['asc', 'desc'].includes(searchParams.order)) 
-    ? searchParams.order as 'asc' | 'desc' 
+  const sortOrder = (['asc', 'desc'].includes(order)) 
+    ? order as 'asc' | 'desc' 
     : 'desc'
-  const viewMode = (['grid', 'list'].includes(searchParams.view)) 
-    ? searchParams.view as 'grid' | 'list' 
+  const viewMode = (['grid', 'list'].includes(view)) 
+    ? view as 'grid' | 'list' 
     : 'grid'
 
   return {
@@ -53,15 +54,16 @@ function validateAndParseParams(params: any, searchParams: any) {
 /**
  * Métadonnées SEO
  */
-export async function generateMetadata({ params }: { params: { lang: string } }): Promise<Metadata> {
-  const lang = params.lang as SupportedLocale
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params
+  const validatedLang = lang as SupportedLocale
   
-  if (!supportedLocales.includes(lang)) {
+  if (!supportedLocales.includes(validatedLang)) {
     notFound()
   }
   
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
-  const langPrefix = lang === 'en' ? '' : `/${lang}`
+  const langPrefix = validatedLang === 'en' ? '' : `/${validatedLang}`
   const currentUrl = `${baseUrl}${langPrefix}/categories`
   
   const metadata = {
@@ -95,7 +97,7 @@ export async function generateMetadata({ params }: { params: { lang: string } })
     }
   }
   
-  const content = metadata[lang] || metadata['en']
+  const content = metadata[validatedLang] || metadata['en']
   
   return {
     title: content.title,
@@ -124,7 +126,7 @@ export async function generateMetadata({ params }: { params: { lang: string } })
  * Page Component
  */
 export default async function CategoriesPage({ params, searchParams }: CategoriesPageProps) {
-  const { lang, sortBy, sortOrder, viewMode } = validateAndParseParams(params, searchParams)
+  const { lang, sortBy, sortOrder, viewMode } = await validateAndParseParams(params, searchParams)
   
   try {
     // Récupération des catégories
