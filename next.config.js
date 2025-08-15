@@ -128,8 +128,7 @@ const nextConfig = {
     }
   },
   
-  // Optimisations de compilation
-  swcMinify: true,
+  // Optimisations de compilation (swcMinify est activé par défaut depuis Next.js 13)
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn']
