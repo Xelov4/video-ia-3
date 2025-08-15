@@ -51,3 +51,21 @@ public/screenshots/
 # Ignorer les gros fichiers de backup
 backups/*.sql
 backups/*.backup
+
+# Cleanup Prevention
+*.backup
+*.save
+*.tmp
+*.bak
+*~
+.env.local
+.env.*.local
+*.log
+pages_*.md
+
+# Development Notes (use archive/)
+ADMIN_TOOLS_*.md
+MULTILINGUAL_*_COMPLETE.md
+RESPONSIVE_*.md
+UNIVERSAL_*.md
+
