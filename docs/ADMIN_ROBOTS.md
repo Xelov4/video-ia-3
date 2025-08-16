@@ -133,3 +133,5 @@ Si aucun fichier de configuration personnalisé n'existe, l'API génère automat
 - **Synchronisation** : Mise à jour en temps réel sur tous les serveurs
 
 
+
+

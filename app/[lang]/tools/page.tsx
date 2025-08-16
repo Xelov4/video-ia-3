@@ -1,445 +1,235 @@
 /**
- * Page de Listing des Outils - Multilingue
+ * Page Tools - Video-IA.net
  * 
- * Affichage paginé des outils avec filtres, recherche et tri,
- * optimisée pour SEO et performance avec cache avancé.
+ * Page de listing des outils exploitant pleinement l'architecture data-driven
+ * avec filtres avancés, pagination optimisée et interface moderne.
+ * 
+ * Features:
+ * - Architecture server/client avec données pré-chargées
+ * - Filtres multicritères (audience, cas d'usage, catégorie, qualité)
+ * - Pagination optimisée (24 outils/page)
+ * - Vues multiples (grille/liste)
+ * - SEO dynamique et multilingue
+ * - Performance avec cache ISR
  */
 
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Suspense } from 'react'
 import { SupportedLocale, supportedLocales } from '@/middleware'
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
+
+import ToolsPageClient from './ToolsPageClient'
+
+import { DataExtractionService } from '@/src/lib/services/dataExtraction'
 import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
 
-import ToolsPageClient from '@/src/components/tools/ToolsPageClient'
-import LoadingSpinner from '@/src/components/ui/LoadingSpinner'
-
-// Interface pour les paramètres de page et query
+// Interface pour paramètres de page
 interface ToolsPageProps {
-  params: {
-    lang: SupportedLocale
-  }
-  searchParams: {
+  params: Promise<{
+    lang: string
+  }>
+  searchParams: Promise<{
     page?: string
     search?: string
     category?: string
-    sort?: 'name' | 'created_at' | 'view_count' | 'quality_score'
-    order?: 'asc' | 'desc'
-    view?: 'grid' | 'list'
-  }
+    audience?: string
+    useCase?: string
+    minQuality?: string
+    maxQuality?: string
+    hasImage?: string
+    hasVideo?: string
+    sort?: string
+    order?: string
+    view?: string
+  }>
 }
 
 /**
- * Validation des paramètres de la page
+ * Validation des paramètres
  */
-async function validateAndParseParams(params: any, searchParams: any) {
-  const { lang } = await params
+function validateLanguageParam(lang: string): SupportedLocale {
   if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound()
   }
-
-  const { page, search, category, sort, order, view } = await searchParams
-  const pageNum = Math.max(1, parseInt(page || '1'))
-  const searchQuery = search || undefined
-  const categoryFilter = category || undefined
-  const sortBy = (['name', 'created_at', 'view_count', 'quality_score'].includes(sort)) 
-    ? sort as 'name' | 'created_at' | 'view_count' | 'quality_score'
-    : 'created_at'
-  const sortOrder = (['asc', 'desc'].includes(order)) 
-    ? order as 'asc' | 'desc' 
-    : 'desc'
-  const viewMode = (['grid', 'list'].includes(view)) 
-    ? view as 'grid' | 'list' 
-    : 'grid'
-
-  return {
-    lang: lang as SupportedLocale,
-    page: pageNum,
-    search: searchQuery,
-    category: categoryFilter,
-    sortBy,
-    sortOrder,
-    viewMode
-  }
+  return lang as SupportedLocale
 }
 
 /**
- * Génération métadonnées SEO dynamiques
+ * Métadonnées SEO optimisées pour page Tools
  */
 export async function generateMetadata({ 
-  params, 
-  searchParams 
-}: ToolsPageProps): Promise<Metadata> {
-  const { lang, search, category, page } = await validateAndParseParams(params, searchParams)
+  params,
+  searchParams
+}: {
+  params: Promise<{ lang: string }>
+  searchParams: Promise<{ 
+    search?: string
+    category?: string
+    audience?: string
+    useCase?: string
+    page?: string
+  }>
+}): Promise<Metadata> {
+  const { lang } = await params
+  const { search, category, audience, useCase, page } = await searchParams
+  const validatedLang = validateLanguageParam(lang)
   
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
-  const langPrefix = lang === 'en' ? '' : `/${lang}`
-  const basePageUrl = `${baseUrl}${langPrefix}/tools`
+  // Construire titre dynamique basé sur filtres
+  let titleSuffix = ''
+  if (audience) titleSuffix += ` for ${audience}`
+  if (useCase) titleSuffix += ` - ${useCase}`
+  if (category) titleSuffix += ` in ${category}`
+  if (search) titleSuffix += ` matching "${search}"`
+  if (page && parseInt(page) > 1) titleSuffix += ` - Page ${page}`
   
-  // Métadonnées par langue et contexte
-  const metadata = {
+  const seoContent = {
     'en': {
-      title: search 
-        ? `Search Results for "${search}" - AI Tools Directory`
-        : category 
-        ? `${category} AI Tools - Video-IA.net`
-        : page > 1 
-        ? `AI Tools Directory - Page ${page} | Video-IA.net`
-        : 'AI Tools Directory - 16,000+ Best AI Tools | Video-IA.net',
-      description: search
-        ? `Find the best AI tools matching "${search}". Browse verified tools with reviews, ratings and comparisons.`
-        : category
-        ? `Discover the best ${category} AI tools. Professional reviews, ratings and detailed comparisons.`
-        : 'Browse the world\'s largest directory of AI tools. 16,000+ verified tools for video creation, automation, machine learning and more.',
+      title: `AI Tools Directory${titleSuffix} | Video-IA.net`,
+      description: `Browse 16,765+ AI tools with advanced filters. Find the perfect tools by audience, use case, category, and quality rating. Professional reviews and comparisons.`,
+      keywords: 'AI tools directory, AI tools list, AI tools by category, AI tools for developers, AI tools for creators, AI tools comparison'
     },
     'fr': {
-      title: search 
-        ? `Résultats de recherche pour "${search}" - Répertoire Outils IA`
-        : category 
-        ? `Outils IA ${category} - Video-IA.net`
-        : page > 1 
-        ? `Répertoire Outils IA - Page ${page} | Video-IA.net`
-        : 'Répertoire Outils IA - 16 000+ Meilleurs Outils IA | Video-IA.net',
-      description: search
-        ? `Trouvez les meilleurs outils IA correspondant à "${search}". Parcourez des outils vérifiés avec avis, notes et comparaisons.`
-        : category
-        ? `Découvrez les meilleurs outils IA ${category}. Avis professionnels, notes et comparaisons détaillées.`
-        : 'Parcourez le plus grand répertoire d\'outils IA au monde. 16 000+ outils vérifiés pour création vidéo, automatisation, machine learning et plus.',
-    },
-    'de': {
-      title: search 
-        ? `Suchergebnisse für "${search}" - KI-Tools Verzeichnis`
-        : category 
-        ? `${category} KI-Tools - Video-IA.net`
-        : page > 1 
-        ? `KI-Tools Verzeichnis - Seite ${page} | Video-IA.net`
-        : 'KI-Tools Verzeichnis - 16.000+ Beste KI-Tools | Video-IA.net',
-      description: search
-        ? `Finden Sie die besten KI-Tools für "${search}". Durchsuchen Sie verifizierte Tools mit Bewertungen, Ratings und Vergleichen.`
-        : category
-        ? `Entdecken Sie die besten ${category} KI-Tools. Professionelle Bewertungen, Ratings und detaillierte Vergleiche.`
-        : 'Durchsuchen Sie das weltweit größte Verzeichnis von KI-Tools. 16.000+ verifizierte Tools für Videoerstellung, Automatisierung, maschinelles Lernen und mehr.',
-    },
-    'nl': {
-      title: search 
-        ? `Zoekresultaten voor "${search}" - AI-Tools Directory`
-        : category 
-        ? `${category} AI-Tools - Video-IA.net`
-        : page > 1 
-        ? `AI-Tools Directory - Pagina ${page} | Video-IA.net`
-        : 'AI-Tools Directory - 16.000+ Beste AI-Tools | Video-IA.net',
-      description: search
-        ? `Vind de beste AI-tools voor "${search}". Blader door geverifieerde tools met reviews, ratings en vergelijkingen.`
-        : category
-        ? `Ontdek de beste ${category} AI-tools. Professionele reviews, ratings en gedetailleerde vergelijkingen.`
-        : 'Blader door \'s werelds grootste directory van AI-tools. 16.000+ geverifieerde tools voor videocreatie, automatisering, machine learning en meer.',
+      title: `Répertoire Outils IA${titleSuffix} | Video-IA.net`,
+      description: `Parcourez 16 765+ outils IA avec des filtres avancés. Trouvez les outils parfaits par audience, cas d'usage, catégorie et note qualité. Avis professionnels et comparaisons.`,
+      keywords: 'répertoire outils IA, liste outils IA, outils IA par catégorie, outils IA développeurs, outils IA créateurs, comparaison outils IA'
     },
     'it': {
-      title: search 
-        ? `Risultati di ricerca per "${search}" - Directory Strumenti IA`
-        : category 
-        ? `Strumenti IA ${category} - Video-IA.net`
-        : page > 1 
-        ? `Directory Strumenti IA - Pagina ${page} | Video-IA.net`
-        : 'Directory Strumenti IA - 16.000+ Migliori Strumenti IA | Video-IA.net',
-      description: search
-        ? `Trova i migliori strumenti IA corrispondenti a "${search}". Sfoglia strumenti verificati con recensioni, valutazioni e confronti.`
-        : category
-        ? `Scopri i migliori strumenti IA ${category}. Recensioni professionali, valutazioni e confronti dettagliati.`
-        : 'Sfoglia la più grande directory di strumenti IA al mondo. 16.000+ strumenti verificati per creazione video, automazione, machine learning e altro.',
+      title: `Directory Strumenti AI${titleSuffix} | Video-IA.net`,
+      description: `Sfoglia 16.765+ strumenti AI con filtri avanzati. Trova gli strumenti perfetti per pubblico, caso d'uso, categoria e valutazione qualità. Recensioni professionali e confronti.`,
+      keywords: 'directory strumenti AI, lista strumenti AI, strumenti AI per categoria, strumenti AI sviluppatori'
     },
     'es': {
-      title: search 
-        ? `Resultados de búsqueda para "${search}" - Directorio Herramientas IA`
-        : category 
-        ? `Herramientas IA ${category} - Video-IA.net`
-        : page > 1 
-        ? `Directorio Herramientas IA - Página ${page} | Video-IA.net`
-        : 'Directorio Herramientas IA - 16.000+ Mejores Herramientas IA | Video-IA.net',
-      description: search
-        ? `Encuentra las mejores herramientas IA que coincidan con "${search}". Navega por herramientas verificadas con reseñas, calificaciones y comparaciones.`
-        : category
-        ? `Descubre las mejores herramientas IA ${category}. Reseñas profesionales, calificaciones y comparaciones detalladas.`
-        : 'Navega por el directorio de herramientas IA más grande del mundo. 16.000+ herramientas verificadas para creación de video, edición, automatización y más.',
+      title: `Directorio Herramientas IA${titleSuffix} | Video-IA.net`,
+      description: `Explora 16.765+ herramientas IA con filtros avanzados. Encuentra las herramientas perfectas por audiencia, caso de uso, categoría y calificación de calidad. Reseñas profesionales y comparaciones.`,
+      keywords: 'directorio herramientas IA, lista herramientas IA, herramientas IA por categoría'
+    },
+    'de': {
+      title: `KI-Tools Verzeichnis${titleSuffix} | Video-IA.net`,
+      description: `Durchsuchen Sie 16.765+ KI-Tools mit erweiterten Filtern. Finden Sie die perfekten Tools nach Zielgruppe, Anwendungsfall, Kategorie und Qualitätsbewertung. Professionelle Bewertungen und Vergleiche.`,
+      keywords: 'KI-Tools Verzeichnis, KI-Tools Liste, KI-Tools nach Kategorie'
+    },
+    'nl': {
+      title: `AI Tools Directory${titleSuffix} | Video-IA.net`,
+      description: `Verken 16.765+ AI-tools met geavanceerde filters. Vind de perfecte tools op publiek, use case, categorie en kwaliteitsbeoordeling. Professionele beoordelingen en vergelijkingen.`,
+      keywords: 'AI-tools directory, AI-tools lijst, AI-tools per categorie'
     },
     'pt': {
-      title: search 
-        ? `Resultados da pesquisa para "${search}" - Diretório Ferramentas IA`
-        : category 
-        ? `Ferramentas IA ${category} - Video-IA.net`
-        : page > 1 
-        ? `Diretório Ferramentas IA - Página ${page} | Video-IA.net`
-        : 'Diretório Ferramentas IA - 16.000+ Melhores Ferramentas IA | Video-IA.net',
-      description: search
-        ? `Encontre as melhores ferramentas IA correspondentes a "${search}". Navegue por ferramentas verificadas com avaliações, classificações e comparações.`
-        : category
-        ? `Descubra as melhores ferramentas IA ${category}. Avaliações profissionais, classificações e comparações detalhadas.`
-        : 'Navegue pelo maior diretório de ferramentas IA do mundo. 16.000+ ferramentas verificadas para criação de vídeo, automação, machine learning e mais.',
+      title: `Diretório Ferramentas IA${titleSuffix} | Video-IA.net`,
+      description: `Explore 16.765+ ferramentas IA com filtros avançados. Encontre as ferramentas perfeitas por público, caso de uso, categoria e avaliação de qualidade. Avaliações profissionais e comparações.`,
+      keywords: 'diretório ferramentas IA, lista ferramentas IA, ferramentas IA por categoria'
     }
   }
-  
-  const content = metadata[lang] || metadata['en']
-  const currentUrl = search || category || page > 1 
-    ? `${basePageUrl}?${await buildQueryString(searchParams)}`
-    : basePageUrl
-  
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
+  const langPrefix = validatedLang === 'en' ? '' : `/${validatedLang}`
+  const currentUrl = `${baseUrl}${langPrefix}/tools`
+
   return {
-    title: content.title,
-    description: content.description,
-    
+    title: seoContent[validatedLang]?.title || seoContent['en'].title,
+    description: seoContent[validatedLang]?.description || seoContent['en'].description,
+    keywords: seoContent[validatedLang]?.keywords || seoContent['en'].keywords,
     openGraph: {
-      title: content.title,
-      description: content.description,
+      title: seoContent[validatedLang]?.title || seoContent['en'].title,
+      description: seoContent[validatedLang]?.description || seoContent['en'].description,
       url: currentUrl,
-      type: 'website'
+      siteName: 'Video-IA.net',
+      locale: validatedLang,
+      type: 'website',
+      images: [
+        {
+          url: `${baseUrl}/og-tools.jpg`,
+          width: 1200,
+          height: 630,
+          alt: 'AI Tools Directory'
+        }
+      ]
     },
-    
+    twitter: {
+      card: 'summary_large_image',
+      title: seoContent[validatedLang]?.title || seoContent['en'].title,
+      description: seoContent[validatedLang]?.description || seoContent['en'].description,
+      images: [`${baseUrl}/og-tools.jpg`]
+    },
     alternates: {
       canonical: currentUrl,
-      languages: Object.fromEntries(
-        supportedLocales.map(locale => [
-          locale,
-          `${baseUrl}${locale === 'en' ? '' : `/${locale}`}/tools`
-        ])
-      )
+      languages: {
+        'en': `${baseUrl}/tools`,
+        'fr': `${baseUrl}/fr/tools`,
+        'it': `${baseUrl}/it/tools`,
+        'es': `${baseUrl}/es/tools`,
+        'de': `${baseUrl}/de/tools`,
+        'nl': `${baseUrl}/nl/tools`,
+        'pt': `${baseUrl}/pt/tools`
+      }
     }
   }
 }
 
 /**
- * Construction de l'URL de requête pour les métadonnées
- */
-async function buildQueryString(searchParams: any): Promise<string> {
-  const params = new URLSearchParams()
-  const resolvedSearchParams = await searchParams
-  
-  if (resolvedSearchParams.search) params.set('search', resolvedSearchParams.search)
-  if (resolvedSearchParams.category) params.set('category', resolvedSearchParams.category)
-  if (resolvedSearchParams.sort) params.set('sort', resolvedSearchParams.sort)
-  if (resolvedSearchParams.order) params.set('order', resolvedSearchParams.order)
-  if (resolvedSearchParams.view) params.set('view', resolvedSearchParams.view)
-  if (resolvedSearchParams.page && resolvedSearchParams.page !== '1') params.set('page', resolvedSearchParams.page)
-  
-  return params.toString()
-}
-
-/**
- * Page Component Principal
+ * Page principale Tools avec architecture data-driven
  */
 export default async function ToolsPage({ params, searchParams }: ToolsPageProps) {
-  const { lang, page, search, category, sortBy, sortOrder, viewMode } = await validateAndParseParams(params, searchParams)
+  const { lang } = await params
+  const validatedLang = validateLanguageParam(lang)
+  
+  console.log(`🚀 Loading Tools page for language: ${validatedLang}`)
   
   try {
-    // Récupération parallèle des données
-    const [toolsResult, categoriesResult] = await Promise.all([
-      // Outils avec pagination et filtres
-      multilingualToolsService.searchTools({
-        language: lang,
-        page,
-        limit: 24,
-        query: search,
-        category,
-        sortBy,
-        sortOrder,
-        useCache: true
-      }),
-      
-      // Catégories pour les filtres
-      multilingualCategoriesService.getAllCategories(lang, {
-        includeEmpty: false,
-        useCache: true,
-        includeCounts: true
-      })
+    // Chargement parallèle des données avec fallbacks gracieux
+    const [
+      audiencesResult,
+      useCasesResult, 
+      categoriesResult,
+      statsResult
+    ] = await Promise.allSettled([
+      DataExtractionService.extractUniqueAudiences(20),
+      DataExtractionService.extractUseCases(25),
+      multilingualCategoriesService.getAllCategories(validatedLang, { limit: 30, includeCounts: true }),
+      DataExtractionService.getOverallStats()
     ])
-    
-    const { tools, pagination } = toolsResult
-    const { totalCount, totalPages, hasNextPage, hasPreviousPage } = pagination
-    const { categories } = categoriesResult
-    
-    // Messages localisés
-    const messages = getLocalizedMessages(lang)
-    
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* En-tête */}
-        <header className="bg-white dark:bg-gray-800 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            {/* Breadcrumb */}
-            <nav className="flex text-sm text-gray-600 dark:text-gray-400 mb-4">
-              <a href={`/${lang}`} className="hover:text-blue-600 dark:hover:text-blue-400">
-                {messages.home}
-              </a>
-              <span className="mx-2">/</span>
-              <span className="text-gray-900 dark:text-white font-medium">
-                {messages.tools}
-              </span>
-            </nav>
-            
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  {search 
-                    ? `${messages.searchResults} "${search}"`
-                    : category 
-                    ? `${category} ${messages.tools}`
-                    : messages.allTools
-                  }
-                </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-400">
-                  {messages.toolsDescription}
-                </p>
-                <div className="flex items-center gap-4 mt-4 text-sm text-gray-500 dark:text-gray-400">
-                  <span>{totalCount.toLocaleString()} {messages.tools.toLowerCase()}</span>
-                  {totalPages > 1 && (
-                    <>
-                      <span>•</span>
-                      <span>{messages.page} {page} {messages.of} {totalPages}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-        
-        {/* Contenu principal avec Client Component */}
-        <Suspense fallback={<LoadingSpinner />}>
-          <ToolsPageClient
-            tools={tools}
-            categories={categories}
-            totalCount={totalCount}
-            currentPage={page}
-            totalPages={totalPages}
-            hasNextPage={hasNextPage}
-            hasPreviousPage={hasPreviousPage}
-            lang={lang}
-            search={search}
-            category={category}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            viewMode={viewMode}
-            messages={messages}
-          />
-        </Suspense>
-      </div>
-    )
-    
-  } catch (error) {
-    console.error('Tools page error:', error)
-    
-    // Fallback gracieux
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            {getLocalizedMessages(lang).errorLoading}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {getLocalizedMessages(lang).errorTryAgain}
-          </p>
-          <a
-            href={`/${lang}/tools`}
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            {getLocalizedMessages(lang).reload}
-          </a>
-        </div>
-      </div>
-    )
-  }
-}
 
-/**
- * Messages localisés
- */
-function getLocalizedMessages(lang: SupportedLocale) {
-  const messages = {
-    'en': {
-      home: 'Home',
-      tools: 'Tools',
-      allTools: 'All AI Tools',
-      searchResults: 'Search Results for',
-      toolsDescription: 'Browse our comprehensive collection of AI tools',
-      page: 'Page',
-      of: 'of',
-      errorLoading: 'Error Loading Tools',
-      errorTryAgain: 'Something went wrong. Please try again.',
-      reload: 'Reload'
-    },
-    'fr': {
-      home: 'Accueil',
-      tools: 'Outils',
-      allTools: 'Tous les Outils IA',
-      searchResults: 'Résultats de recherche pour',
-      toolsDescription: 'Parcourez notre collection complète d\'outils IA',
-      page: 'Page',
-      of: 'sur',
-      errorLoading: 'Erreur de Chargement',
-      errorTryAgain: 'Quelque chose s\'est mal passé. Veuillez réessayer.',
-      reload: 'Recharger'
-    },
-    'de': {
-      home: 'Startseite',
-      tools: 'Tools',
-      allTools: 'Alle KI-Tools',
-      searchResults: 'Suchergebnisse für',
-      toolsDescription: 'Durchsuchen Sie unsere umfassende Sammlung von KI-Tools',
-      page: 'Seite',
-      of: 'von',
-      errorLoading: 'Fehler beim Laden der Tools',
-      errorTryAgain: 'Etwas ist schief gelaufen. Bitte versuchen Sie es erneut.',
-      reload: 'Neu laden'
-    },
-    'nl': {
-      home: 'Home',
-      tools: 'Tools',
-      allTools: 'Alle AI-Tools',
-      searchResults: 'Zoekresultaten voor',
-      toolsDescription: 'Blader door onze uitgebreide collectie AI-tools',
-      page: 'Pagina',
-      of: 'van',
-      errorLoading: 'Fout bij het Laden van Tools',
-      errorTryAgain: 'Er is iets misgegaan. Probeer het opnieuw.',
-      reload: 'Herladen'
-    },
-    'it': {
-      home: 'Home',
-      tools: 'Strumenti',
-      allTools: 'Tutti gli Strumenti IA',
-      searchResults: 'Risultati di ricerca per',
-      toolsDescription: 'Sfoglia la nostra collezione completa di strumenti IA',
-      page: 'Pagina',
-      of: 'di',
-      errorLoading: 'Errore nel Caricamento degli Strumenti',
-      errorTryAgain: 'Qualcosa è andato storto. Riprova.',
-      reload: 'Ricarica'
-    },
-    'es': {
-      home: 'Inicio',
-      tools: 'Herramientas',
-      allTools: 'Todas las Herramientas IA',
-      searchResults: 'Resultados de búsqueda para',
-      toolsDescription: 'Explora nuestra colección completa de herramientas IA',
-      page: 'Página',
-      of: 'de',
-      errorLoading: 'Error al Cargar Herramientas',
-      errorTryAgain: 'Algo salió mal. Por favor inténtalo de nuevo.',
-      reload: 'Recargar'
-    },
-    'pt': {
-      home: 'Início',
-      tools: 'Ferramentas',
-      allTools: 'Todas as Ferramentas IA',
-      searchResults: 'Resultados de pesquisa para',
-      toolsDescription: 'Navegue nossa coleção abrangente de ferramentas IA',
-      page: 'Página',
-      of: 'de',
-      errorLoading: 'Erro ao Carregar Ferramentas',
-      errorTryAgain: 'Algo deu errado. Tente novamente.',
-      reload: 'Recarregar'
+    // Extraction des données avec fallbacks
+    const audiences = audiencesResult.status === 'fulfilled' ? audiencesResult.value : []
+    const useCases = useCasesResult.status === 'fulfilled' ? useCasesResult.value : []
+    const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : []
+    const stats = statsResult.status === 'fulfilled' ? statsResult.value : {
+      totalTools: 16765,
+      totalCategories: 140,
+      totalAudiences: 50,
+      totalUseCases: 100
     }
+
+    console.log(`✅ Tools page data loaded successfully for ${validatedLang}`)
+    console.log(`📊 Stats: ${stats.totalTools} tools, ${audiences.length} audiences, ${useCases.length} use cases, ${categories.length} categories`)
+
+    return (
+      <ToolsPageClient
+        lang={validatedLang}
+        initialSearchParams={await searchParams}
+        audiences={audiences}
+        useCases={useCases}
+        categories={categories}
+        stats={stats}
+      />
+    )
+
+  } catch (error) {
+    console.error('❌ Error loading Tools page data:', error)
+    
+    // Fallback avec données minimales
+    return (
+      <ToolsPageClient
+        lang={validatedLang}
+        initialSearchParams={await searchParams}
+        audiences={[]}
+        useCases={[]}
+        categories={[]}
+        stats={{
+          totalTools: 16765,
+          totalCategories: 140,
+          totalAudiences: 50,
+          totalUseCases: 100
+        }}
+      />
+    )
   }
-  
-  return messages[lang] || messages['en']
 }
