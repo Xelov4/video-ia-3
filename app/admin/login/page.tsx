@@ -9,7 +9,12 @@ import { useState } from 'react'
 import { signIn, getSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { Eye, EyeOff, Sparkles, Shield, User, Lock, ArrowLeft } from 'lucide-react'
+import { Button } from '@/src/components/ui/button'
+import { Input } from '@/src/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Badge } from '@/src/components/ui/badge'
+import { Separator } from '@/src/components/ui/separator'
 
 const LoginPage = () => {
   const [email, setEmail] = useState('')
@@ -54,125 +59,179 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block mb-6">
-            <div className="text-3xl font-bold text-white">
-              Video-IA.net
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center space-x-3 group">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+              <Sparkles className="h-6 w-6 text-white" />
             </div>
-            <div className="text-purple-300 text-sm">
-              Administration
+            <div className="text-left">
+              <h1 className="text-2xl font-bold text-white">Video-IA.net</h1>
+              <Badge variant="secondary" className="text-xs bg-blue-600 text-white border-blue-500">
+                Administration
+              </Badge>
             </div>
           </Link>
         </div>
 
-        {/* Login Form */}
-        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 shadow-2xl">
-          <h1 className="text-2xl font-bold text-white text-center mb-8">
-            Connexion Admin
-          </h1>
-
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200 text-sm">
-              {error}
+        {/* Login Card */}
+        <Card className="bg-slate-800 border-slate-700 shadow-2xl">
+          <CardHeader className="text-center pb-6">
+            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-slate-700 flex items-center justify-center">
+              <Shield className="h-8 w-8 text-blue-400" />
             </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">
-                Adresse email
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="admin@video-ia.net"
-                disabled={isLoading}
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-200 mb-2">
-                Mot de passe
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="••••••••"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                  disabled={isLoading}
-                >
-                  {showPassword ? (
-                    <EyeSlashIcon className="w-5 h-5" />
-                  ) : (
-                    <EyeIcon className="w-5 h-5" />
-                  )}
-                </button>
+            <CardTitle className="text-2xl font-bold text-white">
+              Connexion Admin
+            </CardTitle>
+            <p className="text-slate-400 text-sm">
+              Accédez au tableau de bord d'administration
+            </p>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                {error}
               </div>
-            </div>
+            )}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                  Connexion...
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email Field */}
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-slate-200">
+                  Adresse email
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                    placeholder="admin@video-ia.net"
+                    disabled={isLoading}
+                  />
                 </div>
-              ) : (
-                'Se connecter'
-              )}
-            </button>
-          </form>
-
-          {/* Default Credentials Info */}
-          <div className="mt-8 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg">
-            <div className="text-blue-200 text-sm">
-              <div className="font-medium mb-1">Comptes d'administration disponibles :</div>
-              <div className="mt-2 p-2 bg-blue-600/20 rounded border border-blue-500/30">
-                <div className="font-medium text-blue-100">Compte Principal</div>
-                <div>Email: admin@video-ia.net</div>
-                <div>Mot de passe: VideoIA2024!</div>
               </div>
-              <div className="mt-2 p-2 bg-green-600/20 rounded border border-green-500/30">
-                <div className="font-medium text-green-100">Compte Secondaire</div>
-                <div>Email: admin2@video-ia.net</div>
-                <div>Mot de passe: SecurePass2024!</div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-slate-200">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                    placeholder="••••••••"
+                    disabled={isLoading}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-slate-400 hover:text-white p-0"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold h-11"
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                    Connexion en cours...
+                  </div>
+                ) : (
+                  'Se connecter'
+                )}
+              </Button>
+            </form>
+
+            <Separator className="bg-slate-700" />
+
+            {/* Credentials Info */}
+            <div className="space-y-4">
+              <div className="text-center">
+                <h4 className="text-sm font-medium text-slate-300 mb-3">
+                  Comptes d'administration disponibles
+                </h4>
+              </div>
+              
+              <div className="space-y-3">
+                <Card className="bg-blue-500/10 border-blue-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                        <User className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-blue-200">Compte Principal</div>
+                        <div className="text-xs text-blue-300 truncate">admin@video-ia.net</div>
+                        <div className="text-xs text-blue-300">VideoIA2024!</div>
+                      </div>
+                      <Badge variant="secondary" className="bg-blue-600 text-white text-xs">
+                        Super Admin
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-green-500/10 border-green-500/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-8 w-8 rounded-full bg-green-600 flex items-center justify-center">
+                        <User className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-green-200">Compte Secondaire</div>
+                        <div className="text-xs text-green-300 truncate">admin2@video-ia.net</div>
+                        <div className="text-xs text-green-300">SecurePass2024!</div>
+                      </div>
+                      <Badge variant="secondary" className="bg-green-600 text-white text-xs">
+                        Admin
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          </div>
 
-          {/* Back to Site */}
-          <div className="text-center mt-6">
-            <Link 
-              href="/" 
-              className="text-purple-300 hover:text-white transition-colors text-sm"
-            >
-              ← Retour au site
-            </Link>
-          </div>
-        </div>
+            <Separator className="bg-slate-700" />
+
+            {/* Back to Site */}
+            <div className="text-center">
+              <Link 
+                href="/" 
+                className="inline-flex items-center space-x-2 text-slate-400 hover:text-white transition-colors text-sm group"
+              >
+                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                <span>Retour au site</span>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

@@ -73,22 +73,32 @@ const getHeroStats = (lang: string) => {
 
 // Catégories vedettes traduites (limitées à 6 pour un design plus propre)
 const getFeaturedCategories = (lang: string) => {
+  // Utiliser les vrais noms de catégories de la DB
+  const dbCategories = [
+    { dbName: 'AI Assistant', count: 939, emoji: '🤖' },
+    { dbName: 'Content creation', count: 775, emoji: '✍️' },
+    { dbName: 'Image generation', count: 598, emoji: '🎨' },
+    { dbName: 'Data analysis', count: 581, emoji: '📊' },
+    { dbName: 'Automation', count: 546, emoji: '⚡' },
+    { dbName: 'Chat', count: 490, emoji: '💬' }
+  ]
+
   const translations = {
     'en': [
-      { name: 'AI Assistant', count: 1247, emoji: '🤖', description: 'Smart assistants for all your needs' },
-      { name: 'Content Creation', count: 892, emoji: '✍️', description: 'Tools to create engaging content' },
-      { name: 'Image Generation', count: 634, emoji: '🎨', description: 'Create images with AI' },
-      { name: 'Video Tools', count: 523, emoji: '🎬', description: 'Edit and create videos easily' },
-      { name: 'Data Analysis', count: 387, emoji: '📊', description: 'Analyze your data intelligently' },
-      { name: 'Marketing', count: 298, emoji: '📈', description: 'Boost your marketing with AI' }
+      { name: 'AI Assistant', count: 939, emoji: '🤖', description: 'Smart assistants for all your needs', dbName: 'AI Assistant' },
+      { name: 'Content Creation', count: 775, emoji: '✍️', description: 'Tools to create engaging content', dbName: 'Content creation' },
+      { name: 'Image Generation', count: 598, emoji: '🎨', description: 'Create images with AI', dbName: 'Image generation' },
+      { name: 'Data Analysis', count: 581, emoji: '📊', description: 'Analyze your data intelligently', dbName: 'Data analysis' },
+      { name: 'Automation', count: 546, emoji: '⚡', description: 'Automate your workflows', dbName: 'Automation' },
+      { name: 'Chat', count: 490, emoji: '💬', description: 'Conversational AI tools', dbName: 'Chat' }
     ],
     'fr': [
-      { name: 'Assistant IA', count: 1247, emoji: '🤖', description: 'Assistants intelligents pour tous vos besoins' },
-      { name: 'Création de contenu', count: 892, emoji: '✍️', description: 'Outils pour créer du contenu engageant' },
-      { name: 'Génération d\'images', count: 634, emoji: '🎨', description: 'Créez des images avec l\'IA' },
-      { name: 'Outils vidéo', count: 523, emoji: '🎬', description: 'Éditez et créez des vidéos facilement' },
-      { name: 'Analyse de données', count: 387, emoji: '📊', description: 'Analysez vos données intelligemment' },
-      { name: 'Marketing', count: 298, emoji: '📈', description: 'Boostez votre marketing avec l\'IA' }
+      { name: 'Assistant IA', count: 939, emoji: '🤖', description: 'Assistants intelligents pour tous vos besoins', dbName: 'AI Assistant' },
+      { name: 'Création de contenu', count: 775, emoji: '✍️', description: 'Outils pour créer du contenu engageant', dbName: 'Content creation' },
+      { name: 'Génération d\'images', count: 598, emoji: '🎨', description: 'Créez des images avec l\'IA', dbName: 'Image generation' },
+      { name: 'Analyse de données', count: 581, emoji: '📊', description: 'Analysez vos données intelligemment', dbName: 'Data analysis' },
+      { name: 'Automatisation', count: 546, emoji: '⚡', description: 'Automatisez vos workflows', dbName: 'Automation' },
+      { name: 'Chat', count: 490, emoji: '💬', description: 'Outils d\'IA conversationnelle', dbName: 'Chat' }
     ],
     'es': [
       { name: 'Asistente IA', count: 1247, emoji: '🤖', description: 'Asistentes inteligentes para todas tus necesidades' },
@@ -435,17 +445,12 @@ export default function ModernHomepage({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-12 md:mb-16">
           {FEATURED_CATEGORIES.map((category, index) => {
-            // Créer un lien vers la catégorie traduite
-            const categorySlug = category.name.toLowerCase()
-              .replace(/\s+/g, '-')
-              .replace(/[^\w\-]+/g, '')
-              .replace(/\-\-+/g, '-')
-              .replace(/^-+/, '')
-              .replace(/-+$/, '')
+            // Utiliser le vrai nom de catégorie de la DB pour le filtre
+            const categoryDbName = category.dbName || category.name
             
             const categoryLink = lang === 'en' 
-              ? `/categories/${categorySlug}` 
-              : `/${lang}/categories/${categorySlug}`
+              ? `/tools?category=${encodeURIComponent(categoryDbName)}` 
+              : `/${lang}/tools?category=${encodeURIComponent(categoryDbName)}`
             
             return (
               <Card 
