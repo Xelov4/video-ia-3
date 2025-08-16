@@ -54,7 +54,6 @@ export interface FilterState {
   tags: string[]
   featured: string
   status: string
-  qualityScore: string
   toolCount: string
   hasTools: string
   sortBy: string

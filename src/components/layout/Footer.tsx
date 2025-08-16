@@ -253,9 +253,6 @@ export default function Footer({
     { href: `/${currentLanguage === 'en' ? '' : currentLanguage}`, label: t.home },
     { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/tools`, label: t.allTools },
     { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories`, label: t.categories },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/about`, label: t.about },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/contact`, label: t.contact },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/privacy`, label: t.privacy },
   ]
 
   const popularCategories = [
@@ -268,12 +265,6 @@ export default function Footer({
   ]
 
   const resourceLinks = [
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/submit`, label: t.submitTool },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/api-docs`, label: t.apiDocs },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/blog`, label: t.blog },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/changelog`, label: t.changelog },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/support`, label: t.support },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/terms`, label: t.terms },
     // Admin link - only show if user is authenticated or redirect to login
     { 
       href: session ? '/admin' : '/admin/login',
@@ -432,26 +423,6 @@ export default function Footer({
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-base text-gray-400 mb-4 md:mb-0 font-medium">
               © {currentYear} Video-IA.net. {t.copyright}
-            </div>
-            <div className="flex items-center space-x-8 text-base text-gray-400">
-              <Link
-                href={`/${currentLanguage === 'en' ? '' : currentLanguage}/privacy`}
-                className="hover:text-white hover:gradient-text transition-all duration-200 font-medium"
-              >
-                {t.privacyPolicy}
-              </Link>
-              <Link
-                href={`/${currentLanguage === 'en' ? '' : currentLanguage}/terms`}
-                className="hover:text-white hover:gradient-text transition-all duration-200 font-medium"
-              >
-                {t.termsOfUse}
-              </Link>
-              <Link
-                href={`/${currentLanguage === 'en' ? '' : currentLanguage}/cookies`}
-                className="hover:text-white hover:gradient-text transition-all duration-200 font-medium"
-              >
-                {t.cookies}
-              </Link>
             </div>
           </div>
         </div>

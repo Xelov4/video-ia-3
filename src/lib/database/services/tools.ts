@@ -160,7 +160,7 @@ export class ToolsService {
         featured: true
       },
       orderBy: {
-        qualityScore: 'desc'
+        createdAt: 'desc'
       },
       take: limit
     })
@@ -175,8 +175,7 @@ export class ToolsService {
         isActive: true
       },
       orderBy: [
-        { viewCount: 'desc' },
-        { qualityScore: 'desc' }
+        { viewCount: 'desc' }
       ],
       take: limit
     })
@@ -238,7 +237,6 @@ export class ToolsService {
         slug: data.slug,
         isActive: data.isActive ?? true,
         featured: data.featured ?? false,
-        qualityScore: data.qualityScore ?? 0,
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         seoKeywords: data.seoKeywords
@@ -311,7 +309,6 @@ export class ToolsService {
     featuredTools: number
     totalViews: number
     totalClicks: number
-    averageQualityScore: number
   }> {
     const [
       totalTools,
@@ -327,9 +324,6 @@ export class ToolsService {
         _sum: {
           viewCount: true,
           clickCount: true
-        },
-        _avg: {
-          qualityScore: true
         }
       })
     ])
@@ -339,8 +333,7 @@ export class ToolsService {
       activeTools,
       featuredTools,
       totalViews: aggregates._sum.viewCount || 0,
-      totalClicks: aggregates._sum.clickCount || 0,
-      averageQualityScore: aggregates._avg.qualityScore || 0
+      totalClicks: aggregates._sum.clickCount || 0
     }
   }
 
@@ -368,7 +361,6 @@ export class ToolsService {
     metaTitle?: string
     metaDescription?: string
     translationSource?: string
-    qualityScore?: number
     humanReviewed?: boolean
   }): Promise<ToolTranslation> {
     return prisma.toolTranslation.create({
@@ -388,7 +380,6 @@ export class ToolsService {
       metaTitle: string
       metaDescription: string
       translationSource: string
-      qualityScore: number
       humanReviewed: boolean
     }>
   ): Promise<ToolTranslation> {

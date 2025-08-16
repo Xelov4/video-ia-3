@@ -32,18 +32,18 @@ interface PaginationInfo {
   hasPreviousPage: boolean
 }
 
+interface SearchParams {
+  search?: string
+  searchFields?: string
+  categories?: string
+  featured?: string
+  status?: string
+  sortBy?: string
+  sortOrder?: string
+}
+
 interface AdminToolsContentProps {
-  searchParams: {
-    page?: string
-    search?: string
-    searchFields?: string
-    categories?: string
-    featured?: string
-    status?: string
-    qualityScore?: string
-    sortBy?: string
-    sortOrder?: string
-  }
+  searchParams: SearchParams
 }
 
 export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
@@ -63,7 +63,6 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
     categories: searchParams.categories ? searchParams.categories.split(',') : [],
     featured: searchParams.featured || '',
     status: searchParams.status || '',
-    qualityScore: searchParams.qualityScore || '',
     sortBy: searchParams.sortBy || 'created_at',
     sortOrder: (searchParams.sortOrder as 'asc' | 'desc') || 'desc'
   }))
@@ -131,27 +130,6 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
       filtered = filtered.filter(tool => !tool.is_active)
     }
 
-    // Quality score filter
-    if (filters.qualityScore) {
-      switch (filters.qualityScore) {
-        case '9-10':
-          filtered = filtered.filter(tool => tool.quality_score >= 9)
-          break
-        case '8-9':
-          filtered = filtered.filter(tool => tool.quality_score >= 8 && tool.quality_score < 9)
-          break
-        case '6-8':
-          filtered = filtered.filter(tool => tool.quality_score >= 6 && tool.quality_score < 8)
-          break
-        case '4-6':
-          filtered = filtered.filter(tool => tool.quality_score >= 4 && tool.quality_score < 6)
-          break
-        case '0-4':
-          filtered = filtered.filter(tool => tool.quality_score < 4)
-          break
-      }
-    }
-
     // Sorting
     filtered.sort((a, b) => {
       let aVal: any, bVal: any
@@ -164,10 +142,6 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
         case 'view_count':
           aVal = a.view_count
           bVal = b.view_count
-          break
-        case 'quality_score':
-          aVal = a.quality_score
-          bVal = b.quality_score
           break
         case 'updated_at':
           aVal = new Date(a.updated_at).getTime()
@@ -202,7 +176,6 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
       }
       if (newFilters.featured) params.set('featured', newFilters.featured)
       if (newFilters.status) params.set('status', newFilters.status)
-      if (newFilters.qualityScore) params.set('qualityScore', newFilters.qualityScore)
       if (newFilters.sortBy) params.set('sortBy', newFilters.sortBy)
       if (newFilters.sortOrder) params.set('sortOrder', newFilters.sortOrder)
 
@@ -270,7 +243,6 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
     params.delete('categories')
     params.delete('featured')
     params.delete('status')
-    params.delete('qualityScore')
     params.delete('sortBy')
     params.delete('sortOrder')
 
@@ -284,7 +256,6 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
     }
     if (filters.featured) params.set('featured', filters.featured)
     if (filters.status) params.set('status', filters.status)
-    if (filters.qualityScore) params.set('qualityScore', filters.qualityScore)
     if (filters.sortBy !== 'created_at') params.set('sortBy', filters.sortBy)
     if (filters.sortOrder !== 'desc') params.set('sortOrder', filters.sortOrder)
 
@@ -306,7 +277,6 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
       categories: [],
       featured: '',
       status: '',
-      qualityScore: '',
       sortBy: 'created_at',
       sortOrder: 'desc'
     }

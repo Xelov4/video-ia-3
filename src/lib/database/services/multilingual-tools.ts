@@ -31,7 +31,6 @@ export interface ToolWithTranslation extends Tool {
   // Métadonnées de traduction
   resolvedLanguage: SupportedLanguage
   translationSource: 'exact' | 'fallback' | 'original'
-  translationQuality: number
   isTranslated: boolean
 }
 
@@ -58,11 +57,22 @@ export interface ToolsSearchParams {
   query?: string
   category?: string
   featured?: boolean
+  audience?: string
+  useCase?: string
+  feature?: string
+  tags?: string[]
   page?: number
   limit?: number
-  sortBy?: 'name' | 'created_at' | 'view_count' | 'quality_score'
+  sortBy?: 'name' | 'created_at' | 'view_count' | 'quality_score' | 'relevance'
   sortOrder?: 'asc' | 'desc'
   useCache?: boolean
+  filters?: {
+    minQualityScore?: number
+    hasImageUrl?: boolean
+    hasVideoUrl?: boolean
+    updatedSince?: Date
+    excludeIds?: number[]
+  }
 }
 
 // Validation et utilitaires
@@ -101,6 +111,7 @@ class MultilingualToolsService {
   private validateLanguage(language: string): language is SupportedLanguage {
     return this.VALID_LANGUAGES.includes(language as SupportedLanguage)
   }
+
 
   /**
    * Stratégie d'invalidation cache intelligente LRU + TTL
@@ -260,8 +271,7 @@ class MultilingualToolsService {
               }
             },
             orderBy: [
-              { languageCode: language === this.DEFAULT_LANGUAGE ? 'asc' : 'desc' },
-              { qualityScore: 'desc' }
+              { languageCode: language === this.DEFAULT_LANGUAGE ? 'asc' : 'desc' }
             ]
           }
         }
@@ -304,7 +314,6 @@ class MultilingualToolsService {
         // Métadonnées de traduction
         resolvedLanguage,
         translationSource,
-        translationQuality: resolvedTranslation?.qualityScore.toNumber() || 0,
         isTranslated: !!resolvedTranslation
       }
 
@@ -335,11 +344,16 @@ class MultilingualToolsService {
         query,
         category,
         featured,
+        audience,
+        useCase,
+        feature,
+        tags,
         page = 1,
         limit = 20,
         sortBy = 'created_at',
         sortOrder = 'desc',
-        useCache = true
+        useCache = true,
+        filters = {}
       } = params
 
       // Validation des paramètres
@@ -362,23 +376,76 @@ class MultilingualToolsService {
         }
       }
 
-      // Construction des filtres Prisma
+      // Construction des filtres Prisma avec nouvelles capacités
       const where: Prisma.ToolWhereInput = {
         isActive: true,
         ...(category && { toolCategory: category }),
         ...(featured !== undefined && { featured }),
+        
+        // Filtres par données extraites
+        ...(audience && {
+          targetAudience: { contains: audience, mode: Prisma.QueryMode.insensitive }
+        }),
+        ...(useCase && {
+          useCases: { contains: useCase, mode: Prisma.QueryMode.insensitive }
+        }),
+        ...(feature && {
+          keyFeatures: { contains: feature, mode: Prisma.QueryMode.insensitive }
+        }),
+        
+        
+        
+        // Filtres par tags
+        ...(tags && tags.length > 0 && {
+          OR: tags.map(tag => ({
+            tags: { contains: tag, mode: Prisma.QueryMode.insensitive }
+          }))
+        }),
+        
+        // Filtres avancés
+        ...(filters.minQualityScore && { 
+          qualityScore: { gte: filters.minQualityScore } 
+        }),
+        ...(filters.hasImageUrl && { 
+          imageUrl: { 
+            AND: [
+              { not: null },
+              { not: '' }
+            ]
+          }
+        }),
+        ...(filters.hasVideoUrl && { 
+          videoUrl: { 
+            AND: [
+              { not: null },
+              { not: '' }
+            ]
+          }
+        }),
+        ...(filters.updatedSince && { 
+          updatedAt: { gte: filters.updatedSince } 
+        }),
+        ...(filters.excludeIds && filters.excludeIds.length > 0 && {
+          id: { notIn: filters.excludeIds }
+        }),
+        
+        // Recherche textuelle étendue
         ...(query && {
           OR: [
-            { toolName: { contains: query, mode: 'insensitive' } },
-            { overview: { contains: query, mode: 'insensitive' } },
-            { toolDescription: { contains: query, mode: 'insensitive' } },
+            { toolName: { contains: query, mode: Prisma.QueryMode.insensitive } },
+            { overview: { contains: query, mode: Prisma.QueryMode.insensitive } },
+            { toolDescription: { contains: query, mode: Prisma.QueryMode.insensitive } },
+            { targetAudience: { contains: query, mode: Prisma.QueryMode.insensitive } },
+            { useCases: { contains: query, mode: Prisma.QueryMode.insensitive } },
+            { keyFeatures: { contains: query, mode: Prisma.QueryMode.insensitive } },
+            { tags: { contains: query, mode: Prisma.QueryMode.insensitive } },
             {
               translations: {
                 some: {
                   OR: [
-                    { name: { contains: query, mode: 'insensitive' } },
-                    { overview: { contains: query, mode: 'insensitive' } },
-                    { description: { contains: query, mode: 'insensitive' } }
+                    { name: { contains: query, mode: Prisma.QueryMode.insensitive } },
+                    { overview: { contains: query, mode: Prisma.QueryMode.insensitive } },
+                    { description: { contains: query, mode: Prisma.QueryMode.insensitive } }
                   ]
                 }
               }
@@ -418,8 +485,7 @@ class MultilingualToolsService {
                 }
               },
               orderBy: [
-                { languageCode: language === this.DEFAULT_LANGUAGE ? 'asc' : 'desc' },
-                { qualityScore: 'desc' }
+                { languageCode: language === this.DEFAULT_LANGUAGE ? 'asc' : 'desc' }
               ]
             }
           }
@@ -457,7 +523,6 @@ class MultilingualToolsService {
           displayMetaDescription: resolvedTranslation?.metaDescription || tool.metaDescription,
           resolvedLanguage,
           translationSource,
-          translationQuality: resolvedTranslation?.qualityScore.toNumber() || 0,
           isTranslated: !!resolvedTranslation
         }
       })
@@ -772,6 +837,299 @@ class MultilingualToolsService {
       checks,
       metrics: this.getMetrics(),
       diagnostics
+    }
+  }
+
+  /**
+   * NOUVELLES MÉTHODES POUR ARCHITECTURE DATA-DRIVEN
+   */
+
+  /**
+   * Récupérer outils par audience spécifique
+   */
+  async getToolsByAudience(
+    audience: string,
+    language: SupportedLanguage,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedToolsResponse> {
+    return this.searchTools({
+      language,
+      audience,
+      page,
+      limit,
+      sortBy: 'view_count',
+      sortOrder: 'desc'
+    })
+  }
+
+  /**
+   * Récupérer outils par cas d'usage
+   */
+  async getToolsByUseCase(
+    useCase: string,
+    language: SupportedLanguage,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedToolsResponse> {
+    return this.searchTools({
+      language,
+      useCase,
+      page,
+      limit,
+      sortBy: 'quality_score',
+      sortOrder: 'desc'
+    })
+  }
+
+  /**
+   * Récupérer outils par fonctionnalité
+   */
+  async getToolsByFeature(
+    feature: string,
+    language: SupportedLanguage,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedToolsResponse> {
+    return this.searchTools({
+      language,
+      feature,
+      page,
+      limit,
+      sortBy: 'view_count',
+      sortOrder: 'desc'
+    })
+  }
+
+  /**
+   * Recherche avec filtres combinés pour discovery page
+   */
+  async getDiscoveryTools(
+    language: SupportedLanguage,
+    filters: {
+      categories?: string[]
+      audiences?: string[]
+      useCases?: string[]
+          minQualityScore?: number
+    } = {},
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedToolsResponse> {
+    // Construire filtres combinés
+    const searchParams: ToolsSearchParams = {
+      language,
+      page,
+      limit,
+      sortBy: 'quality_score',
+      sortOrder: 'desc',
+      filters: {
+        minQualityScore: filters.minQualityScore || 5.0
+      }
+    }
+
+    // Si plusieurs catégories, audiences, etc., on utilise une approche OR
+    if (filters.categories?.length || filters.audiences?.length || filters.useCases?.length) {
+      // Pour des filtres multiples, on va faire une requête plus complexe
+      const where: Prisma.ToolWhereInput = {
+        isActive: true,
+        ...(filters.minQualityScore && { 
+          qualityScore: { gte: filters.minQualityScore } 
+        }),
+        AND: [
+          // Catégories (OR)
+          ...(filters.categories?.length ? [{
+            OR: filters.categories.map(cat => ({
+              toolCategory: cat
+            }))
+          }] : []),
+          
+          // Audiences (OR)
+          ...(filters.audiences?.length ? [{
+            OR: filters.audiences.map(aud => ({
+              targetAudience: { contains: aud, mode: Prisma.QueryMode.insensitive }
+            }))
+          }] : []),
+          
+          // Use Cases (OR)
+          ...(filters.useCases?.length ? [{
+            OR: filters.useCases.map(uc => ({
+              useCases: { contains: uc, mode: Prisma.QueryMode.insensitive }
+            }))
+          }] : []),
+          
+          
+        ]
+      }
+
+      // Requête personnalisée avec filtres combinés
+      const [tools, totalCount] = await Promise.all([
+        prisma.tool.findMany({
+          where,
+          orderBy: { qualityScore: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+          include: {
+            translations: {
+              where: {
+                languageCode: {
+                  in: [language, this.DEFAULT_LANGUAGE]
+                }
+              },
+              orderBy: [
+                { languageCode: language === this.DEFAULT_LANGUAGE ? 'asc' : 'desc' }
+              ]
+            }
+          }
+        }),
+        prisma.tool.count({ where })
+      ])
+
+      // Traiter les résultats avec traductions
+      const processedTools: ToolWithTranslation[] = tools.map(tool => {
+        const requestedTranslation = tool.translations.find((t: any) => t.languageCode === language)
+        const fallbackTranslation = tool.translations.find((t: any) => t.languageCode === this.DEFAULT_LANGUAGE)
+        
+        let resolvedTranslation = requestedTranslation
+        let translationSource: 'exact' | 'fallback' | 'original' = 'exact'
+        let resolvedLanguage = language
+
+        if (!requestedTranslation) {
+          if (fallbackTranslation) {
+            resolvedTranslation = fallbackTranslation
+            translationSource = 'fallback'
+            resolvedLanguage = this.DEFAULT_LANGUAGE
+          } else {
+            translationSource = 'original'
+          }
+        }
+
+        return {
+          ...tool,
+          displayName: resolvedTranslation?.name || tool.toolName,
+          displayOverview: resolvedTranslation?.overview || tool.overview,
+          displayDescription: resolvedTranslation?.description || tool.toolDescription,
+          displayMetaTitle: resolvedTranslation?.metaTitle || tool.metaTitle,
+          displayMetaDescription: resolvedTranslation?.metaDescription || tool.metaDescription,
+          resolvedLanguage,
+          translationSource,
+          isTranslated: !!resolvedTranslation
+        }
+      })
+
+      const totalPages = Math.ceil(totalCount / limit)
+
+      return {
+        tools: processedTools,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        },
+        meta: {
+          language,
+          fallbackCount: processedTools.filter(t => t.translationSource === 'fallback').length,
+          cacheHit: false,
+          responseTime: Date.now()
+        }
+      }
+    }
+
+    // Fallback vers searchTools standard
+    return this.searchTools(searchParams)
+  }
+
+  /**
+   * Obtenir suggestions intelligentes basées sur l'activité
+   */
+  async getRecommendedTools(
+    language: SupportedLanguage,
+    basedOn: {
+      viewedTools?: number[]
+      searchQuery?: string
+      userAudience?: string
+      preferredCategories?: string[]
+    },
+    limit: number = 10
+  ): Promise<ToolWithTranslation[]> {
+    const { viewedTools = [], userAudience, preferredCategories = [] } = basedOn
+
+    const recommendations: ToolWithTranslation[] = []
+
+    try {
+      // 1. Outils similaires basés sur les vues
+      if (viewedTools.length > 0) {
+        const similarTools = await this.searchTools({
+          language,
+          limit: Math.ceil(limit / 2),
+          filters: {
+            excludeIds: viewedTools
+          },
+          sortBy: 'view_count',
+          sortOrder: 'desc'
+        })
+        recommendations.push(...similarTools.tools)
+      }
+
+      // 2. Outils populaires dans les catégories préférées
+      if (preferredCategories.length > 0) {
+        for (const category of preferredCategories.slice(0, 2)) {
+          const categoryTools = await this.getToolsByCategory(
+            category,
+            language,
+            1,
+            Math.ceil(limit / 4)
+          )
+          recommendations.push(
+            ...categoryTools.tools.filter(tool => 
+              !viewedTools.includes(tool.id) &&
+              !recommendations.some(r => r.id === tool.id)
+            )
+          )
+        }
+      }
+
+      // 3. Outils par audience si spécifiée
+      if (userAudience) {
+        const audienceTools = await this.getToolsByAudience(
+          userAudience,
+          language,
+          1,
+          Math.ceil(limit / 3)
+        )
+        recommendations.push(
+          ...audienceTools.tools.filter(tool => 
+            !viewedTools.includes(tool.id) &&
+            !recommendations.some(r => r.id === tool.id)
+          )
+        )
+      }
+
+      // 4. Compléter avec outils trending si nécessaire
+      if (recommendations.length < limit) {
+        const trending = await this.getFeaturedTools(
+          language,
+          limit - recommendations.length
+        )
+        recommendations.push(
+          ...trending.filter(tool => 
+            !viewedTools.includes(tool.id) &&
+            !recommendations.some(r => r.id === tool.id)
+          )
+        )
+      }
+
+      // Limiter et randomiser légèrement l'ordre
+      return recommendations
+        .slice(0, limit)
+        .sort(() => Math.random() - 0.5)
+
+    } catch (error) {
+      console.error('Error getting recommendations:', error)
+      // Fallback vers outils featured
+      return this.getFeaturedTools(language, limit)
     }
   }
 }

@@ -9,86 +9,83 @@ datasource db {
 }
 
 /// *
-///  * Tool Model
-///  * 
-///  * Represents an AI tool in the directory with comprehensive metadata,
-///  * SEO optimization fields, and analytics tracking.
-///  * 
-///  * Features:
-///  * - Rich metadata for tool discovery
-///  * - SEO fields for search engine optimization
-///  * - Analytics tracking for user engagement
-///  * - Content management fields (active, featured, quality)
-///  * - Relationship with categories through tool_category field
+/// * Tool Model
+/// * 
+/// * Represents an AI tool in the directory with comprehensive metadata,
+/// * SEO optimization fields, and analytics tracking.
+/// * 
+/// * Features:
+/// * - Rich metadata for tool discovery
+/// * - SEO fields for search engine optimization
+/// * - Analytics tracking for user engagement
+/// * - Content management fields (active, featured, quality)
+/// * - Relationship with categories through tool_category field
 model Tool {
-  id              Int       @id @default(autoincrement())
-  toolName        String    @map("tool_name") @db.VarChar(255)
-  toolCategory    String?   @map("tool_category") @db.VarChar(100)
-  toolLink        String?   @map("tool_link")
-  overview        String?
-  toolDescription String?   @map("tool_description")
-  targetAudience  String?   @map("target_audience")
-  keyFeatures     String?   @map("key_features")
-  useCases        String?   @map("use_cases")
-  tags            String?
-  imageUrl        String?   @map("image_url")
-  slug            String?   @unique @db.VarChar(255)
-  isActive        Boolean?  @default(true) @map("is_active")
-  featured        Boolean?  @default(false)
-  qualityScore    Int?      @default(0) @map("quality_score")
-  metaTitle       String?   @map("meta_title") @db.VarChar(255)
-  metaDescription String?   @map("meta_description")
-  seoKeywords     String?   @map("seo_keywords")
-  viewCount       Int?      @default(0) @map("view_count")
-  clickCount      Int?      @default(0) @map("click_count")
-  favoriteCount   Int?      @default(0) @map("favorite_count")
-  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt       DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
-  lastCheckedAt   DateTime? @default(now()) @map("last_checked_at") @db.Timestamp(6)
-
-  // Relations
-  translations ToolTranslation[]
+  id                Int               @id @default(autoincrement())
+  toolName          String            @map("tool_name") @db.VarChar(255)
+  toolCategory      String?           @map("tool_category") @db.VarChar(100)
+  toolLink          String?           @map("tool_link")
+  overview          String?
+  toolDescription   String?           @map("tool_description")
+  targetAudience    String?           @map("target_audience")
+  keyFeatures       String?           @map("key_features")
+  useCases          String?           @map("use_cases")
+  tags              String?
+  imageUrl          String?           @map("image_url")
+  slug              String?           @unique @db.VarChar(255)
+  isActive          Boolean?          @default(true) @map("is_active")
+  featured          Boolean?          @default(false)
+  quality_score     Int?              @default(0)
+  metaTitle         String?           @map("meta_title") @db.VarChar(255)
+  metaDescription   String?           @map("meta_description")
+  seoKeywords       String?           @map("seo_keywords")
+  viewCount         Int?              @default(0) @map("view_count")
+  clickCount        Int?              @default(0) @map("click_count")
+  favoriteCount     Int?              @default(0) @map("favorite_count")
+  createdAt         DateTime?         @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime?         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  lastCheckedAt     DateTime?         @default(now()) @map("last_checked_at") @db.Timestamp(6)
+  last_optimized_at DateTime?         @db.Timestamp(6)
+  translations      ToolTranslation[]
 
   @@map("tools")
 }
 
 /// *
-///  * Category Model
-///  * 
-///  * Represents tool categories for organizational hierarchy.
-///  * Categories help users discover tools by domain/use case.
-///  * 
-///  * Features:
-///  * - Hierarchical organization (ready for parent-child relationships)
-///  * - Tool count tracking for performance
-///  * - Featured categories for homepage display
-///  * - SEO-friendly slugs
+/// * Category Model
+/// * 
+/// * Represents tool categories for organizational hierarchy.
+/// * Categories help users discover tools by domain/use case.
+/// * 
+/// * Features:
+/// * - Hierarchical organization (ready for parent-child relationships)
+/// * - Tool count tracking for performance
+/// * - Featured categories for homepage display
+/// * - SEO-friendly slugs
 model Category {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(100)
-  slug        String?   @unique @db.VarChar(100)
-  description String?
-  iconName    String?   @map("icon_name") @db.VarChar(50)
-  toolCount   Int?      @default(0) @map("tool_count")
-  isFeatured  Boolean?  @default(false) @map("is_featured")
-  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-
-  // Relations
+  id           Int                   @id @default(autoincrement())
+  name         String                @db.VarChar(100)
+  slug         String?               @unique @db.VarChar(100)
+  description  String?
+  iconName     String?               @map("icon_name") @db.VarChar(50)
+  toolCount    Int?                  @default(0) @map("tool_count")
+  isFeatured   Boolean?              @default(false) @map("is_featured")
+  createdAt    DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
   translations CategoryTranslation[]
 
   @@map("categories")
 }
 
 /// *
-///  * Tag Model
-///  * 
-///  * Represents flexible tagging system for enhanced tool discoverability.
-///  * Tags provide cross-category relationships and user-friendly filtering.
-///  * 
-///  * Features:
-///  * - Usage tracking for popular tags
-///  * - SEO-friendly slugs
-///  * - Performance optimized for tag clouds and filtering
+/// * Tag Model
+/// * 
+/// * Represents flexible tagging system for enhanced tool discoverability.
+/// * Tags provide cross-category relationships and user-friendly filtering.
+/// * 
+/// * Features:
+/// * - Usage tracking for popular tags
+/// * - SEO-friendly slugs
+/// * - Performance optimized for tag clouds and filtering
 model Tag {
   id         Int       @id @default(autoincrement())
   name       String    @db.VarChar(50)
@@ -100,80 +97,126 @@ model Tag {
 }
 
 /// *
-///  * Language Model
-///  * 
-///  * Represents supported languages in the multilingual system.
-///  * Controls language activation, fallbacks, and display order.
+/// * Language Model
+/// * 
+/// * Represents supported languages in the multilingual system.
+/// * Controls language activation, fallbacks, and display order.
 model Language {
-  code             String  @id @db.VarChar(2)
-  name             String  @db.VarChar(50)
-  nativeName       String  @map("native_name") @db.VarChar(50)
-  flagEmoji        String? @map("flag_emoji") @db.VarChar(10)
-  enabled          Boolean @default(true)
-  fallbackLanguage String? @map("fallback_language") @db.VarChar(2)
-  sortOrder        Int     @default(0) @map("sort_order")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
-
-  // Relations
-  toolTranslations     ToolTranslation[]
+  code                 String                @id @db.VarChar(2)
+  name                 String                @db.VarChar(50)
+  nativeName           String                @map("native_name") @db.VarChar(50)
+  flagEmoji            String?               @map("flag_emoji") @db.VarChar(10)
+  enabled              Boolean?              @default(true)
+  fallbackLanguage     String?               @map("fallback_language") @db.VarChar(2)
+  sortOrder            Int?                  @default(0) @map("sort_order")
+  createdAt            DateTime?             @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt            DateTime?             @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
   categoryTranslations CategoryTranslation[]
-  
-  // Self-referential relation for fallback
-  fallbackLang Language? @relation("LanguageFallback", fields: [fallbackLanguage], references: [code])
-  fallbackFor  Language[] @relation("LanguageFallback")
+  fallbackLang         Language?             @relation("LanguageFallback", fields: [fallbackLanguage], references: [code], onDelete: NoAction, onUpdate: NoAction, map: "fk_languages_fallback")
+  fallbackFor          Language[]            @relation("LanguageFallback")
+  toolTranslations     ToolTranslation[]
 
   @@map("languages")
 }
 
 /// *
-///  * Tool Translation Model
-///  * 
-///  * Stores translated content for tools in different languages.
-///  * Supports fallback hierarchy and quality tracking.
+/// * Tool Translation Model
+/// * 
+/// * Stores translated content for tools in different languages.
+/// * Supports fallback hierarchy and quality tracking.
 model ToolTranslation {
-  id                Int      @id @default(autoincrement())
-  toolId            Int      @map("tool_id")
-  languageCode      String   @map("language_code") @db.VarChar(2)
-  name              String   @db.VarChar(255)
+  id                Int       @id @default(autoincrement())
+  toolId            Int       @map("tool_id")
+  languageCode      String    @map("language_code") @db.VarChar(2)
+  name              String    @db.VarChar(255)
   overview          String?
   description       String?
-  metaTitle         String?  @map("meta_title") @db.VarChar(255)
-  metaDescription   String?  @map("meta_description")
-  translationSource String   @default("auto") @map("translation_source") @db.VarChar(20)
-  qualityScore      Decimal  @default(0.00) @map("quality_score") @db.Decimal(3, 2)
-  humanReviewed     Boolean  @default(false) @map("human_reviewed")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
-
-  // Relations
-  tool     Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
-  language Language @relation(fields: [languageCode], references: [code], onUpdate: Cascade)
+  metaTitle         String?   @map("meta_title") @db.VarChar(255)
+  metaDescription   String?   @map("meta_description")
+  translationSource String?   @default("auto") @map("translation_source") @db.VarChar(20)
+  quality_score     Decimal?  @default(0.00) @db.Decimal(3, 2)
+  humanReviewed     Boolean?  @default(false) @map("human_reviewed")
+  createdAt         DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  language          Language  @relation(fields: [languageCode], references: [code], onDelete: NoAction)
+  tool              Tool      @relation(fields: [toolId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([toolId, languageCode])
+  @@index([languageCode, toolId, name, overview, description], map: "idx_tool_translations_lookup")
+  @@index([toolId], map: "idx_tool_translations_tool_id")
   @@map("tool_translations")
 }
 
 /// *
-///  * Category Translation Model
-///  * 
-///  * Stores translated content for categories in different languages.
+/// * Category Translation Model
+/// * 
+/// * Stores translated content for categories in different languages.
 model CategoryTranslation {
-  id                Int      @id @default(autoincrement())
-  categoryId        Int      @map("category_id")
-  languageCode      String   @map("language_code") @db.VarChar(2)
-  name              String   @db.VarChar(100)
+  id                Int       @id @default(autoincrement())
+  categoryId        Int       @map("category_id")
+  languageCode      String    @map("language_code") @db.VarChar(2)
+  name              String    @db.VarChar(100)
   description       String?
-  translationSource String   @default("auto") @map("translation_source") @db.VarChar(20)
-  qualityScore      Decimal  @default(0.00) @map("quality_score") @db.Decimal(3, 2)
-  humanReviewed     Boolean  @default(false) @map("human_reviewed")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
-
-  // Relations
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  language Language @relation(fields: [languageCode], references: [code], onUpdate: Cascade)
+  translationSource String?   @default("auto") @map("translation_source") @db.VarChar(20)
+  quality_score     Decimal?  @default(0.00) @db.Decimal(3, 2)
+  humanReviewed     Boolean?  @default(false) @map("human_reviewed")
+  createdAt         DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  category          Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  language          Language  @relation(fields: [languageCode], references: [code], onDelete: NoAction)
 
   @@unique([categoryId, languageCode])
+  @@index([languageCode, categoryId, name, description], map: "idx_category_translations_lookup")
   @@map("category_translations")
+}
+
+model admin_activity_log {
+  id            Int          @id @default(autoincrement())
+  user_id       Int?
+  action        String       @db.VarChar(100)
+  resource_type String?      @db.VarChar(50)
+  resource_id   Int?
+  details       Json?
+  ip_address    String?      @db.Inet
+  user_agent    String?
+  created_at    DateTime?    @default(now()) @db.Timestamptz(6)
+  admin_users   admin_users? @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+
+  @@index([action], map: "idx_admin_activity_action")
+  @@index([created_at], map: "idx_admin_activity_created")
+  @@index([resource_type, resource_id], map: "idx_admin_activity_resource")
+  @@index([user_id], map: "idx_admin_activity_user")
+}
+
+model admin_sessions {
+  id            Int          @id @default(autoincrement())
+  user_id       Int?
+  session_token String       @unique @db.VarChar(255)
+  expires_at    DateTime     @db.Timestamptz(6)
+  created_at    DateTime?    @default(now()) @db.Timestamptz(6)
+  admin_users   admin_users? @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "idx_admin_sessions_expires")
+  @@index([session_token], map: "idx_admin_sessions_token")
+  @@index([user_id], map: "idx_admin_sessions_user")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model admin_users {
+  id                 Int                  @id @default(autoincrement())
+  email              String               @unique @db.VarChar(255)
+  password_hash      String               @db.VarChar(255)
+  name               String               @db.VarChar(255)
+  role               String?              @default("editor") @db.VarChar(50)
+  avatar_url         String?
+  is_active          Boolean?             @default(true)
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  last_login_at      DateTime?            @db.Timestamptz(6)
+  admin_activity_log admin_activity_log[]
+  admin_sessions     admin_sessions[]
+
+  @@index([is_active], map: "idx_admin_users_active")
+  @@index([email], map: "idx_admin_users_email")
+  @@index([role], map: "idx_admin_users_role")
 }

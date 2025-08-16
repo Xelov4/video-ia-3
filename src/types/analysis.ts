@@ -27,7 +27,6 @@ export interface ToolAnalysis {
   translations?: FrenchTranslation;
   logoUrl?: string;
   // Enhanced analysis fields
-  qualityScore?: number;
   completenessScore?: number;
   competitiveAdvantages?: string[];
   useCases?: string[];

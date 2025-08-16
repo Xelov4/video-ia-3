@@ -1,23 +1,32 @@
 /**
- * Layout Multilingue Racine - Video-IA.net
+ * Layout Multilingue Principal - Video-IA.net
  * 
- * Gère le layout principal avec support i18n complet, métadonnées SEO,
- * et optimisations performance pour toutes les langues supportées.
+ * Layout révolutionnaire avec design system moderne, navigation intelligente,
+ * et optimisations performance pour 16,765 outils IA en 7 langues.
+ * 
+ * Features:
+ * - Design system intégré
+ * - Navigation moderne avec mega-menu
+ * - SEO multilingue optimisé
+ * - Performance Core Web Vitals
  */
 
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Inter } from 'next/font/google'
-import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
+import { SupportedLocale, supportedLocales } from '@/middleware'
 
-import Header from '@/src/components/layout/Header'
-import Footer from '@/src/components/layout/Footer'
+import ModernHeader from '@/src/components/layout/ModernHeader'
+import ModernFooter from '@/src/components/layout/ModernFooter'
 import { I18nProvider } from '@/src/lib/i18n/context'
 import '../globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter'
+})
 
-// Interface pour paramètres de page
 interface LayoutProps {
   children: React.ReactNode
   params: Promise<{
@@ -26,7 +35,7 @@ interface LayoutProps {
 }
 
 /**
- * Validation des paramètres langue + edge cases
+ * Validation stricte des paramètres langue
  */
 function validateLanguageParam(lang: string): SupportedLocale {
   if (!supportedLocales.includes(lang as SupportedLocale)) {
@@ -36,7 +45,7 @@ function validateLanguageParam(lang: string): SupportedLocale {
 }
 
 /**
- * Métadonnées i18n par langue
+ * Métadonnées SEO multilingues optimisées
  */
 const METADATA_BY_LANGUAGE: Record<SupportedLocale, {
   title: string
@@ -44,44 +53,44 @@ const METADATA_BY_LANGUAGE: Record<SupportedLocale, {
   keywords: string
 }> = {
   'en': {
-    title: 'Video-IA.net - Best AI Tools Directory 2025',
-    description: 'Discover the best AI tools for video creation, editing, and automation. Comprehensive directory with 16,000+ AI tools, reviews, and comparisons.',
-    keywords: 'AI tools, artificial intelligence, video AI, machine learning, automation, directory'
+    title: 'Video-IA.net - Best AI Tools Directory 2025 | 16,765+ AI Tools',
+    description: 'Discover the world\'s largest AI tools directory with 16,765+ verified tools for video creation, content generation, automation and more. Reviews, comparisons and expert insights.',
+    keywords: 'AI tools directory, artificial intelligence, video AI tools, content creation, automation, machine learning'
   },
   'fr': {
-    title: 'Video-IA.net - Meilleurs Outils IA 2025',
-    description: 'Découvrez les meilleurs outils IA pour création vidéo, édition et automatisation. Répertoire complet avec 16 000+ outils IA, avis et comparaisons.',
-    keywords: 'outils IA, intelligence artificielle, vidéo IA, apprentissage automatique, automatisation, répertoire'
+    title: 'Video-IA.net - Meilleur Répertoire d\'Outils IA 2025 | 16 765+ Outils IA',
+    description: 'Découvrez le plus grand répertoire d\'outils IA au monde avec 16 765+ outils vérifiés pour création vidéo, génération de contenu, automatisation et plus.',
+    keywords: 'répertoire outils IA, intelligence artificielle, outils IA vidéo, création contenu, automatisation'
   },
   'it': {
-    title: 'Video-IA.net - Migliori Strumenti AI 2025',
-    description: 'Scopri i migliori strumenti AI per creazione video, editing e automazione. Directory completa con 16.000+ strumenti AI, recensioni e confronti.',
-    keywords: 'strumenti AI, intelligenza artificiale, video AI, machine learning, automazione, directory'
+    title: 'Video-IA.net - Migliore Directory Strumenti AI 2025 | 16.765+ Strumenti AI',
+    description: 'Scopri la più grande directory di strumenti AI al mondo con 16.765+ strumenti verificati per creazione video, generazione contenuti, automazione e altro.',
+    keywords: 'directory strumenti AI, intelligenza artificiale, strumenti AI video, creazione contenuti'
   },
   'es': {
-    title: 'Video-IA.net - Mejores Herramientas IA 2025',
-    description: 'Descubre las mejores herramientas IA para creación de video, edición y automatización. Directorio completo con 16.000+ herramientas IA, reseñas y comparaciones.',
-    keywords: 'herramientas IA, inteligencia artificial, video IA, machine learning, automatización, directorio'
+    title: 'Video-IA.net - Mejor Directorio Herramientas IA 2025 | 16.765+ Herramientas IA',
+    description: 'Descubre el directorio de herramientas IA más grande del mundo con 16.765+ herramientas verificadas para creación de video, generación de contenido y automatización.',
+    keywords: 'directorio herramientas IA, inteligencia artificial, herramientas IA video, creación contenido'
   },
   'de': {
-    title: 'Video-IA.net - Beste KI-Tools 2025',
-    description: 'Entdecken Sie die besten KI-Tools für Videoerstellung, Bearbeitung und Automatisierung. Umfassendes Verzeichnis mit 16.000+ KI-Tools, Bewertungen und Vergleichen.',
-    keywords: 'KI-Tools, künstliche Intelligenz, Video-KI, maschinelles Lernen, Automatisierung, Verzeichnis'
+    title: 'Video-IA.net - Bestes KI-Tools Verzeichnis 2025 | 16.765+ KI-Tools',
+    description: 'Entdecken Sie das weltgrößte KI-Tools-Verzeichnis mit 16.765+ verifizierten Tools für Videoerstellung, Content-Generierung und Automatisierung.',
+    keywords: 'KI-Tools Verzeichnis, künstliche Intelligenz, Video-KI-Tools, Content-Erstellung'
   },
   'nl': {
-    title: 'Video-IA.net - Beste AI Tools 2025',
-    description: 'Ontdek de beste AI-tools voor video creatie, bewerking en automatisering. Complete directory met 16.000+ AI-tools, reviews en vergelijkingen.',
-    keywords: 'AI-tools, kunstmatige intelligentie, video AI, machine learning, automatisering, directory'
+    title: 'Video-IA.net - Beste AI Tools Directory 2025 | 16.765+ AI Tools',
+    description: 'Ontdek \'s werelds grootste AI-tools directory met 16.765+ geverifieerde tools voor video creatie, content generatie en automatisering.',
+    keywords: 'AI-tools directory, kunstmatige intelligentie, video AI-tools, content creatie'
   },
   'pt': {
-    title: 'Video-IA.net - Melhores Ferramentas IA 2025',
-    description: 'Descubra as melhores ferramentas IA para criação de vídeo, edição e automação. Diretório completo com 16.000+ ferramentas IA, avaliações e comparações.',
-    keywords: 'ferramentas IA, inteligência artificial, vídeo IA, machine learning, automação, diretório'
+    title: 'Video-IA.net - Melhor Diretório Ferramentas IA 2025 | 16.765+ Ferramentas IA',
+    description: 'Descubra o maior diretório de ferramentas IA do mundo com 16.765+ ferramentas verificadas para criação de vídeo, geração de conteúdo e automação.',
+    keywords: 'diretório ferramentas IA, inteligência artificial, ferramentas IA vídeo, criação conteúdo'
   }
 }
 
 /**
- * Génération métadonnées SEO par langue
+ * Génération des métadonnées par langue
  */
 export async function generateMetadata({ 
   params 
@@ -91,21 +100,9 @@ export async function generateMetadata({
   const { lang } = await params
   const validatedLang = validateLanguageParam(lang)
   const metadata = METADATA_BY_LANGUAGE[validatedLang]
-  const isDefault = validatedLang === defaultLocale
   
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'
-  const currentUrl = isDefault ? baseUrl : `${baseUrl}/${validatedLang}`
-  
-  // Génération des alternate languages pour SEO
-  const alternates = {
-    canonical: currentUrl,
-    languages: Object.fromEntries(
-      supportedLocales.map(locale => [
-        locale,
-        locale === defaultLocale ? baseUrl : `${baseUrl}/${locale}`
-      ])
-    )
-  }
+  const currentUrl = validatedLang === 'en' ? baseUrl : `${baseUrl}/${validatedLang}`
   
   return {
     title: {
@@ -115,17 +112,17 @@ export async function generateMetadata({
     description: metadata.description,
     keywords: metadata.keywords,
     
-    // Open Graph
+    // OpenGraph optimisé
     openGraph: {
       title: metadata.title,
       description: metadata.description,
       url: currentUrl,
       siteName: 'Video-IA.net',
-      locale: validatedLang === 'en' ? 'en_US' : validatedLang === 'fr' ? 'fr_FR' : `${validatedLang}_${validatedLang.toUpperCase()}`,
+      locale: `${validatedLang}_${validatedLang.toUpperCase()}`,
       type: 'website',
       images: [
         {
-          url: `${baseUrl}/images/og-image-${validatedLang}.jpg`,
+          url: `${baseUrl}/og-image-${validatedLang}.jpg`,
           width: 1200,
           height: 630,
           alt: metadata.title
@@ -133,18 +130,26 @@ export async function generateMetadata({
       ]
     },
     
-    // Twitter
+    // Twitter Cards
     twitter: {
       card: 'summary_large_image',
       title: metadata.title,
       description: metadata.description,
-      images: [`${baseUrl}/images/twitter-image-${validatedLang}.jpg`]
+      images: [`${baseUrl}/og-image-${validatedLang}.jpg`]
     },
     
-    // Alternates pour SEO multilingue
-    alternates,
+    // Canonical & hreflang
+    alternates: {
+      canonical: currentUrl,
+      languages: Object.fromEntries(
+        supportedLocales.map(locale => [
+          locale,
+          locale === 'en' ? baseUrl : `${baseUrl}/${locale}`
+        ])
+      )
+    },
     
-    // Autres optimisations
+    // Robots & indexing
     robots: {
       index: true,
       follow: true,
@@ -157,10 +162,22 @@ export async function generateMetadata({
       }
     },
     
-    // Vérification propriété site
+    // Verification & analytics
     verification: {
       google: process.env.GOOGLE_SITE_VERIFICATION,
       yandex: process.env.YANDEX_VERIFICATION
+    },
+    
+    // App metadata
+    applicationName: 'Video-IA.net',
+    category: 'Technology',
+    classification: 'AI Tools Directory',
+    
+    // Structured data sera ajouté via JsonLd dans les pages
+    other: {
+      'apple-mobile-web-app-capable': 'yes',
+      'apple-mobile-web-app-status-bar-style': 'default',
+      'format-detection': 'telephone=no'
     }
   }
 }
@@ -175,102 +192,82 @@ export function generateStaticParams() {
 }
 
 /**
- * Layout Component avec Context i18n
+ * Layout principal avec architecture moderne
  */
-export default async function LanguageLayout({ children, params }: LayoutProps) {
+export default async function RootLayout({ children, params }: LayoutProps) {
   const { lang } = await params
   const validatedLang = validateLanguageParam(lang)
   
   return (
-    <html lang={validatedLang} suppressHydrationWarning>
+    <html 
+      lang={validatedLang}
+      className={`${inter.variable} scroll-smooth`}
+      suppressHydrationWarning
+    >
       <head>
-        {/* Préchargement DNS pour performance */}
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* Critical CSS sera inliné ici */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Hreflang tags pour SEO (généré côté server) */}
-        {supportedLocales.map((locale) => (
-          <link
-            key={locale}
-            rel="alternate"
-            hrefLang={locale}
-            href={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${locale === defaultLocale ? '' : `/${locale}`}`}
-          />
-        ))}
-        <link
-          rel="alternate"
-          hrefLang="x-default"
-          href={process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}
-        />
+        {/* Preload critical resources */}
+        <link rel="preload" href="/api/data-extraction?type=audiences&limit=10" as="fetch" crossOrigin="anonymous" />
         
-        {/* Schema.org structuré pour SEO */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              "name": "Video-IA.net",
-              "description": METADATA_BY_LANGUAGE[validatedLang].description,
-              "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${validatedLang === defaultLocale ? '' : `/${validatedLang}`}`,
-              "inLanguage": validatedLang,
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": {
-                  "@type": "EntryPoint",
-                  "urlTemplate": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net'}${validatedLang === defaultLocale ? '' : `/${validatedLang}`}/tools?search={search_term_string}`
-                },
-                "query-input": "required name=search_term_string"
-              }
-            })
-          }}
-        />
+        {/* Theme color pour mobile */}
+        <meta name="theme-color" content="#0066FF" />
+        <meta name="msapplication-TileColor" content="#0066FF" />
+        
+        {/* Favicons */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
-        {/* Context Provider Global */}
+      
+      <body 
+        className={`${inter.className} antialiased bg-gray-50 text-gray-900`}
+        suppressHydrationWarning
+      >
         <I18nProvider currentLanguage={validatedLang}>
-          {/* Header avec contexte langue */}
-          <Header currentLanguage={validatedLang} />
+          {/* Skip to main content pour a11y */}
+          <a 
+            href="#main-content" 
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50"
+          >
+            Skip to main content
+          </a>
           
-          {/* Contenu principal */}
-          <main className="min-h-screen">
-            {children}
-          </main>
+          {/* Layout structure moderne */}
+          <div className="min-h-screen flex flex-col">
+            {/* Header moderne avec navigation intelligente */}
+            <ModernHeader lang={validatedLang} />
+            
+            {/* Main content area */}
+            <main 
+              id="main-content"
+              className="flex-1 relative"
+              role="main"
+            >
+              {children}
+            </main>
+            
+            {/* Footer moderne avec liens utiles */}
+            <ModernFooter lang={validatedLang} />
+          </div>
           
-          {/* Footer avec contexte langue */}
-          <Footer currentLanguage={validatedLang} />
+          {/* Service Worker registration */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if ('serviceWorker' in navigator) {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js');
+                  });
+                }
+              `
+            }}
+          />
         </I18nProvider>
-        
-        {/* Analytics et scripts de tracking */}
-        {process.env.NODE_ENV === 'production' && (
-          <>
-            {process.env.NEXT_PUBLIC_GA_ID && (
-              <>
-                <script
-                  async
-                  src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-                />
-                <script
-                  dangerouslySetInnerHTML={{
-                    __html: `
-                      window.dataLayer = window.dataLayer || [];
-                      function gtag(){dataLayer.push(arguments);}
-                      gtag('js', new Date());
-                      gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
-                        page_title: document.title,
-                        page_location: window.location.href,
-                        custom_map: { custom_parameter: 'language' }
-                      });
-                      gtag('event', 'page_view', { language: '${validatedLang}' });
-                    `
-                  }}
-                />
-              </>
-            )}
-          </>
-        )}
       </body>
     </html>
   )
 }
-

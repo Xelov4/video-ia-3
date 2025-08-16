@@ -55,12 +55,11 @@ export class ScraperService {
 
       // Step 6: Quality assessment and scoring
       console.log('📊 Step 6: Quality assessment...');
-      analysis.qualityScore = calculateQualityScore(analysis, scrapingData);
       analysis.completenessScore = calculateCompletenessScore(analysis);
-      console.log(`✅ Quality assessment completed: ${analysis.qualityScore}/10 quality, ${analysis.completenessScore}% complete`);
+      console.log(`✅ Quality assessment completed: ${analysis.completenessScore}% complete`);
 
       console.log('🎉 Professional analysis complete!');
-      console.log(`📊 Final results: ${analysis.toolName} - ${analysis.category} - ${analysis.confidence}% confidence - ${analysis.qualityScore}/10 quality`);
+      console.log(`📊 Final results: ${analysis.toolName} - ${analysis.category} - ${analysis.confidence}% confidence`);
       
       return analysis;
 
@@ -144,89 +143,13 @@ export class ScraperService {
 }
 
 /**
- * Calculate quality score based on analysis completeness and accuracy
- */
-function calculateQualityScore(analysis: ToolAnalysis, scrapingData: any): number {
-  let score = 0;
-  let maxScore = 0;
-
-  // Tool identification (2 points)
-  maxScore += 2;
-  if (analysis.toolName && analysis.toolName !== 'Unknown Tool' && analysis.toolName !== 'AI Tool') {
-    score += 2;
-  } else if (analysis.toolName) {
-    score += 1;
-  }
-
-  // Feature analysis (2 points)
-  maxScore += 2;
-  if (analysis.keyFeatures && analysis.keyFeatures.length >= 5) {
-    score += 2;
-  } else if (analysis.keyFeatures && analysis.keyFeatures.length >= 3) {
-    score += 1;
-  }
-
-  // Content quality (2 points)
-  maxScore += 2;
-  if (analysis.description && analysis.description.length >= 800) {
-    score += 2;
-  } else if (analysis.description && analysis.description.length >= 400) {
-    score += 1;
-  }
-
-  // SEO optimization (1.5 points)
-  maxScore += 1.5;
-  if (analysis.metaTitle && analysis.metaTitle.length >= 40 && analysis.metaTitle.length <= 60) {
-    score += 0.5;
-  }
-  if (analysis.metaDescription && analysis.metaDescription.length >= 140 && analysis.metaDescription.length <= 160) {
-    score += 0.5;
-  }
-  if (analysis.tags && analysis.tags.length >= 4) {
-    score += 0.5;
-  }
-
-  // Pricing analysis (1.5 points)
-  maxScore += 1.5;
-  if (analysis.pricingDetails && analysis.pricingDetails.model !== 'Unknown') {
-    score += 0.75;
-  }
-  if (analysis.pricingDetails && analysis.pricingDetails.plans && analysis.pricingDetails.plans.length > 0) {
-    score += 0.75;
-  }
-
-  // Target audience specificity (1 point)
-  maxScore += 1;
-  if (analysis.targetAudience && analysis.targetAudience.length >= 3 && 
-      !analysis.targetAudience.includes('Users') && !analysis.targetAudience.includes('Everyone')) {
-    score += 1;
-  } else if (analysis.targetAudience && analysis.targetAudience.length >= 2) {
-    score += 0.5;
-  }
-
-  // Confidence factor (1 point)
-  maxScore += 1;
-  if (analysis.confidence && analysis.confidence >= 90) {
-    score += 1;
-  } else if (analysis.confidence && analysis.confidence >= 80) {
-    score += 0.75;
-  } else if (analysis.confidence && analysis.confidence >= 70) {
-    score += 0.5;
-  }
-
-  // Convert to 10-point scale
-  const qualityScore = (score / maxScore) * 10;
-  return Math.round(qualityScore * 10) / 10; // Round to 1 decimal place
-}
-
-/**
  * Calculate completeness score based on filled fields
  */
 function calculateCompletenessScore(analysis: ToolAnalysis): number {
   const fields = [
     'toolName', 'primaryFunction', 'keyFeatures', 'targetAudience', 
     'pricingModel', 'category', 'description', 'metaTitle', 
-    'metaDescription', 'tags', 'confidence', 'qualityScore'
+    'metaDescription', 'tags', 'confidence'
   ];
 
   const optionalFields = [

@@ -59,7 +59,6 @@ export function LanguageSection({
         metaTitle: baseData.meta_title || '',
         metaDescription: baseData.meta_description || '',
         translationSource: 'auto',
-        qualityScore: 0,
         humanReviewed: false
       }
       setLocalTranslation(defaultTranslation)
@@ -426,27 +425,11 @@ export function LanguageSection({
           </div>
         </div>
 
-        {/* Translation Quality Section */}
+        {/* Translation Source Section */}
         <div className="lg:col-span-2 border-t pt-4 mt-2">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Qualité de la traduction</h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Source de la traduction</h3>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Score de qualité
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
-                value={localTranslation.qualityScore || 0}
-                onChange={(e) => handleFieldChange('qualityScore', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white text-sm"
-                disabled={loading}
-              />
-            </div>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Source

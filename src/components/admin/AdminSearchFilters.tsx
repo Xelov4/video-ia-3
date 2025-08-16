@@ -23,7 +23,6 @@ export interface AdminFilterState {
   categories: string[]   // Multi-sélection des catégories
   featured: string
   status: string
-  qualityScore: string
   sortBy: string
   sortOrder: 'asc' | 'desc'
 }
@@ -45,21 +44,11 @@ const SEARCH_FIELD_OPTIONS = [
   { value: 'all', label: 'Tous les champs', icon: '🔍' }
 ]
 
-const QUALITY_SCORE_OPTIONS = [
-  { value: '', label: 'Tous les scores' },
-  { value: '9-10', label: '9-10 (Excellent)' },
-  { value: '8-9', label: '8-9 (Très bon)' },
-  { value: '6-8', label: '6-8 (Bon)' },
-  { value: '4-6', label: '4-6 (Moyen)' },
-  { value: '0-4', label: '0-4 (Faible)' }
-]
-
 const SORT_OPTIONS = [
   { value: 'created_at', label: 'Date de création' },
   { value: 'updated_at', label: 'Dernière mise à jour' },
   { value: 'tool_name', label: 'Nom A-Z' },
-  { value: 'view_count', label: 'Popularité' },
-  { value: 'quality_score', label: 'Score qualité' }
+  { value: 'view_count', label: 'Popularité' }
 ]
 
 export function AdminSearchFilters({
@@ -131,7 +120,6 @@ export function AdminSearchFilters({
       categories: [],
       featured: '',
       status: '',
-      qualityScore: '',
       sortBy: 'created_at',
       sortOrder: 'desc'
     }
@@ -145,7 +133,6 @@ export function AdminSearchFilters({
     if (filters.categories.length > 0) count++
     if (filters.featured) count++
     if (filters.status) count++
-    if (filters.qualityScore) count++
     if (filters.searchFields.length > 0 && !filters.searchFields.includes('all')) count++
     return count
   }, [filters])
@@ -351,24 +338,6 @@ export function AdminSearchFilters({
                   <option value="">Tous les statuts</option>
                   <option value="true">✅ Actifs uniquement</option>
                   <option value="false">❌ Inactifs uniquement</option>
-                </select>
-              </div>
-
-              {/* Score qualité */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Score qualité
-                </label>
-                <select
-                  value={filters.qualityScore}
-                  onChange={(e) => updateFilter('qualityScore', e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                >
-                  {QUALITY_SCORE_OPTIONS.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
                 </select>
               </div>
             </div>

@@ -25,7 +25,6 @@ interface DatabaseTool {
   slug: string
   is_active: boolean
   featured: boolean
-  quality_score: number
   meta_title: string
   meta_description: string
   seo_keywords: string
@@ -54,8 +53,7 @@ const UPDATE_FIELDS: UpdateField[] = [
   { key: 'tags', label: 'Tags', description: 'Tags pour le référencement' },
   { key: 'meta_title', label: 'Titre SEO', description: 'Titre optimisé pour les moteurs de recherche' },
   { key: 'meta_description', label: 'Description SEO', description: 'Description optimisée pour les moteurs de recherche' },
-  { key: 'seo_keywords', label: 'Mots-clés SEO', description: 'Mots-clés pour le référencement' },
-  { key: 'quality_score', label: 'Score de qualité', description: 'Score de confiance de l\'analyse' }
+  { key: 'seo_keywords', label: 'Mots-clés SEO', description: 'Mots-clés pour le référencement' }
 ]
 
 export default function ScraperPage() {
@@ -556,8 +554,6 @@ export default function ScraperPage() {
                         <p className="text-xs text-gray-500 truncate">{tool.tool_link}</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs text-gray-400">Score: {tool.quality_score}</span>
-                        <br />
                         <span className="text-xs text-gray-500">
                           {tool.last_checked_at ? new Date(tool.last_checked_at).toLocaleDateString() : 'Jamais vérifié'}
                         </span>
@@ -760,7 +756,6 @@ export default function ScraperPage() {
                         </div>
                         <div className="text-right text-sm">
                           <div className="flex items-center space-x-2">
-                            <span className="text-gray-400">Score: {tool.quality_score}</span>
                             {!optimizedAt && (
                               <span className="px-2 py-1 bg-red-600 text-white rounded text-xs">
                                 Jamais optimisé

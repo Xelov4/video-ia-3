@@ -102,8 +102,7 @@ class MultilingualCategoriesService {
               languageCode: {
                 in: [language, this.DEFAULT_LANGUAGE]
               }
-            },
-            orderBy: { qualityScore: 'desc' }
+            }
           }
         },
         orderBy: [

@@ -84,24 +84,6 @@ export function LanguageTabs({
     )
   }
 
-  const getQualityBadge = (languageCode: string) => {
-    const status = translationStatus[languageCode]
-    if (!status || status.qualityScore <= 0) return null
-
-    const getQualityColor = (score: number) => {
-      if (score >= 9) return 'bg-green-100 text-green-800'
-      if (score >= 7) return 'bg-blue-100 text-blue-800'
-      if (score >= 5) return 'bg-yellow-100 text-yellow-800'
-      return 'bg-red-100 text-red-800'
-    }
-
-    return (
-      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getQualityColor(status.qualityScore)}`}>
-        {status.qualityScore}/10
-      </span>
-    )
-  }
-
   return (
     <div className={`w-full ${className}`}>
       {/* Desktop Tabs */}
@@ -126,7 +108,6 @@ export function LanguageTabs({
                     Base
                   </span>
                 )}
-                {getQualityBadge(language.code)}
                 {getStatusIndicator(language.code)}
                 
                 {/* Tooltip */}
@@ -164,7 +145,6 @@ export function LanguageTabs({
                   {activeLanguageObj.isBase && ' - Base Language'}
                 </span>
               </div>
-              {getQualityBadge(activeLanguageObj.code)}
             </div>
             <div className="flex items-center">
               {getStatusIndicator(activeLanguageObj.code)}
@@ -200,7 +180,7 @@ export function LanguageTabs({
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {getQualityBadge(language.code)}
+                    {getStatusIndicator(language.code)}
                     <div className="relative">
                       {getStatusIndicator(language.code)}
                     </div>

@@ -27,7 +27,6 @@ export interface ToolTranslation {
   metaTitle: string
   metaDescription: string
   translationSource: 'auto' | 'human' | 'imported' | 'ai'
-  qualityScore: number
   humanReviewed: boolean
   createdAt?: string
   updatedAt?: string
@@ -48,7 +47,6 @@ export interface BaseToolData {
   slug: string
   is_active: boolean
   featured: boolean
-  quality_score: number
   meta_title: string
   meta_description: string
   seo_keywords: string
@@ -98,7 +96,6 @@ export function TranslationForm({
         metaTitle: baseData.meta_title || '',
         metaDescription: baseData.meta_description || '',
         translationSource: 'auto',
-        qualityScore: 0,
         humanReviewed: false
       }
       setLocalTranslation(defaultTranslation)
@@ -442,27 +439,11 @@ export function TranslationForm({
           </div>
         </div>
 
-        {/* Translation Quality */}
+        {/* Translation Source */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Qualité de la traduction</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Source de la traduction</h3>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Score de qualité
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
-                value={localTranslation.qualityScore || 0}
-                onChange={(e) => handleFieldChange('qualityScore', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={loading}
-              />
-            </div>
-
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Source de traduction
@@ -479,21 +460,21 @@ export function TranslationForm({
                 <option value="imported">Importé</option>
               </select>
             </div>
-          </div>
 
-          <div className="mt-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={localTranslation.humanReviewed}
-                onChange={(e) => handleFieldChange('humanReviewed', e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                disabled={loading}
-              />
-              <span className="ml-2 text-sm text-gray-700">
-                Vérifié par un humain
-              </span>
-            </label>
+            <div>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={localTranslation.humanReviewed}
+                  onChange={(e) => handleFieldChange('humanReviewed', e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                <span className="ml-2 text-sm text-gray-700">
+                  Vérifié par un humain
+                </span>
+              </label>
+            </div>
           </div>
         </div>
       </div>

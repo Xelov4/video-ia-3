@@ -53,6 +53,7 @@ interface HeaderProps {
 export default function Header({ totalToolsCount = 16763, currentLanguage }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
+  const [isLanguagesOpen, setIsLanguagesOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [featuredCategories, setFeaturedCategories] = useState<Category[]>([])
@@ -314,6 +315,61 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
               />
             </div>
 
+            {/* Language Dropdown Menu - Desktop */}
+            <div className="hidden md:block relative">
+              <button
+                onClick={() => setIsLanguagesOpen(!isLanguagesOpen)}
+                className="flex items-center space-x-2 px-4 py-2.5 rounded-2xl font-medium text-gray-300 hover:text-white hover:bg-white/10 backdrop-blur-sm border border-transparent hover:border-white/20 transition-all duration-300"
+              >
+                <span>🌐</span>
+                <span>Langues</span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${isLanguagesOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isLanguagesOpen && (
+                <div className="absolute right-0 mt-3 w-64 bg-black/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 py-4 z-50">
+                  <div className="px-6 py-3 border-b border-white/10">
+                    <h3 className="text-lg font-semibold text-white">Choisir une langue</h3>
+                  </div>
+                  <div className="p-2">
+                    {[
+                      { code: 'en', name: 'English', flag: '🇺🇸', path: '/' },
+                      { code: 'fr', name: 'Français', flag: '🇫🇷', path: '/fr' },
+                      { code: 'it', name: 'Italiano', flag: '🇮🇹', path: '/it' },
+                      { code: 'es', name: 'Español', flag: '🇪🇸', path: '/es' },
+                      { code: 'de', name: 'Deutsch', flag: '🇩🇪', path: '/de' },
+                      { code: 'nl', name: 'Nederlands', flag: '🇳🇱', path: '/nl' },
+                      { code: 'pt', name: 'Português', flag: '🇵🇹', path: '/pt' }
+                    ].map((lang) => (
+                      <Link
+                        key={lang.code}
+                        href={lang.path}
+                        onClick={() => setIsLanguagesOpen(false)}
+                        className={`p-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-300 group flex items-center space-x-3 ${
+                          lang.code === currentLanguage ? 'bg-purple-600/20 text-purple-300' : ''
+                        }`}
+                      >
+                        <span className="text-xl">{lang.flag}</span>
+                        <div className="flex-1">
+                          <div className="font-medium group-hover:text-purple-300">{lang.name}</div>
+                          <div className="text-xs text-gray-500 group-hover:text-gray-400">
+                            {lang.code === currentLanguage ? 'Langue actuelle' : 'Accueil'}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Enhanced Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -405,6 +461,36 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
                     showLabel={true}
                     className="w-full"
                   />
+                  
+                  {/* Mobile Language Menu */}
+                  <div className="mt-4 space-y-2">
+                    {[
+                      { code: 'en', name: 'English', flag: '🇺🇸', path: '/' },
+                      { code: 'fr', name: 'Français', flag: '🇫🇷', path: '/fr' },
+                      { code: 'it', name: 'Italiano', flag: '🇮🇹', path: '/it' },
+                      { code: 'es', name: 'Español', flag: '🇪🇸', path: '/es' },
+                      { code: 'de', name: 'Deutsch', flag: '🇩🇪', path: '/de' },
+                      { code: 'nl', name: 'Nederlands', flag: '🇳🇱', path: '/nl' },
+                      { code: 'pt', name: 'Português', flag: '🇵🇹', path: '/pt' }
+                    ].map((lang) => (
+                      <Link
+                        key={lang.code}
+                        href={lang.path}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`p-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-300 group flex items-center space-x-3 ${
+                          lang.code === currentLanguage ? 'bg-purple-600/20 text-purple-300' : ''
+                        }`}
+                      >
+                        <span className="text-xl">{lang.flag}</span>
+                        <div className="flex-1">
+                          <div className="font-medium group-hover:text-purple-300">{lang.name}</div>
+                          <div className="text-xs text-gray-500 group-hover:text-gray-400">
+                            {lang.code === currentLanguage ? 'Langue actuelle' : 'Accueil'}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </nav>
             </div>
@@ -417,6 +503,14 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
         <div
           className="fixed inset-0 z-40"
           onClick={() => setIsCategoriesOpen(false)}
+        />
+      )}
+
+      {/* Language Dropdown Backdrop */}
+      {isLanguagesOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsLanguagesOpen(false)}
         />
       )}
     </header>
