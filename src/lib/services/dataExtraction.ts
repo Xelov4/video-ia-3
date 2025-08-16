@@ -41,15 +41,17 @@ export class DataExtractionService {
   /**
    * Extraire les audiences uniques depuis target_audience
    */
-  static async extractUniqueAudiences(): Promise<AudienceData[]> {
+  static async extractUniqueAudiences(limit?: number): Promise<AudienceData[]> {
     console.log('🎯 Extracting unique audiences from target_audience field...')
     
     const tools = await prisma.tool.findMany({
       where: {
         isActive: true,
         targetAudience: {
-          not: null,
-          not: ''
+          not: null
+        },
+        NOT: {
+          targetAudience: ''
         }
       },
       select: {
@@ -81,7 +83,7 @@ export class DataExtractionService {
     const audiences: AudienceData[] = Array.from(audienceMap.entries())
       .filter(([_, count]) => count >= 5) // Minimum 5 occurrences
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 50) // Top 50
+      .slice(0, limit || 50) // Utiliser limit ou 50 par défaut
       .map(([name, count]) => ({
         name,
         slug: this.createSlug(name),
@@ -96,15 +98,17 @@ export class DataExtractionService {
   /**
    * Extraire les cas d'usage depuis use_cases
    */
-  static async extractUseCases(): Promise<UseCaseData[]> {
+  static async extractUseCases(limit?: number): Promise<UseCaseData[]> {
     console.log('📝 Extracting use cases from use_cases field...')
     
     const tools = await prisma.tool.findMany({
       where: {
         isActive: true,
         useCases: {
-          not: null,
-          not: ''
+          not: null
+        },
+        NOT: {
+          useCases: ''
         }
       },
       select: {
@@ -142,7 +146,7 @@ export class DataExtractionService {
     const useCases: UseCaseData[] = Array.from(useCaseMap.entries())
       .filter(([_, data]) => data.count >= 3) // Minimum 3 occurrences
       .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 100) // Top 100
+      .slice(0, limit || 100) // Utiliser limit ou 100 par défaut
       .map(([name, data]) => ({
         name,
         slug: this.createSlug(name),
@@ -164,8 +168,10 @@ export class DataExtractionService {
       where: {
         isActive: true,
         keyFeatures: {
-          not: null,
-          not: ''
+          not: null
+        },
+        NOT: {
+          keyFeatures: ''
         }
       },
       select: {
@@ -225,8 +231,10 @@ export class DataExtractionService {
       where: {
         isActive: true,
         tags: {
-          not: null,
-          not: ''
+          not: null
+        },
+        NOT: {
+          tags: ''
         }
       },
       select: {
@@ -328,6 +336,35 @@ export class DataExtractionService {
     }
     
     return descriptions[audience.toLowerCase()] || `Tools for ${audience}`
+  }
+
+  /**
+   * Obtenir les statistiques globales
+   */
+  static async getOverallStats() {
+    console.log('📊 Getting overall statistics...')
+    
+    const [
+      totalToolsCount,
+      activeCategoriesCount,
+      audiencesData,
+      useCasesData
+    ] = await Promise.all([
+      prisma.tool.count({ where: { isActive: true } }),
+      prisma.tool.groupBy({
+        by: ['toolCategory'],
+        where: { isActive: true, toolCategory: { not: null } }
+      }),
+      this.extractUniqueAudiences(50),
+      this.extractUseCases(100)
+    ])
+
+    return {
+      totalTools: totalToolsCount,
+      totalCategories: activeCategoriesCount.length,
+      totalAudiences: audiencesData.length,
+      totalUseCases: useCasesData.length
+    }
   }
 
   /**

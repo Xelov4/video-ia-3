@@ -74,21 +74,21 @@ class MultilingualCategoriesService {
       includeEmpty?: boolean
       useCache?: boolean
       includeCounts?: boolean
+      limit?: number
     } = {}
-  ): Promise<CategoriesResponse> {
+  ): Promise<CategoryWithTranslation[]> {
     try {
-      const { includeEmpty = false, useCache = true, includeCounts = true } = options
+      const { includeEmpty = false, useCache = true, includeCounts = true, limit } = options
 
       if (!this.validateLanguage(language)) {
         throw new Error(`Invalid language code: ${language}`)
       }
 
       // Cache check
-      const cacheKey = `categories:all:${language}:${includeEmpty}:${includeCounts}`
+      const cacheKey = `categories:all:${language}:${includeEmpty}:${includeCounts}:${limit || 'all'}`
       if (useCache) {
-        const cached = this.getCachedData<CategoriesResponse>(cacheKey)
+        const cached = this.getCachedData<CategoryWithTranslation[]>(cacheKey)
         if (cached) {
-          cached.meta.cacheHit = true
           return cached
         }
       }
@@ -108,7 +108,8 @@ class MultilingualCategoriesService {
         orderBy: [
           { toolCount: 'desc' },
           { name: 'asc' }
-        ]
+        ],
+        ...(limit && { take: limit })
       })
 
       let fallbackCount = 0
@@ -170,22 +171,12 @@ class MultilingualCategoriesService {
         }
       })
 
-      const result: CategoriesResponse = {
-        categories: processedCategories,
-        meta: {
-          language,
-          totalCount: processedCategories.length,
-          fallbackCount,
-          cacheHit: false
-        }
-      }
-
       // Cache du résultat
       if (useCache) {
-        this.setCachedData(cacheKey, result)
+        this.setCachedData(cacheKey, processedCategories)
       }
 
-      return result
+      return processedCategories
 
     } catch (error) {
       console.error('Error in getAllCategories:', error)

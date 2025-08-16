@@ -404,22 +404,18 @@ class MultilingualToolsService {
         
         // Filtres avancés
         ...(filters.minQualityScore && { 
-          qualityScore: { gte: filters.minQualityScore } 
+          quality_score: { gte: filters.minQualityScore } 
         }),
         ...(filters.hasImageUrl && { 
           imageUrl: { 
-            AND: [
-              { not: null },
-              { not: '' }
-            ]
+            not: null,
+            not: ''
           }
         }),
         ...(filters.hasVideoUrl && { 
           videoUrl: { 
-            AND: [
-              { not: null },
-              { not: '' }
-            ]
+            not: null,
+            not: ''
           }
         }),
         ...(filters.updatedSince && { 
@@ -464,7 +460,7 @@ class MultilingualToolsService {
           orderBy.viewCount = sortOrder
           break
         case 'quality_score':
-          orderBy.qualityScore = sortOrder
+          orderBy.quality_score = sortOrder
           break
         default:
           orderBy.createdAt = sortOrder
@@ -933,7 +929,7 @@ class MultilingualToolsService {
       const where: Prisma.ToolWhereInput = {
         isActive: true,
         ...(filters.minQualityScore && { 
-          qualityScore: { gte: filters.minQualityScore } 
+          quality_score: { gte: filters.minQualityScore } 
         }),
         AND: [
           // Catégories (OR)
@@ -965,7 +961,7 @@ class MultilingualToolsService {
       const [tools, totalCount] = await Promise.all([
         prisma.tool.findMany({
           where,
-          orderBy: { qualityScore: 'desc' },
+          orderBy: { quality_score: 'desc' },
           skip: (page - 1) * limit,
           take: limit,
           include: {
