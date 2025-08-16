@@ -161,7 +161,7 @@ export class DataExtractionService {
   /**
    * Extraire les features depuis key_features
    */
-  static async extractFeatures(): Promise<FeatureData[]> {
+  static async extractFeatures(limit?: number): Promise<FeatureData[]> {
     console.log('🔧 Extracting features from key_features field...')
     
     const tools = await prisma.tool.findMany({
@@ -209,7 +209,7 @@ export class DataExtractionService {
     const features: FeatureData[] = Array.from(featureMap.entries())
       .filter(([_, data]) => data.count >= 5) // Minimum 5 occurrences
       .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 200) // Top 200
+      .slice(0, limit || 200) // Top 200
       .map(([name, data]) => ({
         name,
         slug: this.createSlug(name),
@@ -224,7 +224,7 @@ export class DataExtractionService {
   /**
    * Extraire et nettoyer les tags
    */
-  static async extractCleanTags(): Promise<TagData[]> {
+  static async extractCleanTags(limit?: number): Promise<TagData[]> {
     console.log('🏷️ Extracting and cleaning tags...')
     
     const tools = await prisma.tool.findMany({
@@ -264,7 +264,7 @@ export class DataExtractionService {
     const tags: TagData[] = Array.from(tagMap.entries())
       .filter(([_, count]) => count >= 3) // Minimum 3 occurrences
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 500) // Top 500
+      .slice(0, limit || 500) // Top 500
       .map(([name, count]) => ({
         name,
         slug: this.createSlug(name),

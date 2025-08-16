@@ -79,17 +79,35 @@ export async function GET(request: NextRequest) {
       }
     } else {
       // Get all categories
-      result = await multilingualCategoriesService.getAllCategories(language, {
+      const allCategoriesResult = await multilingualCategoriesService.getAllCategories(language, {
         includeEmpty,
         useCache,
         includeCounts: true
       })
+      
+      // Normaliser la structure de retour
+      result = {
+        categories: allCategoriesResult.categories || allCategoriesResult || [],
+        meta: {
+          language,
+          totalCount: allCategoriesResult.categories?.length || allCategoriesResult?.length || 0,
+          fallbackCount: 0,
+          cacheHit: false
+        }
+      }
       
       // Apply limit if specified
       if (limit && result.categories.length > limit) {
         result.categories = result.categories.slice(0, limit)
         result.meta.totalCount = result.categories.length
       }
+    }
+    
+    // Vérifier que result.categories existe et est un tableau
+    if (!result.categories || !Array.isArray(result.categories)) {
+      console.warn('Invalid categories result structure:', result)
+      result.categories = []
+      result.meta.totalCount = 0
     }
     
     // Calculate additional statistics

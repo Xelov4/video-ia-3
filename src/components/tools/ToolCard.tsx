@@ -1,127 +1,185 @@
-/**
- * ToolCard - Composant de carte d'outil optimisé
- * 
- * Composant lazy-loaded pour afficher les informations d'un outil
- * avec optimisations de performance et rendu conditionnel.
- */
+'use client'
 
-import React, { memo } from 'react'
-import { Star, Eye, Calendar, Tag } from 'lucide-react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/Card'
+import Link from 'next/link'
+import Image from 'next/image'
 import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
+import { getCategoryEmojiString } from '@/src/lib/services/emojiMapping'
 
 interface ToolCardProps {
   tool: ToolWithTranslation
-  lang: string
+  showCategory?: boolean
+  size?: 'small' | 'medium' | 'large'
+  lang?: string
 }
 
-const ToolCard = memo(({ tool, lang }: ToolCardProps) => {
-  // Optimisation : calcul des valeurs une seule fois
-  const qualityScore = tool.quality_score || 0
-  const displayScore = (qualityScore / 2).toFixed(1)
-  const viewCount = tool.view_count || 0
-  const hasImage = tool.image_url && tool.image_url.length > 0
-  const hasVideo = tool.video_url && tool.video_url.length > 0
-  
-  // Formatage des dates avec Intl pour la performance
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return ''
-    try {
-      return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }).format(new Date(dateString))
-    } catch {
-      return dateString
+/**
+ * ToolCard component for displaying tool information
+ * Supports multiple sizes and display modes
+ */
+export const ToolCard: React.FC<ToolCardProps> = ({
+  tool,
+  showCategory = true,
+  size = 'medium',
+  lang = 'en'
+}) => {
+  // Translation support for UI elements
+  const translations: Record<string, Record<string, string>> = {
+    'en': {
+      viewTool: 'View Tool',
+      featured: 'Featured',
+      notTranslated: 'Not translated to your language'
+    },
+    'fr': {
+      viewTool: 'Voir l\'Outil',
+      featured: 'En vedette',
+      notTranslated: 'Non traduit dans votre langue'
+    },
+    'it': {
+      viewTool: 'Visualizza Strumento',
+      featured: 'In evidenza',
+      notTranslated: 'Non tradotto nella tua lingua'
+    },
+    'es': {
+      viewTool: 'Ver Herramienta',
+      featured: 'Destacado',
+      notTranslated: 'No traducido a tu idioma'
+    },
+    'de': {
+      viewTool: 'Tool ansehen',
+      featured: 'Empfohlen',
+      notTranslated: 'Nicht in deine Sprache übersetzt'
+    },
+    'nl': {
+      viewTool: 'Bekijk Tool',
+      featured: 'Uitgelicht',
+      notTranslated: 'Niet vertaald naar jouw taal'
+    },
+    'pt': {
+      viewTool: 'Ver Ferramenta',
+      featured: 'Destaque',
+      notTranslated: 'Não traduzido para o seu idioma'
     }
   }
 
-  return (
-    <Card className="hover:shadow-lg transition-all duration-200 group">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <CardTitle className="text-lg font-semibold line-clamp-2 group-hover:text-blue-600 transition-colors">
-            {tool.displayName || tool.name}
-          </CardTitle>
-          {qualityScore > 0 && (
-            <div className="flex items-center gap-1 text-yellow-500 flex-shrink-0">
-              <Star className="w-4 h-4 fill-current" />
-              <span className="text-sm font-medium">{displayScore}</span>
+  const t = translations[lang] || translations['en']
+
+  // Build the tool URL based on the language
+  const toolUrl = lang === 'en' 
+    ? `/tools/${tool.slug || tool.id}`
+    : `/${lang}/tools/${tool.slug || tool.id}`
+
+  // Determine the category emoji
+  const categoryEmoji = tool.toolCategory 
+    ? getCategoryEmojiString(tool.toolCategory) 
+    : '🔧'
+
+  // Choose placeholder image if no image is available
+  const imageUrl = tool.imageUrl || `/images/placeholders/tool-${Math.floor(Math.random() * 5) + 1}.jpg`
+
+  // Show translation warning if fallback was used
+  const showTranslationWarning = tool.resolvedLanguage !== lang
+  
+  // Use excerpt from description for display
+  const getExcerpt = (text?: string | null, length: number = 140): string => {
+    if (!text) return ''
+    return text.length > length ? `${text.substring(0, length).trim()}...` : text
+  }
+
+  // Generate different card layouts based on size
+  if (size === 'small') {
+    // Compact list view
+    return (
+      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
+        <Link href={toolUrl} className="block h-full">
+          <div className="flex items-start p-4 h-full">
+            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-600/80 to-purple-600/80 rounded-lg flex items-center justify-center mr-4">
+              <span className="text-white text-2xl">{categoryEmoji}</span>
             </div>
-          )}
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-3">
-        {/* Image de l'outil avec lazy loading */}
-        {hasImage && (
-          <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
-            <img
-              src={tool.image_url}
-              alt={tool.displayName || tool.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-              decoding="async"
+            <div className="flex-1 min-w-0">
+              <h3 className="text-white font-semibold text-lg mb-1 truncate group-hover:text-purple-300 transition-colors">
+                {tool.displayName}
+              </h3>
+              
+              {showCategory && tool.toolCategory && (
+                <div className="text-sm text-gray-300 mb-2">{tool.toolCategory}</div>
+              )}
+              
+              <p className="text-gray-400 text-sm line-clamp-2">
+                {getExcerpt(tool.displayOverview || tool.displayDescription, 80)}
+              </p>
+              
+              {showTranslationWarning && (
+                <div className="mt-2 text-xs text-amber-400">
+                  {t.notTranslated}
+                </div>
+              )}
+            </div>
+          </div>
+        </Link>
+      </div>
+    )
+  }
+
+  // Default card view (medium/large)
+  return (
+    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group h-full flex flex-col">
+      <Link href={toolUrl} className="block h-full">
+        <div className="h-full flex flex-col">
+          {/* Image */}
+          <div className="relative w-full h-48 bg-gray-800 overflow-hidden">
+            <Image
+              src={imageUrl}
+              alt={tool.displayName}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              priority={false}
             />
-            {hasVideo && (
-              <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                <Tag className="w-3 h-3" />
+            
+            {tool.featured && (
+              <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                {t.featured}
+              </div>
+            )}
+            
+            {showCategory && tool.toolCategory && (
+              <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center space-x-1.5">
+                <span>{categoryEmoji}</span>
+                <span>{tool.toolCategory}</span>
               </div>
             )}
           </div>
-        )}
-        
-        {/* Description */}
-        <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
-          {tool.displayOverview || tool.overview || tool.description}
-        </p>
-        
-        {/* Métadonnées */}
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{tool.category}</span>
-            {tool.audience && (
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                {tool.audience}
-              </span>
+          
+          {/* Content */}
+          <div className="p-5 flex-1 flex flex-col">
+            <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-purple-300 transition-colors">
+              {tool.displayName}
+            </h3>
+            
+            <p className="text-gray-300 flex-1 mb-4 line-clamp-3">
+              {getExcerpt(tool.displayOverview || tool.displayDescription)}
+            </p>
+            
+            {showTranslationWarning && (
+              <div className="mb-3 text-xs text-amber-400 flex items-center space-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>{t.notTranslated}</span>
+              </div>
             )}
-          </div>
-          <div className="flex items-center gap-1">
-            <Eye className="w-3 h-3" />
-            <span>{viewCount.toLocaleString()}</span>
+            
+            <div className="text-center">
+              <span className="inline-flex items-center text-sm text-purple-300 font-medium group-hover:underline">
+                {t.viewTool}
+                <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </span>
+            </div>
           </div>
         </div>
-        
-        {/* Tags */}
-        {tool.tags && tool.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {tool.tags.split(',').slice(0, 3).map((tag, index) => (
-              <span
-                key={index}
-                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
-              >
-                {tag.trim()}
-              </span>
-            ))}
-            {tool.tags.split(',').length > 3 && (
-              <span className="text-xs text-gray-400">+{tool.tags.split(',').length - 3}</span>
-            )}
-          </div>
-        )}
-        
-        {/* Date de mise à jour */}
-        {tool.updated_at && (
-          <div className="flex items-center gap-1 text-xs text-gray-400">
-            <Calendar className="w-3 h-3" />
-            <span>{formatDate(tool.updated_at)}</span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      </Link>
+    </div>
   )
-})
-
-ToolCard.displayName = 'ToolCard'
-
-export default ToolCard
+}

@@ -7,12 +7,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuthMiddleware } from './src/lib/auth/adminMiddleware'
 
-// Constants d'internationalisation centralisées
-export const supportedLocales = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt'] as const
-export const defaultLocale = 'en' as const
-export type SupportedLocale = typeof supportedLocales[number]
+// Import des types et constantes i18n centralisés
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './src/lib/i18n/types'
+import type { SupportedLanguage } from './src/lib/i18n/types'
 
-// Exports de compatibilité 
+// Exports pour la compatibilité avec le reste du code
+export const supportedLocales = SUPPORTED_LANGUAGES
+export const defaultLocale = DEFAULT_LANGUAGE
+export type SupportedLocale = SupportedLanguage
+
+// Exports de compatibilité additionnels
 export const SUPPORTED_LOCALES = supportedLocales
 export const DEFAULT_LOCALE = defaultLocale
 

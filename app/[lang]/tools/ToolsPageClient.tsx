@@ -110,6 +110,10 @@ export default function ToolsPageClient({
     exactMatch: initialSearchParams.exactMatch === 'true'
   })
 
+  // Constantes pour la pagination et le cache
+  const ITEMS_PER_PAGE = 24
+  const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
   // État des résultats
   const [tools, setTools] = useState<ToolWithTranslation[]>([])
   const [loading, setLoading] = useState(false)
@@ -130,9 +134,6 @@ export default function ToolsPageClient({
   
   // Cache simple en mémoire pour les requêtes fréquentes
   const [queryCache, setQueryCache] = useState<Map<string, { data: ToolWithTranslation[]; totalCount: number; timestamp: number }>>(new Map())
-  const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
-
-  const ITEMS_PER_PAGE = 24
 
   // Charger les recherches sauvegardées depuis localStorage
   useEffect(() => {
@@ -159,11 +160,11 @@ export default function ToolsPageClient({
     }
   }, [savedSearches, lang])
 
-  // Charger une recherche sauvegardée
+  // Déclaration anticipée de loadSavedSearch pour éviter les dépendances circulaires
   const loadSavedSearch = useCallback((savedFilters: Filters) => {
     setFilters(savedFilters)
-    searchTools(savedFilters, 1)
-  }, [searchTools])
+    // searchTools sera appelé dans un useEffect séparé
+  }, [])
 
   // Supprimer une recherche sauvegardée
   const deleteSavedSearch = useCallback((index: number) => {
@@ -198,24 +199,14 @@ export default function ToolsPageClient({
     }))
   }, [])
 
-  // Gestion du changement de page
+  // Gestion du changement de page - déclaration anticipée
   const handlePageChange = useCallback((page: number) => {
     if (page >= 1 && page <= totalPages) {
-      searchTools(filters, page)
+      setCurrentPage(page)
       
-      // Prefetching intelligent : précharger la page suivante
-      if (page < totalPages) {
-        const nextPage = page + 1
-        const nextPageCacheKey = getCacheKey(filters, nextPage)
-        if (!getFromCache(nextPageCacheKey)) {
-          // Précharger en arrière-plan
-          setTimeout(() => {
-            searchTools(filters, nextPage)
-          }, 100)
-        }
-      }
+      // La fonction searchTools sera appelée via un useEffect
     }
-  }, [searchTools, filters, totalPages, getCacheKey, getFromCache])
+  }, [totalPages])
 
   // Gestion du changement de vue
   const handleViewChange = useCallback((newViewMode: 'grid' | 'list' | 'cards') => {
@@ -480,7 +471,7 @@ export default function ToolsPageClient({
       setCache(cacheKey, finalTools, finalTotalCount)
 
       setCurrentPage(page)
-      updateURL(newFilters, page)
+      // updateURL sera appelé via un useEffect séparé pour éviter les dépendances circulaires
     } catch (error) {
       console.error('Erreur lors de la recherche:', error)
     } finally {
@@ -530,29 +521,42 @@ export default function ToolsPageClient({
   const handleFilterChange = useCallback((key: keyof Filters, value: any) => {
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
-    searchTools(newFilters, 1)
-  }, [filters, searchTools])
+    // searchTools sera appelé via l'effet de dépendance sur filters
+  }, [filters])
 
-  // Gestion de la pagination
-  const handlePageChange = useCallback((page: number) => {
-    searchTools(filters, page)
-  }, [filters, searchTools])
 
-  // Gestion du changement de vue
-  const handleViewChange = useCallback((view: 'grid' | 'list' | 'cards') => {
-    setViewMode(view)
-    updateURL(filters, currentPage)
-  }, [filters, currentPage, updateURL])
 
-  // Recherche initiale
+
+
+  // Effect pour la recherche initiale
   useEffect(() => {
-    searchTools(filters, currentPage)
+    if (typeof searchTools === 'function') {
+      searchTools(filters, currentPage)
+    }
   }, [])
+  
+  // Effect pour la mise à jour quand les filtres changent
+  useEffect(() => {
+    if (typeof searchTools === 'function') {
+      searchTools(filters, 1)
+    }
+  }, [filters])
+  
+  // Effect pour la mise à jour quand la page change
+  useEffect(() => {
+    if (typeof searchTools === 'function' && currentPage > 0) {
+      searchTools(filters, currentPage)
+    }
+  }, [currentPage])
+  
+  // Effect pour mettre à jour l'URL quand les filtres ou la page changent
+  useEffect(() => {
+    if (typeof updateURL === 'function') {
+      updateURL(filters, currentPage)
+    }
+  }, [filters, currentPage])
 
-  // Calcul de la pagination
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
-  const hasNextPage = currentPage < totalPages
-  const hasPreviousPage = currentPage > 1
+
 
   // Filtres actifs
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
@@ -653,153 +657,147 @@ export default function ToolsPageClient({
       </div>
 
       <div className="flex gap-8">
-        {/* Sidebar des filtres */}
+        {/* Sidebar des filtres et recherches */}
         <div className={`w-80 flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="w-5 h-5" />
-                {lang === 'fr' ? 'Filtres' : 'Filters'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Suspense fallback={
-                <div className="space-y-4">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-              }>
-                <AdvancedFilters
-                  filters={filters}
-                  onFilterChange={handleFilterChange}
-                  onReset={() => {
-                    const resetFilters: Filters = {
-                      query: '',
-                      audience: '',
-                      useCase: '',
-                      category: '',
-                      minQuality: 0,
-                      maxQuality: 10,
-                      sortBy: 'created_at',
-                      sortOrder: 'desc',
-                      hasImage: false,
-                      hasVideo: false,
-                      priceRange: '',
-                      platform: '',
-                      language: '',
-                      tags: [],
-                      excludeTags: [],
-                      dateRange: '',
-                      minViews: 0,
-                      maxViews: 999999,
-                      filterLogic: 'AND',
-                      exactMatch: false
-                    }
-                    setFilters(resetFilters)
-                    searchTools(resetFilters, 1)
-                  }}
-                  audiences={audiences}
-                  useCases={useCases}
-                  categories={categories}
-                  lang={lang}
-                  activeFiltersCount={activeFiltersCount}
-                />
-              </Suspense>
-            </CardContent>
+          <div className="space-y-6">
+            {/* Filtres */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="w-5 h-5" />
+                  {lang === 'fr' ? 'Filtres' : 'Filters'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={
+                  <div className="space-y-4">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                }>
+                  <AdvancedFilters
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onReset={() => {
+                      const resetFilters: Filters = {
+                        query: '',
+                        audience: '',
+                        useCase: '',
+                        category: '',
+                        minQuality: 0,
+                        maxQuality: 10,
+                        sortBy: 'created_at',
+                        sortOrder: 'desc',
+                        hasImage: false,
+                        hasVideo: false,
+                        priceRange: '',
+                        platform: '',
+                        language: '',
+                        tags: [],
+                        excludeTags: [],
+                        dateRange: '',
+                        minViews: 0,
+                        maxViews: 999999,
+                        filterLogic: 'AND',
+                        exactMatch: false
+                      }
+                      setFilters(resetFilters)
+                      searchTools(resetFilters, 1)
+                    }}
+                    audiences={audiences}
+                    useCases={useCases}
+                    categories={categories}
+                    lang={lang}
+                    activeFiltersCount={activeFiltersCount}
+                  />
+                </Suspense>
+              </CardContent>
+            </Card>
 
-              {/* Section Recherches Sauvegardées */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {lang === 'fr' ? 'Recherches Sauvegardées' : 'Saved Searches'}
-                  </h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowSavedSearches(!showSavedSearches)}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    {showSavedSearches ? 'Masquer' : 'Afficher'}
-                  </Button>
-                </div>
-                
-                {showSavedSearches && (
-                  <div className="space-y-3">
-                    {savedSearches.length === 0 ? (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                        {lang === 'fr' ? 'Aucune recherche sauvegardée' : 'No saved searches'}
-                      </p>
-                    ) : (
-                      savedSearches.map((savedSearch, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <div className="flex-1">
-                            <h5 className="font-medium text-gray-900 dark:text-white text-sm">
-                              {savedSearch.name}
-                            </h5>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {lang === 'fr' ? 'Cliquez pour charger' : 'Click to load'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => loadSavedSearch(savedSearch.filters)}
-                              className="text-blue-600 hover:text-blue-700"
-                            >
-                              {lang === 'fr' ? 'Charger' : 'Load'}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteSavedSearch(index)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              {lang === 'fr' ? 'Supprimer' : 'Delete'}
-                            </Button>
-                          </div>
+            {/* Recherches Sauvegardées */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5" />
+                  {lang === 'fr' ? 'Recherches Sauvegardées' : 'Saved Searches'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {savedSearches.length === 0 ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                      {lang === 'fr' ? 'Aucune recherche sauvegardée' : 'No saved searches'}
+                    </p>
+                  ) : (
+                    savedSearches.map((savedSearch, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900 dark:text-white text-sm">
+                            {savedSearch.name}
+                          </h5>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {lang === 'fr' ? 'Cliquez pour charger' : 'Click to load'}
+                          </p>
                         </div>
-                      ))
-                    )}
-                    
-                    {/* Formulaire pour sauvegarder la recherche actuelle */}
-                    <div className="border-t pt-3">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          placeholder={lang === 'fr' ? 'Nom de la recherche' : 'Search name'}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter') {
-                              const input = e.target as HTMLInputElement
-                              if (input.value.trim()) {
-                                saveSearch(input.value.trim(), filters)
-                                input.value = ''
-                              }
-                            }
-                          }}
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const input = document.querySelector('input[placeholder*="Nom"], input[placeholder*="Search"]') as HTMLInputElement
-                            if (input?.value.trim()) {
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => loadSavedSearch(savedSearch.filters)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            {lang === 'fr' ? 'Charger' : 'Load'}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteSavedSearch(index)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            {lang === 'fr' ? 'Supprimer' : 'Delete'}
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  
+                  {/* Formulaire pour sauvegarder la recherche actuelle */}
+                  <div className="border-t pt-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder={lang === 'fr' ? 'Nom de la recherche' : 'Search name'}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            const input = e.target as HTMLInputElement
+                            if (input.value.trim()) {
                               saveSearch(input.value.trim(), filters)
                               input.value = ''
                             }
-                          }}
-                        >
-                          {lang === 'fr' ? 'Sauvegarder' : 'Save'}
-                        </Button>
-                      </div>
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.querySelector('input[placeholder*="Nom"], input[placeholder*="Search"]') as HTMLInputElement
+                          if (input?.value.trim()) {
+                            saveSearch(input.value.trim(), filters)
+                            input.value = ''
+                          }
+                        }}
+                      >
+                        {lang === 'fr' ? 'Sauvegarder' : 'Save'}
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Contenu principal */}

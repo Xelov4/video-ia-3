@@ -11,6 +11,7 @@ import { prisma } from '../client'
 import { Category, CategoryTranslation, Prisma } from '@prisma/client'
 import { SupportedLanguage } from './multilingual-tools'
 import { getCategoryEmoji, getCategoryEmojiString } from '../../services/emojiMapping'
+import { serializePrismaObject } from '../../utils/prismaHelpers'
 
 export interface CategoryWithTranslation extends Category {
   // Champs traduits
@@ -171,12 +172,15 @@ class MultilingualCategoriesService {
         }
       })
 
+      // Sérialisation pour éviter les problèmes avec les objets Decimal
+      const serializedCategories = serializePrismaObject(processedCategories)
+      
       // Cache du résultat
       if (useCache) {
-        this.setCachedData(cacheKey, processedCategories)
+        this.setCachedData(cacheKey, serializedCategories)
       }
 
-      return processedCategories
+      return serializedCategories
 
     } catch (error) {
       console.error('Error in getAllCategories:', error)

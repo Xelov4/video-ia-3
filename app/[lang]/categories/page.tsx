@@ -130,13 +130,15 @@ export default async function CategoriesPage({ params, searchParams }: Categorie
   
   try {
     // Récupération des catégories
-    const categoriesResult = await multilingualCategoriesService.getAllCategories(lang, {
+    const categoriesData = await multilingualCategoriesService.getAllCategories(lang, {
       includeEmpty: false,
       useCache: true,
       includeCounts: true
     })
     
-    const { categories } = categoriesResult
+    // Gestion compatible avec les deux formats de retour possibles
+    let categories = Array.isArray(categoriesData) ? categoriesData : 
+                    (categoriesData && 'categories' in categoriesData) ? categoriesData.categories : []
     
     // Tri des catégories selon les paramètres
     const sortedCategories = [...categories].sort((a, b) => {
