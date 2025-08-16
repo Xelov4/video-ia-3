@@ -45,7 +45,7 @@ import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolPageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {

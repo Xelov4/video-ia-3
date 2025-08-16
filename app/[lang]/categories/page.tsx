@@ -13,14 +13,14 @@ import CategoriesControls from '@/src/components/categories/CategoriesControls'
 
 // Interface pour paramètres
 interface CategoriesPageProps {
-  params: {
+  params: Promise<{
     lang: SupportedLocale
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     sort?: 'name' | 'count'
     order?: 'asc' | 'desc'
     view?: 'grid' | 'list'
-  }
+  }>
 }
 
 /**

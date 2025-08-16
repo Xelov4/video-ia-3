@@ -54,6 +54,14 @@ const nextConfig = {
       config.externals.push('puppeteer', 'puppeteer-core', '@puppeteer/browsers')
     }
     
+    // Ignorer temporairement les routes API avec ancien système PostgreSQL
+    if (isServer) {
+      config.externals = config.externals || []
+      config.externals.push({
+        '@/src/lib/database/postgres': 'commonjs @/src/lib/database/postgres'
+      })
+    }
+    
     return config
   },
   
@@ -106,7 +114,13 @@ const nextConfig = {
         source: '/category/:slug*', 
         destination: '/en/categories/:slug*',
         permanent: true
-      }
+      },
+      // Rediriger les routes API problématiques vers une page d'erreur
+      {
+        source: '/api/tools/:id/translations/:path*',
+        destination: '/api/error/legacy-system',
+        permanent: false,
+      },
     ]
   },
   

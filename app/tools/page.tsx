@@ -23,14 +23,14 @@ import { CategoriesService } from '@/src/lib/database/services/categories'
 import { formatNumber } from '@/src/lib/utils/formatNumbers'
 
 interface ToolsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     search?: string
     category?: string
     featured?: string
     sort?: string
     order?: string
     page?: string
-  }
+  }>
 }
 
 export const metadata: Metadata = {

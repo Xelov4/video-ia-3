@@ -24,14 +24,14 @@ import { ToolsGrid } from '@/src/components/tools/ToolsGrid'
 import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline'
 
 interface CategoryPageProps {
-  params: { slug: string }
-  searchParams: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{
     search?: string
     featured?: string
     sort?: string
     order?: string
     page?: string
-  }
+  }>
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {

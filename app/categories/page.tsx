@@ -26,9 +26,9 @@ export const metadata: Metadata = {
 }
 
 interface CategoriesPageProps {
-  searchParams: {
+  searchParams: Promise<{
     search?: string
-  }
+  }>
 }
 
 export default async function CategoriesPage({ searchParams }: CategoriesPageProps) {

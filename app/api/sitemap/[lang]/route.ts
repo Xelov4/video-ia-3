@@ -100,7 +100,7 @@ async function getSitemapData(lang: SupportedLocale) {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { lang: string } }
+  { params }: { params: Promise<{ lang: string }> }
 ) {
   const lang = params.lang as SupportedLocale
   
@@ -241,7 +241,7 @@ export async function GET(
  */
 export async function HEAD(
   request: NextRequest,
-  { params }: { params: { lang: string } }
+  { params }: { params: Promise<{ lang: string }> }
 ) {
   const lang = params.lang as SupportedLocale
   

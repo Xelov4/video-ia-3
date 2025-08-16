@@ -26,17 +26,17 @@ import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline'
 import { supportedLocales, defaultLocale, type SupportedLocale } from '@/middleware'
 
 interface CategoryPageProps {
-  params: { 
+  params: Promise<{ 
     lang: string
     slug: string 
-  }
-  searchParams: {
+  }>
+  searchParams: Promise<{
     search?: string
     featured?: string
     sort?: string
     order?: string
     page?: string
-  }
+  }>
 }
 
 async function validateAndParseParams(params: any, searchParams: any) {
@@ -95,7 +95,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       }
     }
     
-    const content = messages[lang] || messages['en']
+    const content = messages[lang as keyof typeof messages] || messages['en']
     
     return {
       title: content.title,
@@ -145,7 +145,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     }
   }
 
-  const content = messages[lang] || messages['en']
+  const content = messages[lang as keyof typeof messages] || messages['en']
 
   return {
     title: content.title,

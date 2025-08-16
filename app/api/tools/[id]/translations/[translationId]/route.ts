@@ -5,10 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/src/lib/auth/auth-options'
 
 interface RouteContext {
-  params: { id: string; translationId: string }
+  params: Promise<{ id: string; translationId: string }>
 }
 
 /**
