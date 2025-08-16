@@ -233,3 +233,41 @@ export default async function ToolsPage({ params, searchParams }: ToolsPageProps
     )
   }
 }
+
+/**
+ * Configuration ISR et optimisations de performance
+ */
+export const revalidate = 3600 // Revalidation toutes les heures
+export const dynamic = 'force-dynamic' // Force le rendu dynamique pour les filtres
+export const fetchCache = 'force-cache' // Force la mise en cache des données
+
+/**
+ * Génération statique des pages populaires
+ */
+export async function generateStaticParams() {
+  const popularCombinations = [
+    // Pages par langue
+    { lang: 'en' },
+    { lang: 'fr' },
+    { lang: 'de' },
+    { lang: 'it' },
+    { lang: 'es' },
+    { lang: 'nl' },
+    { lang: 'pt' },
+    
+    // Combinaisons populaires avec filtres
+    { lang: 'en', category: 'AI Video Tools' },
+    { lang: 'en', category: 'AI Writing Tools' },
+    { lang: 'en', category: 'AI Image Generation' },
+    { lang: 'fr', category: 'Outils IA Vidéo' },
+    { lang: 'fr', category: 'Outils IA Rédaction' },
+    { lang: 'de', category: 'KI-Video-Tools' },
+    { lang: 'de', category: 'KI-Schreib-Tools' },
+    { lang: 'it', category: 'Strumenti AI Video' },
+    { lang: 'es', category: 'Herramientas IA Video' },
+    { lang: 'nl', category: 'AI Video Tools' },
+    { lang: 'pt', category: 'Ferramentas IA Vídeo' }
+  ]
+  
+  return popularCombinations
+}

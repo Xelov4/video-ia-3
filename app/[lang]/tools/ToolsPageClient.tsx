@@ -13,7 +13,7 @@
 
 'use client'
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Filter, Grid, List, Star, Users, Zap, Calendar, Eye } from 'lucide-react'
 import { SupportedLocale } from '@/middleware'
@@ -24,6 +24,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/Ca
 import { Grid as GridLayout } from '@/src/components/ui/Grid'
 
 import { multilingualToolsService, ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
+import { useWebVitals } from '@/src/hooks/useWebVitals'
+
+// Lazy loading des composants lourds
+const ToolCard = lazy(() => import('@/src/components/tools/ToolCard'))
+const ToolList = lazy(() => import('@/src/components/tools/ToolList'))
+const AdvancedFilters = lazy(() => import('@/src/components/tools/AdvancedFilters'))
 
 interface ToolsPageClientProps {
   lang: SupportedLocale
@@ -74,6 +80,9 @@ export default function ToolsPageClient({
 }: ToolsPageClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  
+  // Monitoring des Core Web Vitals
+  useWebVitals()
   
   // État des filtres
   const [filters, setFilters] = useState<Filters>({
@@ -193,8 +202,20 @@ export default function ToolsPageClient({
   const handlePageChange = useCallback((page: number) => {
     if (page >= 1 && page <= totalPages) {
       searchTools(filters, page)
+      
+      // Prefetching intelligent : précharger la page suivante
+      if (page < totalPages) {
+        const nextPage = page + 1
+        const nextPageCacheKey = getCacheKey(filters, nextPage)
+        if (!getFromCache(nextPageCacheKey)) {
+          // Précharger en arrière-plan
+          setTimeout(() => {
+            searchTools(filters, nextPage)
+          }, 100)
+        }
+      }
     }
-  }, [searchTools, filters, totalPages])
+  }, [searchTools, filters, totalPages, getCacheKey, getFromCache])
 
   // Gestion du changement de vue
   const handleViewChange = useCallback((newViewMode: 'grid' | 'list' | 'cards') => {
@@ -641,302 +662,51 @@ export default function ToolsPageClient({
                 {lang === 'fr' ? 'Filtres' : 'Filters'}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Filtre Audience */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {lang === 'fr' ? 'Audience' : 'Audience'}
-                </label>
-                <select
-                  value={filters.audience}
-                  onChange={(e) => handleFilterChange('audience', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                >
-                  <option value="">{lang === 'fr' ? 'Toutes les audiences' : 'All audiences'}</option>
-                  {audiences.map((audience) => (
-                    <option key={audience.name} value={audience.name}>
-                      {audience.name} ({audience.count})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Filtre Cas d'usage */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {lang === 'fr' ? 'Cas d\'usage' : 'Use Case'}
-                </label>
-                <select
-                  value={filters.useCase}
-                  onChange={(e) => handleFilterChange('useCase', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                >
-                  <option value="">{lang === 'fr' ? 'Tous les cas d\'usage' : 'All use cases'}</option>
-                  {useCases.map((useCase) => (
-                    <option key={useCase.name} value={useCase.name}>
-                      {useCase.name} ({useCase.count})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Filtre Catégorie */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {lang === 'fr' ? 'Catégorie' : 'Category'}
-                </label>
-                <select
-                  value={filters.category}
-                  onChange={(e) => handleFilterChange('category', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                >
-                  <option value="">{lang === 'fr' ? 'Toutes les catégories' : 'All categories'}</option>
-                  {categories.map((category) => (
-                    <option key={category.name} value={category.name}>
-                      {category.name} ({category.actualToolCount || category.toolCount || 0})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Filtre Qualité */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {lang === 'fr' ? 'Note de qualité' : 'Quality Score'}
-                </label>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max="10"
-                      value={filters.minQuality}
-                      onChange={(e) => handleFilterChange('minQuality', parseInt(e.target.value))}
-                      className="flex-1"
-                    />
-                    <span className="text-sm text-gray-600 dark:text-gray-400 w-8">
-                      {filters.minQuality}+
-                    </span>
-                  </div>
+            <CardContent>
+              <Suspense fallback={
+                <div className="space-y-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
                 </div>
-              </div>
-
-              {/* Filtres binaires */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filters.hasImage}
-                    onChange={(e) => handleFilterChange('hasImage', e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    {lang === 'fr' ? 'Avec image' : 'With image'}
-                  </span>
-                </label>
-                
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filters.hasVideo}
-                    onChange={(e) => handleFilterChange('hasVideo', e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    {lang === 'fr' ? 'Avec vidéo' : 'With video'}
-                  </span>
-                </label>
-              </div>
-
-              {/* Tri */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {lang === 'fr' ? 'Trier par' : 'Sort by'}
-                </label>
-                <select
-                  value={filters.sortBy}
-                  onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                >
-                  <option value="created_at">{lang === 'fr' ? 'Plus récent' : 'Most recent'}</option>
-                  <option value="name">{lang === 'fr' ? 'Nom A-Z' : 'Name A-Z'}</option>
-                  <option value="view_count">{lang === 'fr' ? 'Plus populaire' : 'Most popular'}</option>
-                  <option value="quality_score">{lang === 'fr' ? 'Meilleure qualité' : 'Best quality'}</option>
-                </select>
-              </div>
-
-              {/* Section Filtres Avancés */}
-              <div className="border-t pt-6">
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-                  {lang === 'fr' ? 'Filtres Avancés' : 'Advanced Filters'}
-                </h4>
-                
-                {/* Plage de prix */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {lang === 'fr' ? 'Modèle de prix' : 'Pricing Model'}
-                  </label>
-                  <select
-                    value={filters.priceRange}
-                    onChange={(e) => handleFilterChange('priceRange', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                  >
-                    <option value="">{lang === 'fr' ? 'Tous les modèles' : 'All models'}</option>
-                    <option value="free">{lang === 'fr' ? 'Gratuit' : 'Free'}</option>
-                    <option value="freemium">{lang === 'fr' ? 'Freemium' : 'Freemium'}</option>
-                    <option value="paid">{lang === 'fr' ? 'Payant' : 'Paid'}</option>
-                    <option value="enterprise">{lang === 'fr' ? 'Entreprise' : 'Enterprise'}</option>
-                  </select>
-                </div>
-
-                {/* Plateforme */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {lang === 'fr' ? 'Plateforme' : 'Platform'}
-                  </label>
-                  <select
-                    value={filters.platform}
-                    onChange={(e) => handleFilterChange('platform', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                  >
-                    <option value="">{lang === 'fr' ? 'Toutes les plateformes' : 'All platforms'}</option>
-                    <option value="web">{lang === 'fr' ? 'Web' : 'Web'}</option>
-                    <option value="mobile">{lang === 'fr' ? 'Mobile' : 'Mobile'}</option>
-                    <option value="desktop">{lang === 'fr' ? 'Desktop' : 'Desktop'}</option>
-                    <option value="api">{lang === 'fr' ? 'API' : 'API'}</option>
-                  </select>
-                </div>
-
-                {/* Plage de vues */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {lang === 'fr' ? 'Nombre de vues' : 'View Count'}
-                  </label>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        placeholder="Min"
-                        value={filters.minViews || ''}
-                        onChange={(e) => handleFilterChange('minViews', parseInt(e.target.value) || 0)}
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                      <span className="text-gray-500">-</span>
-                      <input
-                        type="number"
-                        placeholder="Max"
-                        value={filters.maxViews === 999999 ? '' : filters.maxViews}
-                        onChange={(e) => handleFilterChange('maxViews', parseInt(e.target.value) || 999999)}
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Plage de date */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {lang === 'fr' ? 'Mise à jour' : 'Last Updated'}
-                  </label>
-                  <select
-                    value={filters.dateRange}
-                    onChange={(e) => handleFilterChange('dateRange', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                  >
-                    <option value="">{lang === 'fr' ? 'Toutes les dates' : 'All dates'}</option>
-                    <option value="today">{lang === 'fr' ? 'Aujourd\'hui' : 'Today'}</option>
-                    <option value="week">{lang === 'fr' ? 'Cette semaine' : 'This week'}</option>
-                    <option value="month">{lang === 'fr' ? 'Ce mois' : 'This month'}</option>
-                    <option value="quarter">{lang === 'fr' ? 'Ce trimestre' : 'This quarter'}</option>
-                    <option value="year">{lang === 'fr' ? 'Cette année' : 'This year'}</option>
-                  </select>
-                </div>
-
-                {/* Logique de filtres */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {lang === 'fr' ? 'Logique des filtres' : 'Filter Logic'}
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="filterLogic"
-                        value="AND"
-                        checked={filters.filterLogic === 'AND'}
-                        onChange={(e) => handleFilterChange('filterLogic', e.target.value)}
-                        className="text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {lang === 'fr' ? 'ET (tous)' : 'AND (all)'}
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="filterLogic"
-                        value="OR"
-                        checked={filters.filterLogic === 'OR'}
-                        onChange={(e) => handleFilterChange('filterLogic', e.target.value)}
-                        className="text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {lang === 'fr' ? 'OU (au moins un)' : 'OR (at least one)'}
-                      </span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Correspondance exacte */}
-                <div className="mb-4">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={filters.exactMatch}
-                      onChange={(e) => handleFilterChange('exactMatch', e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {lang === 'fr' ? 'Correspondance exacte' : 'Exact match'}
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Bouton réinitialiser */}
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const resetFilters: Filters = {
-                    query: '',
-                    audience: '',
-                    useCase: '',
-                    category: '',
-                    minQuality: 0,
-                    maxQuality: 10,
-                    sortBy: 'created_at',
-                    sortOrder: 'desc',
-                    hasImage: false,
-                    hasVideo: false,
-                    // Réinitialiser nouveaux filtres
-                    priceRange: '',
-                    platform: '',
-                    language: '',
-                    tags: [],
-                    excludeTags: [],
-                    dateRange: '',
-                    minViews: 0,
-                    maxViews: 999999,
-                    filterLogic: 'AND',
-                    exactMatch: false
-                  }
-                  setFilters(resetFilters)
-                  searchTools(resetFilters, 1)
-                }}
-                className="w-full"
-              >
-                {lang === 'fr' ? 'Réinitialiser les filtres' : 'Reset filters'}
-              </Button>
+              }>
+                <AdvancedFilters
+                  filters={filters}
+                  onFilterChange={handleFilterChange}
+                  onReset={() => {
+                    const resetFilters: Filters = {
+                      query: '',
+                      audience: '',
+                      useCase: '',
+                      category: '',
+                      minQuality: 0,
+                      maxQuality: 10,
+                      sortBy: 'created_at',
+                      sortOrder: 'desc',
+                      hasImage: false,
+                      hasVideo: false,
+                      priceRange: '',
+                      platform: '',
+                      language: '',
+                      tags: [],
+                      excludeTags: [],
+                      dateRange: '',
+                      minViews: 0,
+                      maxViews: 999999,
+                      filterLogic: 'AND',
+                      exactMatch: false
+                    }
+                    setFilters(resetFilters)
+                    searchTools(resetFilters, 1)
+                  }}
+                  audiences={audiences}
+                  useCases={useCases}
+                  categories={categories}
+                  lang={lang}
+                  activeFiltersCount={activeFiltersCount}
+                />
+              </Suspense>
+            </CardContent>
 
               {/* Section Recherches Sauvegardées */}
               <div className="mt-6">
@@ -1074,65 +844,37 @@ export default function ToolsPageClient({
               {/* Grille des outils */}
               <div className="mb-8">
                 {viewMode === 'grid' && (
-                  <GridLayout cols={3} className="gap-6">
-                    {tools.map((tool) => (
-                      <Card key={tool.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <CardTitle className="text-lg font-semibold line-clamp-2">
-                              {tool.displayName}
-                            </CardTitle>
-                            {tool.qualityScore && (
-                              <div className="flex items-center gap-1 text-yellow-500">
-                                <Star className="w-4 h-4 fill-current" />
-                                <span className="text-sm font-medium">{tool.qualityScore}</span>
-                              </div>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3 mb-4">
-                            {tool.displayOverview || tool.displayDescription}
-                          </p>
-                          <div className="flex items-center justify-between text-sm text-gray-500">
-                            <span>{tool.category}</span>
-                            <span>{tool.viewCount?.toLocaleString() || 0} vues</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </GridLayout>
+                  <Suspense fallback={
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="animate-pulse">
+                          <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                        </div>
+                      ))}
+                    </div>
+                  }>
+                    <GridLayout cols={3} className="gap-6">
+                      {tools.map((tool) => (
+                        <ToolCard key={tool.id} tool={tool} lang={lang} />
+                      ))}
+                    </GridLayout>
+                  </Suspense>
                 )}
 
                 {viewMode === 'list' && (
-                  <div className="space-y-4">
-                    {tools.map((tool) => (
-                      <Card key={tool.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h3 className="text-lg font-semibold">{tool.displayName}</h3>
-                                {tool.qualityScore && (
-                                  <div className="flex items-center gap-1 text-yellow-500">
-                                    <Star className="w-4 h-4 fill-current" />
-                                    <span className="text-sm font-medium">{tool.qualityScore}</span>
-                                  </div>
-                                )}
-                              </div>
-                              <p className="text-gray-600 dark:text-gray-400 line-clamp-2">
-                                {tool.displayOverview || tool.displayDescription}
-                              </p>
-                            </div>
-                            <div className="text-right text-sm text-gray-500">
-                              <div>{tool.category}</div>
-                              <div>{tool.viewCount?.toLocaleString() || 0} vues</div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  <Suspense fallback={
+                    <div className="space-y-4">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="animate-pulse">
+                          <div className="h-24 bg-gray-200 rounded-lg"></div>
+                        </div>
+                      ))}
+                    </div>
+                  }>
+                    <ToolList tools={tools} lang={lang} />
+                  </Suspense>
                 )}
               </div>
 
