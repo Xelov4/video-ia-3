@@ -1,13 +1,29 @@
 /**
- * Homepage Multilingue - Video-IA.net
+ * Homepage Révolutionnaire - Video-IA.net
  * 
- * Page d'accueil avec contenu dynamique par langue, outils featured,
- * catégories populaires et optimisations SEO complètes.
+ * Homepage moderne exploitant l'architecture data-driven avec navigation
+ * intelligente par audience, cas d'usage et fonctionnalités.
+ * 
+ * Features:
+ * - Données réelles extraites de 16,765 outils IA
+ * - Navigation par audience (developpeurs, créateurs, marketeurs, etc.)
+ * - Sections dynamiques basées sur les cas d'usage populaires
+ * - Outils trending et recommandations personnalisées
+ * - Design moderne avec composants du Design System
  */
 
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SupportedLocale, supportedLocales } from '@/middleware'
+
+import { Container } from '@/src/components/ui/Container'
+import { Button } from '@/src/components/ui/Button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/Card'
+import { Grid } from '@/src/components/ui/Grid'
+
+import { DataExtractionService } from '@/src/lib/services/dataExtraction'
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
+import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
 
 // Interface pour paramètres de page
 interface HomePageProps {
@@ -27,7 +43,7 @@ function validateLanguageParam(lang: string): SupportedLocale {
 }
 
 /**
- * Métadonnées SEO spécifiques à la homepage par langue
+ * Métadonnées SEO optimisées avec données réelles
  */
 export async function generateMetadata({ 
   params 
@@ -37,42 +53,50 @@ export async function generateMetadata({
   const { lang } = await params
   const validatedLang = validateLanguageParam(lang)
   
-  // Contenu SEO optimisé par langue
+  // Obtenir stats réelles
+  let totalTools = '16,765+'
+  try {
+    const stats = await DataExtractionService.getOverallStats()
+    totalTools = stats.totalTools.toLocaleString() + '+'
+  } catch (error) {
+    console.warn('Could not fetch real stats for metadata:', error)
+  }
+  
   const seoContent = {
     'en': {
-      title: 'Video-IA.net - Best AI Tools Directory 2025 | 16,000+ AI Tools',
-      description: 'Discover the world\'s largest AI tools directory with 16,000+ verified tools for video creation, editing, automation and more. Free reviews, comparisons and ratings.',
-      keywords: 'AI tools directory, artificial intelligence, video AI tools, machine learning tools, AI automation, free AI tools'
+      title: `Video-IA.net - Best AI Tools Directory 2025 | ${totalTools} AI Tools`,
+      description: `Discover the world's largest AI tools directory with ${totalTools} verified tools for video creation, content generation, automation and more. Find tools by audience, use case, and features.`,
+      keywords: 'AI tools directory, artificial intelligence, video AI tools, content creation, automation, machine learning, AI for developers, AI for creators'
     },
     'fr': {
-      title: 'Video-IA.net - Meilleur Répertoire d\'Outils IA 2025 | 16 000+ Outils IA',
-      description: 'Découvrez le plus grand répertoire d\'outils IA au monde avec 16 000+ outils vérifiés pour création vidéo, édition, automatisation et plus. Avis, comparaisons et notes gratuits.',
-      keywords: 'répertoire outils IA, intelligence artificielle, outils IA vidéo, outils machine learning, automatisation IA, outils IA gratuits'
+      title: `Video-IA.net - Meilleur Répertoire d'Outils IA 2025 | ${totalTools} Outils IA`,
+      description: `Découvrez le plus grand répertoire d'outils IA au monde avec ${totalTools} outils vérifiés pour création vidéo, génération de contenu, automatisation et plus. Trouvez des outils par audience, cas d'usage et fonctionnalités.`,
+      keywords: 'répertoire outils IA, intelligence artificielle, outils IA vidéo, création contenu, automatisation, IA pour développeurs, IA pour créateurs'
     },
     'it': {
-      title: 'Video-IA.net - Migliore Directory Strumenti AI 2025 | 16.000+ Strumenti AI',
-      description: 'Scopri la più grande directory di strumenti AI al mondo con 16.000+ strumenti verificati per creazione video, editing, automazione e altro. Recensioni, confronti e valutazioni gratuite.',
-      keywords: 'directory strumenti AI, intelligenza artificiale, strumenti AI video, strumenti machine learning, automazione AI, strumenti AI gratuiti'
+      title: `Video-IA.net - Migliore Directory Strumenti AI 2025 | ${totalTools} Strumenti AI`,
+      description: `Scopri la più grande directory di strumenti AI al mondo con ${totalTools} strumenti verificati per creazione video, generazione contenuti, automazione e altro. Trova strumenti per pubblico, caso d'uso e funzionalità.`,
+      keywords: 'directory strumenti AI, intelligenza artificiale, strumenti AI video, creazione contenuti, automazione'
     },
     'es': {
-      title: 'Video-IA.net - Mejor Directorio Herramientas IA 2025 | 16.000+ Herramientas IA',
-      description: 'Descubre el directorio de herramientas IA más grande del mundo con 16.000+ herramientas verificadas para creación de video, edición, automatización y más. Reviews, comparaciones y calificaciones gratis.',
-      keywords: 'directorio herramientas IA, inteligencia artificial, herramientas IA video, herramientas machine learning, automatización IA, herramientas IA gratis'
+      title: `Video-IA.net - Mejor Directorio Herramientas IA 2025 | ${totalTools} Herramientas IA`,
+      description: `Descubre el directorio de herramientas IA más grande del mundo con ${totalTools} herramientas verificadas para creación de video, generación de contenido, automatización y más. Encuentra herramientas por audiencia, caso de uso y características.`,
+      keywords: 'directorio herramientas IA, inteligencia artificial, herramientas IA video, creación contenido, automatización'
     },
     'de': {
-      title: 'Video-IA.net - Bestes KI-Tools Verzeichnis 2025 | 16.000+ KI-Tools',
-      description: 'Entdecken Sie das weltgrößte KI-Tools-Verzeichnis mit 16.000+ verifizierten Tools für Videoerstellung, Bearbeitung, Automatisierung und mehr. Kostenlose Bewertungen, Vergleiche und Ratings.',
-      keywords: 'KI-Tools Verzeichnis, künstliche Intelligenz, Video-KI-Tools, Machine Learning Tools, KI-Automatisierung, kostenlose KI-Tools'
+      title: `Video-IA.net - Bestes KI-Tools Verzeichnis 2025 | ${totalTools} KI-Tools`,
+      description: `Entdecken Sie das weltgrößte KI-Tools-Verzeichnis mit ${totalTools} verifizierten Tools für Videoerstellung, Content-Generierung, Automatisierung und mehr. Finden Sie Tools nach Zielgruppe, Anwendungsfall und Features.`,
+      keywords: 'KI-Tools Verzeichnis, künstliche Intelligenz, Video-KI-Tools, Content-Erstellung, Automatisierung'
     },
     'nl': {
-      title: 'Video-IA.net - Beste AI Tools Directory 2025 | 16.000+ AI Tools',
-      description: 'Ontdek \'s werelds grootste AI-tools directory met 16.000+ geverifieerde tools voor video creatie, bewerking, automatisering en meer. Gratis reviews, vergelijkingen en beoordelingen.',
-      keywords: 'AI-tools directory, kunstmatige intelligentie, video AI-tools, machine learning tools, AI-automatisering, gratis AI-tools'
+      title: `Video-IA.net - Beste AI Tools Directory 2025 | ${totalTools} AI Tools`,
+      description: `Ontdek 's werelds grootste AI-tools directory met ${totalTools} geverifieerde tools voor video creatie, content generatie, automatisering en meer. Vind tools op publiek, use case en functies.`,
+      keywords: 'AI-tools directory, kunstmatige intelligentie, video AI-tools, content creatie, automatisering'
     },
     'pt': {
-      title: 'Video-IA.net - Melhor Diretório Ferramentas IA 2025 | 16.000+ Ferramentas IA',
-      description: 'Descubra o maior diretório de ferramentas IA do mundo com 16.000+ ferramentas verificadas para criação de vídeo, edição, automação e mais. Reviews, comparações e avaliações grátis.',
-      keywords: 'diretório ferramentas IA, inteligência artificial, ferramentas IA vídeo, ferramentas machine learning, automação IA, ferramentas IA grátis'
+      title: `Video-IA.net - Melhor Diretório Ferramentas IA 2025 | ${totalTools} Ferramentas IA`,
+      description: `Descubra o maior diretório de ferramentas IA do mundo com ${totalTools} ferramentas verificadas para criação de vídeo, geração de conteúdo, automação e mais. Encontre ferramentas por audiência, caso de uso e recursos.`,
+      keywords: 'diretório ferramentas IA, inteligência artificial, ferramentas IA vídeo, criação conteúdo, automação'
     }
   }
   
@@ -90,8 +114,16 @@ export async function generateMetadata({
       description: content.description,
       url: currentUrl,
       siteName: 'Video-IA.net',
-      locale: validatedLang === 'en' ? 'en_US' : validatedLang === 'fr' ? 'fr_FR' : `${validatedLang}_${validatedLang.toUpperCase()}`,
+      locale: validatedLang === 'en' ? 'en_US' : `${validatedLang}_${validatedLang.toUpperCase()}`,
       type: 'website',
+      images: [
+        {
+          url: `${baseUrl}/og-image-${validatedLang}.jpg`,
+          width: 1200,
+          height: 630,
+          alt: content.title
+        }
+      ]
     },
     
     twitter: {
@@ -108,6 +140,25 @@ export async function generateMetadata({
           locale === 'en' ? baseUrl : `${baseUrl}/${locale}`
         ])
       )
+    },
+
+    // Schema.org structured data sera ajouté via JsonLd
+    other: {
+      'application/ld+json': JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Video-IA.net',
+        description: content.description,
+        url: currentUrl,
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${currentUrl}/search?q={search_term_string}`
+          },
+          'query-input': 'required name=search_term_string'
+        }
+      })
     }
   }
 }
@@ -122,307 +173,668 @@ export function generateStaticParams() {
 }
 
 /**
- * Homepage Component avec contenu multilingue
+ * Homepage Component Révolutionnaire
  */
 export default async function HomePage({ params }: HomePageProps) {
   const { lang } = await params
   const validatedLang = validateLanguageParam(lang)
   
-  // Données mockées pour l'instant
-  const mockData = {
+  // Charger les données réelles en parallèle
+  const [
+    stats,
+    featuredTools,
+    topCategories,
+    topAudiences,
+    topUseCases,
+    trendingTools
+  ] = await Promise.allSettled([
+    DataExtractionService.getOverallStats(),
+    multilingualToolsService.getFeaturedTools(validatedLang, 8),
+    multilingualCategoriesService.getAllCategories(validatedLang, { limit: 12, includeCounts: true }),
+    DataExtractionService.extractUniqueAudiences(15),
+    DataExtractionService.extractUseCases(12),
+    multilingualToolsService.searchTools({
+      language: validatedLang,
+      limit: 6,
+      sortBy: 'view_count',
+      sortOrder: 'desc',
+      filters: { minQualityScore: 7.0 }
+    })
+  ])
+
+  // Extraire données avec fallbacks
+  const overallStats = stats.status === 'fulfilled' ? stats.value : {
     totalTools: 16765,
     totalCategories: 140,
-    featuredTools: [
-      { id: 1, name: 'ChatGPT', description: 'AI chatbot for conversations', category: 'Chatbot', rating: 4.8 },
-      { id: 2, name: 'Midjourney', description: 'AI image generation', category: 'Image Generation', rating: 4.7 },
-      { id: 3, name: 'Jasper', description: 'AI writing assistant', category: 'Writing', rating: 4.6 },
-      { id: 4, name: 'DALL-E', description: 'AI art creation', category: 'Art', rating: 4.5 }
-    ],
-    popularCategories: [
-      { id: 1, name: 'Writing Assistant', slug: 'writing-assistant', toolCount: 1250, emoji: '✍️' },
-      { id: 2, name: 'Image Editing', slug: 'image-editing', toolCount: 980, emoji: '🎨' },
-      { id: 3, name: 'Video Editing', slug: 'video-editing', toolCount: 750, emoji: '🎬' },
-      { id: 4, name: 'Music Generation', slug: 'music-generation', toolCount: 420, emoji: '🎵' },
-      { id: 5, name: 'Productivity', slug: 'productivity', toolCount: 890, emoji: '⚡' },
-      { id: 6, name: 'Chatbot', slug: 'chatbot', toolCount: 650, emoji: '🤖' }
-    ]
+    totalAudiences: 50,
+    totalUseCases: 100
   }
-  
+
+  const featured = featuredTools.status === 'fulfilled' ? featuredTools.value.slice(0, 8) : []
+  const categories = topCategories.status === 'fulfilled' ? topCategories.value.slice(0, 12) : []
+  const audiences = topAudiences.status === 'fulfilled' ? topAudiences.value.slice(0, 12) : []
+  const useCases = topUseCases.status === 'fulfilled' ? topUseCases.value.slice(0, 8) : []
+  const trending = trendingTools.status === 'fulfilled' ? trendingTools.value.tools.slice(0, 6) : []
+
+  const getLocalizedHref = (path: string) => {
+    if (validatedLang === 'en') {
+      return path === '/' ? '/' : path
+    }
+    return path === '/' ? `/${validatedLang}` : `/${validatedLang}${path}`
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
-      {/* Section Hero */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6">
-            {getLocalizedText(validatedLang, 'heroTitle')}
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            {getLocalizedText(validatedLang, 'heroSubtitle')}
-          </p>
-          
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                {mockData.totalTools.toLocaleString()}
-              </div>
-              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(validatedLang, 'tools')}</div>
+    <div className="min-h-screen">
+      {/* Hero Section - Modern et Impactant */}
+      <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+        <Container size="xl" className="relative z-10">
+          <div className="py-20 md:py-32 text-center">
+            {/* Badge New */}
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-8">
+              ✨ {getLocalizedText(validatedLang, 'newUpdate')} {overallStats.totalTools.toLocaleString()}+ {getLocalizedText(validatedLang, 'toolsAvailable')}
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                {mockData.totalCategories}
-              </div>
-              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(validatedLang, 'categories')}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
-                150+
-              </div>
-              <div className="text-gray-600 dark:text-gray-400">{getLocalizedText(validatedLang, 'featured')}</div>
-            </div>
-          </div>
-          
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href={`/${validatedLang}/tools`}
-              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
-            >
-              {getLocalizedText(validatedLang, 'exploreTools')}
-              <svg className="ml-3 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </a>
-            <a
-              href={`/${validatedLang}/categories`}
-              className="inline-flex items-center px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition-all duration-300"
-            >
-              {getLocalizedText(validatedLang, 'browseCategories')}
-            </a>
-          </div>
-        </div>
-      </section>
-      
-      {/* Section Outils en Vedette */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-            {getLocalizedText(validatedLang, 'featuredTools')}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {mockData.featuredTools.map((tool) => (
-              <div key={tool.id} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{tool.category}</span>
-                  <div className="flex items-center">
-                    <span className="text-yellow-400">★</span>
-                    <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">{tool.rating}</span>
-                  </div>
+
+            {/* Titre Principal */}
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+              {getLocalizedText(validatedLang, 'heroTitle')}
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {getLocalizedText(validatedLang, 'heroTitleHighlight')}
+              </span>
+            </h1>
+
+            {/* Sous-titre */}
+            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
+              {getLocalizedText(validatedLang, 'heroSubtitle')}
+            </p>
+
+            {/* Stats Impressionnantes */}
+            <Grid cols={3} gap="lg" className="mb-12 max-w-4xl mx-auto">
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2">
+                  {overallStats.totalTools.toLocaleString()}+
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{tool.name}</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{tool.description}</p>
-                <a
-                  href={`/${validatedLang}/tools/${tool.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-                >
-                  {getLocalizedText(validatedLang, 'learnMore')}
-                  <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </a>
+                <div className="text-gray-600 text-lg">{getLocalizedText(validatedLang, 'aiTools')}</div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Section Catégories Populaires */}
-      <section className="py-16 px-4 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
-            {getLocalizedText(validatedLang, 'popularCategories')}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {mockData.popularCategories.map((category) => (
-              <a
-                key={category.id}
-                href={`/${validatedLang}/categories/${category.slug}`}
-                className="group flex flex-col items-center p-6 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-blue-50 dark:hover:bg-gray-600 transition-all duration-300 hover:scale-105"
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent mb-2">
+                  {overallStats.totalAudiences}+
+                </div>
+                <div className="text-gray-600 text-lg">{getLocalizedText(validatedLang, 'audiences')}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-2">
+                  {overallStats.totalUseCases}+
+                </div>
+                <div className="text-gray-600 text-lg">{getLocalizedText(validatedLang, 'useCases')}</div>
+              </div>
+            </Grid>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                variant="primary" 
+                size="lg"
+                className="text-lg px-8 py-4"
+                href={getLocalizedHref('/discover')}
               >
-                <div className="text-4xl mb-3">{category.emoji}</div>
-                <h3 className="text-sm font-semibold text-center text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                  {category.name}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {category.toolCount} {getLocalizedText(validatedLang, 'tools')}
-                </p>
-              </a>
-            ))}
+                {getLocalizedText(validatedLang, 'startExploring')}
+                <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Button>
+              <Button 
+                variant="secondary" 
+                size="lg"
+                className="text-lg px-8 py-4"
+                href={getLocalizedHref('/categories')}
+              >
+                {getLocalizedText(validatedLang, 'browseCategories')}
+              </Button>
+            </div>
           </div>
-          <div className="text-center mt-8">
-            <a
-              href={`/${validatedLang}/categories`}
-              className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200"
-            >
-              {getLocalizedText(validatedLang, 'viewAllCategories')}
-              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-          </div>
+        </Container>
+
+        {/* Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-4 -right-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+          <div className="absolute -bottom-8 -left-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
         </div>
       </section>
-      
-      {/* Section CTA Newsletter */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-4xl font-bold mb-6">
-            {getLocalizedText(validatedLang, 'stayUpdated')}
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            {getLocalizedText(validatedLang, 'stayUpdatedDescription')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder={getLocalizedText(validatedLang, 'emailPlaceholder')}
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
-            />
-            <button className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
-              {getLocalizedText(validatedLang, 'subscribe')}
-            </button>
+
+      {/* Section Navigation par Audience */}
+      <section className="py-20 bg-white">
+        <Container size="xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              {getLocalizedText(validatedLang, 'findToolsForYou')}
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {getLocalizedText(validatedLang, 'findToolsForYouDesc')}
+            </p>
           </div>
-        </div>
+
+          <Grid cols={3} responsive={{ sm: 2, md: 3, lg: 4 }} gap="md">
+            {audiences.map((audience, index) => (
+              <Card 
+                key={audience.name}
+                variant="outlined"
+                hover
+                className="group cursor-pointer h-full"
+              >
+                <a href={getLocalizedHref(`/for/${audience.name.toLowerCase().replace(/\s+/g, '-')}`)}>
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <span className="text-white text-2xl">
+                        {getAudienceEmoji(audience.name)}
+                      </span>
+                    </div>
+                    <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
+                      {audience.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {audience.count.toLocaleString()} {getLocalizedText(validatedLang, 'tools')}
+                    </p>
+                    <div className="text-blue-600 text-sm font-medium group-hover:underline">
+                      {getLocalizedText(validatedLang, 'explore')} →
+                    </div>
+                  </CardContent>
+                </a>
+              </Card>
+            ))}
+          </Grid>
+
+          <div className="text-center mt-12">
+            <Button 
+              variant="outline" 
+              href={getLocalizedHref('/audiences')}
+            >
+              {getLocalizedText(validatedLang, 'viewAllAudiences')}
+            </Button>
+          </div>
+        </Container>
+      </section>
+
+      {/* Section Cas d'Usage Populaires */}
+      <section className="py-20 bg-gray-50">
+        <Container size="xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              {getLocalizedText(validatedLang, 'popularUseCases')}
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {getLocalizedText(validatedLang, 'popularUseCasesDesc')}
+            </p>
+          </div>
+
+          <Grid cols={2} responsive={{ md: 2, lg: 4 }} gap="md">
+            {useCases.map((useCase, index) => (
+              <Card 
+                key={useCase.name}
+                variant="elevated"
+                hover
+                className="group cursor-pointer"
+              >
+                <a href={getLocalizedHref(`/use-cases/${useCase.name.toLowerCase().replace(/\s+/g, '-')}`)}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-lg">
+                          {getUseCaseEmoji(useCase.name)}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                          {useCase.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {useCase.count.toLocaleString()} {getLocalizedText(validatedLang, 'tools')}
+                        </p>
+                        <div className="text-blue-600 text-sm font-medium group-hover:underline">
+                          {getLocalizedText(validatedLang, 'discover')} →
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </a>
+              </Card>
+            ))}
+          </Grid>
+        </Container>
+      </section>
+
+      {/* Section Outils Featured */}
+      {featured.length > 0 && (
+        <section className="py-20 bg-white">
+          <Container size="xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                {getLocalizedText(validatedLang, 'featuredTools')}
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                {getLocalizedText(validatedLang, 'featuredToolsDesc')}
+              </p>
+            </div>
+
+            <Grid cols={2} responsive={{ md: 2, lg: 4 }} gap="md">
+              {featured.map((tool) => (
+                <Card 
+                  key={tool.id}
+                  variant="elevated"
+                  hover
+                  className="group cursor-pointer h-full"
+                >
+                  <a href={getLocalizedHref(`/tools/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
+                    <CardContent className="p-6">
+                      {tool.imageUrl && (
+                        <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                          <img 
+                            src={tool.imageUrl} 
+                            alt={tool.displayName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                          {tool.toolCategory}
+                        </span>
+                        {tool.qualityScore && (
+                          <div className="flex items-center">
+                            <span className="text-yellow-400 text-sm">★</span>
+                            <span className="ml-1 text-sm text-gray-600">{(tool.qualityScore / 10).toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                        {tool.displayName}
+                      </h3>
+                      
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                        {tool.displayOverview || tool.displayDescription}
+                      </p>
+
+                      <div className="text-blue-600 text-sm font-medium group-hover:underline">
+                        {getLocalizedText(validatedLang, 'learnMore')} →
+                      </div>
+                    </CardContent>
+                  </a>
+                </Card>
+              ))}
+            </Grid>
+
+            <div className="text-center mt-12">
+              <Button 
+                variant="primary" 
+                href={getLocalizedHref('/tools')}
+              >
+                {getLocalizedText(validatedLang, 'exploreAllTools')}
+              </Button>
+            </div>
+          </Container>
+        </section>
+      )}
+
+      {/* Section Trending Tools */}
+      {trending.length > 0 && (
+        <section className="py-20 bg-gradient-to-br from-purple-50 to-blue-50">
+          <Container size="xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                🔥 {getLocalizedText(validatedLang, 'trendingNow')}
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                {getLocalizedText(validatedLang, 'trendingDesc')}
+              </p>
+            </div>
+
+            <Grid cols={1} responsive={{ md: 2, lg: 3 }} gap="md">
+              {trending.map((tool, index) => (
+                <Card 
+                  key={tool.id}
+                  variant="glass"
+                  hover
+                  className="group cursor-pointer"
+                >
+                  <a href={getLocalizedHref(`/tools/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold">#{index + 1}</span>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                            {tool.displayName}
+                          </h3>
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                            {tool.displayOverview}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                              {tool.toolCategory}
+                            </span>
+                            <div className="text-blue-600 text-sm font-medium group-hover:underline">
+                              {getLocalizedText(validatedLang, 'tryNow')} →
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </a>
+                </Card>
+              ))}
+            </Grid>
+          </Container>
+        </section>
+      )}
+
+      {/* Section CTA Newsletter */}
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+        <Container size="lg">
+          <div className="text-center text-white">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              {getLocalizedText(validatedLang, 'stayAhead')}
+            </h2>
+            <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+              {getLocalizedText(validatedLang, 'stayAheadDesc')}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder={getLocalizedText(validatedLang, 'emailPlaceholder')}
+                className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
+              />
+              <Button variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
+                {getLocalizedText(validatedLang, 'subscribe')}
+              </Button>
+            </div>
+            <p className="text-sm opacity-75 mt-4">
+              {getLocalizedText(validatedLang, 'noSpam')}
+            </p>
+          </div>
+        </Container>
       </section>
     </div>
   )
 }
 
 /**
- * Textes localisés pour la homepage
+ * Textes localisés pour la homepage révolutionnaire
  */
 function getLocalizedText(lang: SupportedLocale, key: string): string {
   const translations: Record<string, Record<string, string>> = {
     'en': {
-      heroTitle: 'Discover the Best AI Tools',
-      heroSubtitle: '16,000+ verified AI tools for creators and professionals',
-      tools: 'Tools',
-      categories: 'Categories',
-      featured: 'Featured',
-      exploreTools: 'Explore Tools',
+      newUpdate: 'New:',
+      toolsAvailable: 'AI tools available',
+      heroTitle: 'Find the Perfect ',
+      heroTitleHighlight: 'AI Tool',
+      heroSubtitle: 'Discover 16,765+ verified AI tools organized by your role, use case, and specific needs. Save time and find exactly what you need.',
+      aiTools: 'AI Tools',
+      audiences: 'Audiences',
+      useCases: 'Use Cases',
+      startExploring: 'Start Exploring',
       browseCategories: 'Browse Categories',
+      findToolsForYou: 'Find Tools Built For You',
+      findToolsForYouDesc: 'Discover AI tools specifically designed for your role and industry.',
+      tools: 'tools',
+      explore: 'Explore',
+      viewAllAudiences: 'View All Audiences',
+      popularUseCases: 'Popular Use Cases',
+      popularUseCasesDesc: 'Find tools by what you want to accomplish.',
+      discover: 'Discover',
       featuredTools: 'Featured AI Tools',
-      popularCategories: 'Popular Categories',
+      featuredToolsDesc: 'Hand-picked tools with exceptional quality and user ratings.',
       learnMore: 'Learn More',
-      viewAllCategories: 'View All Categories',
-      stayUpdated: 'Stay Updated',
-      stayUpdatedDescription: 'Get the latest AI tools and updates delivered to your inbox',
+      exploreAllTools: 'Explore All Tools',
+      trendingNow: 'Trending Now',
+      trendingDesc: 'The most popular AI tools this week.',
+      tryNow: 'Try Now',
+      stayAhead: 'Stay Ahead of the AI Curve',
+      stayAheadDesc: 'Get weekly updates on the latest AI tools, trends, and exclusive insights.',
       emailPlaceholder: 'Enter your email',
-      subscribe: 'Subscribe'
+      subscribe: 'Subscribe',
+      noSpam: 'No spam, unsubscribe anytime.'
     },
     'fr': {
-      heroTitle: 'Découvrez les Meilleurs Outils IA',
-      heroSubtitle: '16 000+ outils IA vérifiés pour créateurs et professionnels',
-      tools: 'Outils',
-      categories: 'Catégories',
-      featured: 'En Vedette',
-      exploreTools: 'Explorer les Outils',
+      newUpdate: 'Nouveau :',
+      toolsAvailable: 'outils IA disponibles',
+      heroTitle: 'Trouvez l\'',
+      heroTitleHighlight: 'Outil IA Parfait',
+      heroSubtitle: 'Découvrez 16 765+ outils IA vérifiés organisés par votre rôle, cas d\'usage et besoins spécifiques. Gagnez du temps et trouvez exactement ce qu\'il vous faut.',
+      aiTools: 'Outils IA',
+      audiences: 'Audiences',
+      useCases: 'Cas d\'Usage',
+      startExploring: 'Commencer l\'Exploration',
       browseCategories: 'Parcourir les Catégories',
+      findToolsForYou: 'Trouvez des Outils Faits Pour Vous',
+      findToolsForYouDesc: 'Découvrez des outils IA spécialement conçus pour votre rôle et secteur.',
+      tools: 'outils',
+      explore: 'Explorer',
+      viewAllAudiences: 'Voir Toutes les Audiences',
+      popularUseCases: 'Cas d\'Usage Populaires',
+      popularUseCasesDesc: 'Trouvez des outils selon ce que vous voulez accomplir.',
+      discover: 'Découvrir',
       featuredTools: 'Outils IA en Vedette',
-      popularCategories: 'Catégories Populaires',
+      featuredToolsDesc: 'Outils sélectionnés avec une qualité exceptionnelle et d\'excellentes notes.',
       learnMore: 'En Savoir Plus',
-      viewAllCategories: 'Voir Toutes les Catégories',
-      stayUpdated: 'Restez Informé',
-      stayUpdatedDescription: 'Recevez les derniers outils IA et mises à jour dans votre boîte mail',
+      exploreAllTools: 'Explorer Tous les Outils',
+      trendingNow: 'Tendance Maintenant',
+      trendingDesc: 'Les outils IA les plus populaires cette semaine.',
+      tryNow: 'Essayer Maintenant',
+      stayAhead: 'Restez en Avance sur l\'IA',
+      stayAheadDesc: 'Recevez des mises à jour hebdomadaires sur les derniers outils IA, tendances et insights exclusifs.',
       emailPlaceholder: 'Entrez votre email',
-      subscribe: 'S\'abonner'
+      subscribe: 'S\'abonner',
+      noSpam: 'Pas de spam, désabonnement à tout moment.'
     },
+    // Add other languages similarly...
     'it': {
-      heroTitle: 'Scopri i Migliori Strumenti AI',
-      heroSubtitle: '16.000+ strumenti AI verificati per creatori e professionisti',
-      tools: 'Strumenti',
-      categories: 'Categorie',
-      featured: 'In Evidenza',
-      exploreTools: 'Esplora Strumenti',
+      newUpdate: 'Nuovo:',
+      toolsAvailable: 'strumenti AI disponibili',
+      heroTitle: 'Trova lo ',
+      heroTitleHighlight: 'Strumento AI Perfetto',
+      heroSubtitle: 'Scopri 16.765+ strumenti AI verificati organizzati per il tuo ruolo, caso d\'uso e esigenze specifiche.',
+      aiTools: 'Strumenti AI',
+      audiences: 'Pubblico',
+      useCases: 'Casi d\'Uso',
+      startExploring: 'Inizia ad Esplorare',
       browseCategories: 'Sfoglia Categorie',
+      findToolsForYou: 'Trova Strumenti Fatti per Te',
+      findToolsForYouDesc: 'Scopri strumenti AI progettati specificamente per il tuo ruolo e settore.',
+      tools: 'strumenti',
+      explore: 'Esplora',
+      viewAllAudiences: 'Vedi Tutti i Pubblici',
+      popularUseCases: 'Casi d\'Uso Popolari',
+      popularUseCasesDesc: 'Trova strumenti in base a ciò che vuoi realizzare.',
+      discover: 'Scopri',
       featuredTools: 'Strumenti AI in Evidenza',
-      popularCategories: 'Categorie Popolari',
+      featuredToolsDesc: 'Strumenti selezionati con qualità eccezionale e valutazioni utenti.',
       learnMore: 'Scopri di Più',
-      viewAllCategories: 'Visualizza Tutte le Categorie',
-      stayUpdated: 'Resta Aggiornato',
-      stayUpdatedDescription: 'Ricevi i più recenti strumenti AI e aggiornamenti nella tua casella di posta',
+      exploreAllTools: 'Esplora Tutti gli Strumenti',
+      trendingNow: 'Trending Ora',
+      trendingDesc: 'Gli strumenti AI più popolari questa settimana.',
+      tryNow: 'Prova Ora',
+      stayAhead: 'Rimani Avanti nella Curva AI',
+      stayAheadDesc: 'Ricevi aggiornamenti settimanali sui più recenti strumenti AI, tendenze e insights esclusivi.',
       emailPlaceholder: 'Inserisci la tua email',
-      subscribe: 'Iscriviti'
+      subscribe: 'Iscriviti',
+      noSpam: 'Niente spam, cancellati quando vuoi.'
     },
     'es': {
-      heroTitle: 'Descubre las Mejores Herramientas IA',
-      heroSubtitle: '16.000+ herramientas IA verificadas para creadores y profesionales',
-      tools: 'Herramientas',
-      categories: 'Categorías',
-      featured: 'Destacadas',
-      exploreTools: 'Explorar Herramientas',
+      newUpdate: 'Nuevo:',
+      toolsAvailable: 'herramientas IA disponibles',
+      heroTitle: 'Encuentra la ',
+      heroTitleHighlight: 'Herramienta IA Perfecta',
+      heroSubtitle: 'Descubre 16.765+ herramientas IA verificadas organizadas por tu rol, caso de uso y necesidades específicas.',
+      aiTools: 'Herramientas IA',
+      audiences: 'Audiencias',
+      useCases: 'Casos de Uso',
+      startExploring: 'Comenzar a Explorar',
       browseCategories: 'Navegar Categorías',
+      findToolsForYou: 'Encuentra Herramientas Hechas Para Ti',
+      findToolsForYouDesc: 'Descubre herramientas IA diseñadas específicamente para tu rol e industria.',
+      tools: 'herramientas',
+      explore: 'Explorar',
+      viewAllAudiences: 'Ver Todas las Audiencias',
+      popularUseCases: 'Casos de Uso Populares',
+      popularUseCasesDesc: 'Encuentra herramientas según lo que quieras lograr.',
+      discover: 'Descubrir',
       featuredTools: 'Herramientas IA Destacadas',
-      popularCategories: 'Categorías Populares',
+      featuredToolsDesc: 'Herramientas seleccionadas con calidad excepcional y valoraciones de usuarios.',
       learnMore: 'Saber Más',
-      viewAllCategories: 'Ver Todas las Categorías',
-      stayUpdated: 'Mantente Actualizado',
-      stayUpdatedDescription: 'Recibe las últimas herramientas IA y actualizaciones en tu bandeja de entrada',
+      exploreAllTools: 'Explorar Todas las Herramientas',
+      trendingNow: 'Tendencia Ahora',
+      trendingDesc: 'Las herramientas IA más populares esta semana.',
+      tryNow: 'Probar Ahora',
+      stayAhead: 'Mantente Adelante en la Curva IA',
+      stayAheadDesc: 'Recibe actualizaciones semanales sobre las últimas herramientas IA, tendencias e insights exclusivos.',
       emailPlaceholder: 'Ingresa tu email',
-      subscribe: 'Suscribirse'
+      subscribe: 'Suscribirse',
+      noSpam: 'Sin spam, cancela cuando quieras.'
     },
     'de': {
-      heroTitle: 'Entdecken Sie die Besten KI-Tools',
-      heroSubtitle: '16.000+ verifizierte KI-Tools für Kreative und Profis',
-      tools: 'Tools',
-      categories: 'Kategorien',
-      featured: 'Empfohlen',
-      exploreTools: 'Tools Erkunden',
+      newUpdate: 'Neu:',
+      toolsAvailable: 'KI-Tools verfügbar',
+      heroTitle: 'Finden Sie das ',
+      heroTitleHighlight: 'Perfekte KI-Tool',
+      heroSubtitle: 'Entdecken Sie 16.765+ verifizierte KI-Tools organisiert nach Ihrer Rolle, Anwendungsfall und spezifischen Bedürfnissen.',
+      aiTools: 'KI-Tools',
+      audiences: 'Zielgruppen',
+      useCases: 'Anwendungsfälle',
+      startExploring: 'Erkunden Beginnen',
       browseCategories: 'Kategorien Durchsuchen',
+      findToolsForYou: 'Finden Sie Tools Für Sie',
+      findToolsForYouDesc: 'Entdecken Sie KI-Tools speziell für Ihre Rolle und Branche entwickelt.',
+      tools: 'tools',
+      explore: 'Erkunden',
+      viewAllAudiences: 'Alle Zielgruppen Anzeigen',
+      popularUseCases: 'Beliebte Anwendungsfälle',
+      popularUseCasesDesc: 'Finden Sie Tools basierend auf dem, was Sie erreichen möchten.',
+      discover: 'Entdecken',
       featuredTools: 'Featured KI-Tools',
-      popularCategories: 'Beliebte Kategorien',
+      featuredToolsDesc: 'Handverlesene Tools mit außergewöhnlicher Qualität und Nutzerbewertungen.',
       learnMore: 'Mehr Erfahren',
-      viewAllCategories: 'Alle Kategorien Anzeigen',
-      stayUpdated: 'Bleiben Sie auf dem Laufenden',
-      stayUpdatedDescription: 'Erhalten Sie die neuesten KI-Tools und Updates in Ihr Postfach',
+      exploreAllTools: 'Alle Tools Erkunden',
+      trendingNow: 'Trending Jetzt',
+      trendingDesc: 'Die beliebtesten KI-Tools diese Woche.',
+      tryNow: 'Jetzt Testen',
+      stayAhead: 'Bleiben Sie der KI-Kurve Voraus',
+      stayAheadDesc: 'Erhalten Sie wöchentliche Updates zu den neuesten KI-Tools, Trends und exklusiven Einblicken.',
       emailPlaceholder: 'E-Mail eingeben',
-      subscribe: 'Abonnieren'
+      subscribe: 'Abonnieren',
+      noSpam: 'Kein Spam, jederzeit abmelden.'
     },
     'nl': {
-      heroTitle: 'Ontdek de Beste AI Tools',
-      heroSubtitle: '16.000+ geverifieerde AI-tools voor creatieven en professionals',
-      tools: 'Tools',
-      categories: 'Categorieën',
-      featured: 'Uitgelicht',
-      exploreTools: 'Tools Verkennen',
+      newUpdate: 'Nieuw:',
+      toolsAvailable: 'AI-tools beschikbaar',
+      heroTitle: 'Vind de ',
+      heroTitleHighlight: 'Perfecte AI Tool',
+      heroSubtitle: 'Ontdek 16.765+ geverifieerde AI-tools georganiseerd op jouw rol, use case en specifieke behoeften.',
+      aiTools: 'AI Tools',
+      audiences: 'Doelgroepen',
+      useCases: 'Gebruikscases',
+      startExploring: 'Begin Verkennen',
       browseCategories: 'Categorieën Bladeren',
+      findToolsForYou: 'Vind Tools Gemaakt Voor Jou',
+      findToolsForYouDesc: 'Ontdek AI-tools speciaal ontworpen voor jouw rol en industrie.',
+      tools: 'tools',
+      explore: 'Verkennen',
+      viewAllAudiences: 'Bekijk Alle Doelgroepen',
+      popularUseCases: 'Populaire Gebruikscases',
+      popularUseCasesDesc: 'Vind tools gebaseerd op wat je wilt bereiken.',
+      discover: 'Ontdekken',
       featuredTools: 'Uitgelichte AI Tools',
-      popularCategories: 'Populaire Categorieën',
+      featuredToolsDesc: 'Handgeplukte tools met uitzonderlijke kwaliteit en gebruikersbeoordelingen.',
       learnMore: 'Meer Leren',
-      viewAllCategories: 'Bekijk Alle Categorieën',
-      stayUpdated: 'Blijf Op de Hoogte',
-      stayUpdatedDescription: 'Ontvang de nieuwste AI-tools en updates in je inbox',
+      exploreAllTools: 'Alle Tools Verkennen',
+      trendingNow: 'Trending Nu',
+      trendingDesc: 'De populairste AI-tools deze week.',
+      tryNow: 'Nu Proberen',
+      stayAhead: 'Blijf Voorop in de AI-Curve',
+      stayAheadDesc: 'Ontvang wekelijkse updates over de nieuwste AI-tools, trends en exclusieve inzichten.',
       emailPlaceholder: 'Voer je e-mail in',
-      subscribe: 'Abonneren'
+      subscribe: 'Abonneren',
+      noSpam: 'Geen spam, altijd uitschrijven.'
     },
     'pt': {
-      heroTitle: 'Descubra as Melhores Ferramentas IA',
-      heroSubtitle: '16.000+ ferramentas IA verificadas para criadores e profissionais',
-      tools: 'Ferramentas',
-      categories: 'Categorias',
-      featured: 'Destacadas',
-      exploreTools: 'Explorar Ferramentas',
+      newUpdate: 'Novo:',
+      toolsAvailable: 'ferramentas IA disponíveis',
+      heroTitle: 'Encontre a ',
+      heroTitleHighlight: 'Ferramenta IA Perfeita',
+      heroSubtitle: 'Descubra 16.765+ ferramentas IA verificadas organizadas por sua função, caso de uso e necessidades específicas.',
+      aiTools: 'Ferramentas IA',
+      audiences: 'Audiências',
+      useCases: 'Casos de Uso',
+      startExploring: 'Começar a Explorar',
       browseCategories: 'Navegar Categorias',
+      findToolsForYou: 'Encontre Ferramentas Feitas Para Você',
+      findToolsForYouDesc: 'Descubra ferramentas IA projetadas especificamente para sua função e indústria.',
+      tools: 'ferramentas',
+      explore: 'Explorar',
+      viewAllAudiences: 'Ver Todas as Audiências',
+      popularUseCases: 'Casos de Uso Populares',
+      popularUseCasesDesc: 'Encontre ferramentas baseadas no que você quer alcançar.',
+      discover: 'Descobrir',
       featuredTools: 'Ferramentas IA em Destaque',
-      popularCategories: 'Categorias Populares',
+      featuredToolsDesc: 'Ferramentas selecionadas com qualidade excepcional e avaliações de usuários.',
       learnMore: 'Saber Mais',
-      viewAllCategories: 'Ver Todas as Categorias',
-      stayUpdated: 'Fique Atualizado',
-      stayUpdatedDescription: 'Receba as mais recentes ferramentas IA e atualizações na sua caixa de entrada',
+      exploreAllTools: 'Explorar Todas as Ferramentas',
+      trendingNow: 'Trending Agora',
+      trendingDesc: 'As ferramentas IA mais populares desta semana.',
+      tryNow: 'Experimentar Agora',
+      stayAhead: 'Fique à Frente da Curva IA',
+      stayAheadDesc: 'Receba atualizações semanais sobre as mais recentes ferramentas IA, tendências e insights exclusivos.',
       emailPlaceholder: 'Digite seu email',
-      subscribe: 'Assinar'
+      subscribe: 'Assinar',
+      noSpam: 'Sem spam, cancele a qualquer momento.'
     }
   }
   
   return translations[lang]?.[key] || translations['en'][key] || key
+}
+
+/**
+ * Helper functions pour emojis
+ */
+function getAudienceEmoji(audience: string): string {
+  const emojiMap: Record<string, string> = {
+    'developers': '👨‍💻',
+    'creators': '🎨',
+    'marketers': '📈',
+    'writers': '✍️',
+    'designers': '🎨',
+    'students': '🎓',
+    'entrepreneurs': '🚀',
+    'researchers': '🔬',
+    'analysts': '📊',
+    'content creators': '📹',
+    'social media managers': '📱',
+    'small business owners': '🏪'
+  }
+  
+  const key = audience.toLowerCase()
+  return emojiMap[key] || '⚡'
+}
+
+function getUseCaseEmoji(useCase: string): string {
+  const emojiMap: Record<string, string> = {
+    'content creation': '📝',
+    'video editing': '🎬',
+    'image generation': '🖼️',
+    'writing assistance': '✍️',
+    'code generation': '💻',
+    'data analysis': '📊',
+    'automation': '🤖',
+    'translation': '🌐',
+    'voice synthesis': '🎤',
+    'research': '🔍',
+    'productivity': '⚡',
+    'design': '🎨'
+  }
+  
+  const key = useCase.toLowerCase()
+  return emojiMap[key] || '🔧'
 }
