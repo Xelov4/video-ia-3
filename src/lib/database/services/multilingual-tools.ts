@@ -152,7 +152,7 @@ class MultilingualToolsService {
       }
 
       if (minQualityScore) {
-        where.qualityScore = {
+        where.quality_score = {
           gte: minQualityScore
         }
       }
@@ -184,7 +184,7 @@ class MultilingualToolsService {
       } else if (sortBy === 'view_count') {
         orderBy.viewCount = sortOrder
       } else if (sortBy === 'quality_score') {
-        orderBy.qualityScore = sortOrder
+        orderBy.quality_score = sortOrder
       } else {
         orderBy.createdAt = sortOrder
       }

@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
           prisma.tool.aggregate({
             where: { isActive: true },
             _count: { id: true },
-            _min: { qualityScore: true },
-            _max: { qualityScore: true }
+            _min: { quality_score: true },
+            _max: { quality_score: true }
           }),
           // Get top tags from tools
           prisma.$queryRaw`
@@ -60,8 +60,8 @@ export async function GET(request: NextRequest) {
           })).filter(t => t.name && t.name.length > 0) : [],
           stats: {
             totalTools: toolStats._count.id || 0,
-            minQualityScore: toolStats._min.qualityScore || 0,
-            maxQualityScore: toolStats._max.qualityScore || 10
+            minQualityScore: toolStats._min.quality_score || 0,
+            maxQualityScore: toolStats._max.quality_score || 10
           },
           sortOptions: [
             { value: 'created_at', label: 'Date de création', default: true },

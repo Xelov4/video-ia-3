@@ -26,6 +26,17 @@ export function validateLanguageParam(lang: string | null | undefined): Supporte
 }
 
 /**
+ * Valide et normalise le paramètre de page
+ */
+export function validatePageParam(page: string | null | undefined): number {
+  const parsedPage = parseInt(page || '1')
+  if (isNaN(parsedPage) || parsedPage < 1) {
+    return 1 // Default page
+  }
+  return parsedPage
+}
+
+/**
  * Valide et normalise le paramètre de limite
  */
 export function validateLimitParam(limit: string, max: number = 100): number {

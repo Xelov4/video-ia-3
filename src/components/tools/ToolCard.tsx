@@ -73,8 +73,15 @@ export const ToolCard: React.FC<ToolCardProps> = ({
     ? getCategoryEmojiString(tool.toolCategory) 
     : '🔧'
 
-  // Choose placeholder image if no image is available
-  const imageUrl = tool.imageUrl || `/images/placeholders/tool-${Math.floor(Math.random() * 5) + 1}.jpg`
+  // Choose placeholder image if no image is available - using a data URI for now
+  const imageUrl = tool.imageUrl || `data:image/svg+xml;base64,${Buffer.from(`
+    <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#e5e7eb"/>
+      <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="16" fill="#6b7280">
+        ${tool.displayName}
+      </text>
+    </svg>
+  `.trim()).toString('base64')}`
 
   // Show translation warning if fallback was used
   const showTranslationWarning = tool.resolvedLanguage !== lang
@@ -89,22 +96,22 @@ export const ToolCard: React.FC<ToolCardProps> = ({
   if (size === 'small') {
     // Compact list view
     return (
-      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
         <Link href={toolUrl} className="block h-full">
           <div className="flex items-start p-4 h-full">
-            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-600/80 to-purple-600/80 rounded-lg flex items-center justify-center mr-4">
+            <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-4">
               <span className="text-white text-2xl">{categoryEmoji}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-white font-semibold text-lg mb-1 truncate group-hover:text-purple-300 transition-colors">
+              <h3 className="text-gray-900 font-semibold text-lg mb-1 truncate group-hover:text-blue-600 transition-colors">
                 {tool.displayName}
               </h3>
               
               {showCategory && tool.toolCategory && (
-                <div className="text-sm text-gray-300 mb-2">{tool.toolCategory}</div>
+                <div className="text-sm text-gray-600 mb-2">{tool.toolCategory}</div>
               )}
               
-              <p className="text-gray-400 text-sm line-clamp-2">
+              <p className="text-gray-500 text-sm line-clamp-2">
                 {getExcerpt(tool.displayOverview || tool.displayDescription, 80)}
               </p>
               
@@ -122,11 +129,11 @@ export const ToolCard: React.FC<ToolCardProps> = ({
 
   // Default card view (medium/large)
   return (
-    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group h-full flex flex-col">
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group h-full flex flex-col">
       <Link href={toolUrl} className="block h-full">
         <div className="h-full flex flex-col">
           {/* Image */}
-          <div className="relative w-full h-48 bg-gray-800 overflow-hidden">
+          <div className="relative w-full h-48 bg-gray-200 overflow-hidden">
             <Image
               src={imageUrl}
               alt={tool.displayName}
@@ -152,11 +159,11 @@ export const ToolCard: React.FC<ToolCardProps> = ({
           
           {/* Content */}
           <div className="p-5 flex-1 flex flex-col">
-            <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-purple-300 transition-colors">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
               {tool.displayName}
             </h3>
             
-            <p className="text-gray-300 flex-1 mb-4 line-clamp-3">
+            <p className="text-gray-600 flex-1 mb-4 line-clamp-3">
               {getExcerpt(tool.displayOverview || tool.displayDescription)}
             </p>
             
@@ -170,7 +177,7 @@ export const ToolCard: React.FC<ToolCardProps> = ({
             )}
             
             <div className="text-center">
-              <span className="inline-flex items-center text-sm text-purple-300 font-medium group-hover:underline">
+              <span className="inline-flex items-center text-sm text-blue-600 font-medium group-hover:underline">
                 {t.viewTool}
                 <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />

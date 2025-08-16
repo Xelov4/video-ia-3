@@ -101,7 +101,7 @@ export class ToolsService {
     if (sortBy === 'name') {
       orderBy.toolName = sortOrder
     } else if (sortBy === 'quality_score') {
-      orderBy.qualityScore = sortOrder
+      orderBy.quality_score = sortOrder
     } else if (sortBy === 'view_count') {
       orderBy.viewCount = sortOrder
     } else {

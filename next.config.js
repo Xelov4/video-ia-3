@@ -104,9 +104,9 @@ const nextConfig = {
   // Redirections pour migration SEO
   async redirects() {
     return [
-      // Redirect old tool URLs to new short format
+      // Redirect old tool URLs to new short format (exclude API routes)
       {
-        source: '/:lang/tools/:slug*',
+        source: '/:lang((?!api).+)/tools/:slug*',
         destination: '/:lang/t/:slug*',
         permanent: true,
       },
@@ -115,9 +115,9 @@ const nextConfig = {
         destination: '/en/t/:slug*',
         permanent: true,
       },
-      // Redirect old category URLs to new short format
+      // Redirect old category URLs to new short format (exclude API routes)
       {
-        source: '/:lang/categories/:slug*',
+        source: '/:lang((?!api).+)/categories/:slug*',
         destination: '/:lang/c/:slug*',
         permanent: true,
       },
@@ -126,9 +126,9 @@ const nextConfig = {
         destination: '/en/c/:slug*',
         permanent: true,
       },
-      // Redirect old audience URLs to new short format
+      // Redirect old audience URLs to new short format (exclude API routes)
       {
-        source: '/:lang/audiences/:slug*',
+        source: '/:lang((?!api).+)/audiences/:slug*',
         destination: '/:lang/p/:slug*',
         permanent: true,
       },
@@ -137,9 +137,9 @@ const nextConfig = {
         destination: '/en/p/:slug*',
         permanent: true,
       },
-      // Redirect old use case URLs to new short format
+      // Redirect old use case URLs to new short format (exclude API routes)
       {
-        source: '/:lang/use-cases/:slug*',
+        source: '/:lang((?!api).+)/use-cases/:slug*',
         destination: '/:lang/u/:slug*',
         permanent: true,
       },
@@ -169,7 +169,7 @@ const nextConfig = {
         {
           source: '/sitemap-:lang.xml',
           destination: '/api/sitemap/:lang'
-        }
+        },
       ],
       afterFiles: [
         {
