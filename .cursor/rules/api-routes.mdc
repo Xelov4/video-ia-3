@@ -1,0 +1,786 @@
+---
+alwaysApply: true
+---
+# Documentation des API Routes de VideoIA.net
+
+*Date de dernière mise à jour : 16 août 2025*
+
+## Table des Matières
+1. [Vue d'Ensemble](#vue-densemble)
+2. [Structure des API](#structure-des-api)
+3. [Format de Réponse Standard](#format-de-réponse-standard)
+4. [API des Outils](#api-des-outils)
+5. [API des Catégories](#api-des-catégories)
+6. [API d'Extraction de Données](#api-dextraction-de-données)
+7. [API de Recherche](#api-de-recherche)
+8. [API d'Administration](#api-dadministration)
+9. [Gestion des Erreurs](#gestion-des-erreurs)
+10. [Sécurité et Rate Limiting](#sécurité-et-rate-limiting)
+11. [Tests et Documentation](#tests-et-documentation)
+
+## Vue d'Ensemble
+
+VideoIA.net utilise les API Routes de Next.js pour fournir des endpoints RESTful qui alimentent l'interface utilisateur et permettent l'interaction avec la base de données. Ces API sont organisées de manière logique et suivent des conventions cohérentes pour faciliter leur utilisation et leur maintenance.
+
+Les API Routes sont situées dans le dossier `/app/api/` et suivent la structure de routage de Next.js App Router.
+
+### Principes Clés
+
+- **RESTful** : Les API suivent les principes REST pour les opérations CRUD
+- **Typé** : Utilisation de TypeScript pour garantir la sécurité des types
+- **Validé** : Validation des entrées avec Zod
+- **Documenté** : Documentation complète des endpoints et des paramètres
+- **Sécurisé** : Protection contre les attaques courantes et gestion des permissions
+
+## Structure des API
+
+Les API Routes sont organisées selon la structure suivante :
+
+```
+app/
+└── api/
+    ├── tools/
+    │   ├── route.ts                # GET, POST /api/tools
+    │   ├── [id]/
+    │   │   └── route.ts            # GET, PUT, DELETE /api/tools/:id
+    │   └── featured/
+    │       └── route.ts            # GET /api/tools/featured
+    ├── categories/
+    │   ├── route.ts                # GET, POST /api/categories
+    │   └── [slug]/
+    │       └── route.ts            # GET, PUT, DELETE /api/categories/:slug
+    ├── data-extraction/
+    │   └── route.ts                # GET /api/data-extraction
+    ├── search/
+    │   └── route.ts                # GET /api/search
+    └── admin/
+        ├── tools/
+        │   └── route.ts            # Admin CRUD pour les outils
+        └── categories/
+            └── route.ts            # Admin CRUD pour les catégories
+```
+
+## Format de Réponse Standard
+
+Toutes les API de VideoIA.net renvoient des réponses dans un format standard pour assurer la cohérence et faciliter le traitement côté client.
+
+### Structure de Base
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  meta?: {
+    queryTime?: number;
+    language?: string;
+    fallbackCount?: number;
+    pagination?: {
+      page: number;
+      limit: number;
+      totalCount: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+  };
+}
+```
+
+### Exemple de Réponse Réussie
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "tool-123",
+      "name": "VideoGen Pro",
+      "slug": "videogen-pro",
+      "description": "Générateur de vidéos IA avancé",
+      "displayName": "VideoGen Pro",
+      "displayDescription": "Générateur de vidéos IA avancé",
+      "url": "https://videogen.example.com",
+      "image_url": "/images/tools/videogen-pro.jpg",
+      "tool_category": "video-generation",
+      "quality_score": 4.8,
+      "resolvedLanguage": "fr",
+      "translationSource": "exact"
+    },
+    // ...autres outils
+  ],
+  "meta": {
+    "queryTime": 124,
+    "language": "fr",
+    "fallbackCount": 0,
+    "pagination": {
+      "page": 1,
+      "limit": 24,
+      "totalCount": 156,
+      "totalPages": 7,
+      "hasNextPage": true,
+      "hasPreviousPage": false
+    }
+  }
+}
+```
+
+### Exemple de Réponse d'Erreur
+
+```json
+{
+  "success": false,
+  "error": "Tool not found",
+  "meta": {
+    "queryTime": 45
+  }
+}
+```
+
+## API des Outils
+
+L'API des outils permet de récupérer, créer, mettre à jour et supprimer des outils IA.
+
+### GET /api/tools
+
+Récupère une liste paginée d'outils IA.
+
+**Fichier** : `/app/api/tools/route.ts`
+
+**Paramètres de requête** :
+- `lang` (optionnel) : Code de langue (ex: 'fr', 'en')
+- `page` (optionnel) : Numéro de page (défaut: 1)
+- `limit` (optionnel) : Nombre d'éléments par page (défaut: 24)
+- `category` (optionnel) : Filtrer par catégorie
+- `query` (optionnel) : Terme de recherche
+- `sort` (optionnel) : Champ de tri ('created_at', 'quality_score', 'view_count')
+- `order` (optionnel) : Ordre de tri ('asc', 'desc')
+- `featured` (optionnel) : Filtrer les outils mis en avant (true/false)
+
+**Exemple d'implémentation** :
+
+```typescript
+// app/api/tools/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
+import { validateLanguageParam } from '@/src/lib/i18n/types'
+import { z } from 'zod'
+
+const querySchema = z.object({
+  lang: z.string().optional(),
+  page: z.coerce.number().min(1).optional().default(1),
+  limit: z.coerce.number().min(1).max(100).optional().default(24),
+  category: z.string().optional(),
+  query: z.string().optional(),
+  sort: z.enum(['created_at', 'quality_score', 'view_count']).optional().default('created_at'),
+  order: z.enum(['asc', 'desc']).optional().default('desc'),
+  featured: z.enum(['true', 'false']).optional().transform(val => val === 'true')
+})
+
+export async function GET(request: NextRequest) {
+  const startTime = Date.now()
+  
+  try {
+    // Extraction et validation des paramètres
+    const { searchParams } = new URL(request.url)
+    const params = Object.fromEntries(searchParams.entries())
+    
+    const validationResult = querySchema.safeParse(params)
+    if (!validationResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid parameters',
+        details: validationResult.error.flatten()
+      }, { status: 400 })
+    }
+    
+    const { lang, page, limit, category, query, sort, order, featured } = validationResult.data
+    
+    // Récupération des outils
+    const result = await multilingualToolsService.searchTools({
+      language: validateLanguageParam(lang),
+      page,
+      limit,
+      category,
+      query,
+      sortBy: sort,
+      sortOrder: order,
+      featured
+    })
+    
+    // Construction de la réponse
+    return NextResponse.json({
+      success: true,
+      data: result.tools,
+      meta: {
+        queryTime: Date.now() - startTime,
+        language: result.meta.language,
+        fallbackCount: result.meta.fallbackCount,
+        pagination: result.pagination
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching tools:', error)
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch tools',
+      meta: {
+        queryTime: Date.now() - startTime
+      }
+    }, { status: 500 })
+  }
+}
+```
+
+### GET /api/tools/[id]
+
+Récupère un outil spécifique par son ID.
+
+**Fichier** : `/app/api/tools/[id]/route.ts`
+
+**Paramètres de chemin** :
+- `id` : ID de l'outil
+
+**Paramètres de requête** :
+- `lang` (optionnel) : Code de langue (ex: 'fr', 'en')
+
+**Exemple d'implémentation** :
+
+```typescript
+// app/api/tools/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
+import { validateLanguageParam } from '@/src/lib/i18n/types'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const startTime = Date.now()
+  
+  try {
+    const { id } = params
+    const { searchParams } = new URL(request.url)
+    const lang = validateLanguageParam(searchParams.get('lang'))
+    
+    const tool = await multilingualToolsService.getToolById(id, lang)
+    
+    if (!tool) {
+      return NextResponse.json({
+        success: false,
+        error: 'Tool not found'
+      }, { status: 404 })
+    }
+    
+    // Incrémenter le compteur de vues
+    await multilingualToolsService.incrementViewCount(id)
+    
+    return NextResponse.json({
+      success: true,
+      data: tool,
+      meta: {
+        queryTime: Date.now() - startTime,
+        language: tool.resolvedLanguage,
+        translationSource: tool.translationSource
+      }
+    })
+  } catch (error) {
+    console.error(`Error fetching tool ${params.id}:`, error)
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch tool'
+    }, { status: 500 })
+  }
+}
+```
+
+### POST /api/tools
+
+Crée un nouvel outil (protégé par authentification admin).
+
+**Fichier** : `/app/api/tools/route.ts`
+
+**Corps de la requête** :
+```typescript
+interface CreateToolRequest {
+  name: string;
+  slug?: string;
+  description?: string;
+  overview?: string;
+  url: string;
+  image_url?: string;
+  video_url?: string;
+  tool_category?: string;
+  pricing_type?: string;
+  pricing_url?: string;
+  target_audience?: string[];
+  use_cases?: string[];
+  key_features?: string[];
+  tags?: string[];
+  translations?: {
+    language_code: string;
+    name: string;
+    overview?: string;
+    description?: string;
+  }[];
+}
+```
+
+## API des Catégories
+
+L'API des catégories permet de récupérer, créer, mettre à jour et supprimer des catégories d'outils.
+
+### GET /api/categories
+
+Récupère une liste de catégories.
+
+**Fichier** : `/app/api/categories/route.ts`
+
+**Paramètres de requête** :
+- `lang` (optionnel) : Code de langue (ex: 'fr', 'en')
+- `limit` (optionnel) : Nombre d'éléments à récupérer (défaut: tous)
+- `featured` (optionnel) : Filtrer les catégories mises en avant (true/false)
+
+**Exemple d'implémentation** :
+
+```typescript
+// app/api/categories/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
+import { validateLanguageParam } from '@/src/lib/i18n/types'
+
+export async function GET(request: NextRequest) {
+  const startTime = Date.now()
+  
+  try {
+    const { searchParams } = new URL(request.url)
+    const lang = validateLanguageParam(searchParams.get('lang'))
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+    const featured = searchParams.get('featured') === 'true'
+    
+    let categories
+    
+    if (featured) {
+      categories = await multilingualCategoriesService.getFeaturedCategories(lang, limit)
+    } else {
+      categories = await multilingualCategoriesService.getAllCategories(lang, {
+        includeEmpty: false,
+        limit
+      })
+    }
+    
+    return NextResponse.json({
+      success: true,
+      data: categories,
+      meta: {
+        queryTime: Date.now() - startTime,
+        language: lang,
+        count: categories.length
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch categories'
+    }, { status: 500 })
+  }
+}
+```
+
+### GET /api/categories/[slug]
+
+Récupère une catégorie spécifique par son slug.
+
+**Fichier** : `/app/api/categories/[slug]/route.ts`
+
+**Paramètres de chemin** :
+- `slug` : Slug de la catégorie
+
+**Paramètres de requête** :
+- `lang` (optionnel) : Code de langue (ex: 'fr', 'en')
+
+## API d'Extraction de Données
+
+L'API d'extraction de données permet de récupérer des informations structurées à partir des champs texte de la base de données.
+
+### GET /api/data-extraction
+
+Extrait des données structurées comme les audiences cibles, cas d'usage, etc.
+
+**Fichier** : `/app/api/data-extraction/route.ts`
+
+**Paramètres de requête** :
+- `type` : Type de données à extraire ('audiences', 'useCases', 'features', 'tags')
+- `limit` (optionnel) : Nombre d'éléments à récupérer
+- `lang` (optionnel) : Code de langue pour les traductions
+
+**Exemple d'implémentation** :
+
+```typescript
+// app/api/data-extraction/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { DataExtractionService } from '@/src/lib/services/dataExtraction'
+
+export async function GET(request: NextRequest) {
+  const startTime = Date.now()
+  
+  try {
+    const { searchParams } = new URL(request.url)
+    const type = searchParams.get('type')
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined
+    
+    if (!type || !['audiences', 'useCases', 'features', 'tags'].includes(type)) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid extraction type'
+      }, { status: 400 })
+    }
+    
+    let data
+    
+    switch (type) {
+      case 'audiences':
+        data = await DataExtractionService.extractUniqueAudiences(limit)
+        break
+      case 'useCases':
+        data = await DataExtractionService.extractUseCases(limit)
+        break
+      case 'features':
+        data = await DataExtractionService.extractKeyFeatures(limit)
+        break
+      case 'tags':
+        data = await DataExtractionService.extractTags(limit)
+        break
+    }
+    
+    return NextResponse.json({
+      success: true,
+      data,
+      meta: {
+        queryTime: Date.now() - startTime,
+        count: data.length
+      }
+    })
+  } catch (error) {
+    console.error(`Error extracting data:`, error)
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to extract data'
+    }, { status: 500 })
+  }
+}
+```
+
+## API de Recherche
+
+L'API de recherche permet d'effectuer des recherches avancées dans le catalogue d'outils.
+
+### GET /api/search
+
+Recherche des outils avec des filtres avancés.
+
+**Fichier** : `/app/api/search/route.ts`
+
+**Paramètres de requête** :
+- `query` : Terme de recherche
+- `lang` (optionnel) : Code de langue
+- `category` (optionnel) : Catégorie d'outil
+- `audience` (optionnel) : Audience cible
+- `useCase` (optionnel) : Cas d'usage
+- `tags` (optionnel) : Tags séparés par des virgules
+- `minQuality` (optionnel) : Score de qualité minimum
+- `page` (optionnel) : Numéro de page
+- `limit` (optionnel) : Nombre d'éléments par page
+
+**Exemple d'implémentation** :
+
+```typescript
+// app/api/search/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
+import { validateLanguageParam } from '@/src/lib/i18n/types'
+
+export async function GET(request: NextRequest) {
+  const startTime = Date.now()
+  
+  try {
+    const { searchParams } = new URL(request.url)
+    const lang = validateLanguageParam(searchParams.get('lang'))
+    const query = searchParams.get('query') || ''
+    const category = searchParams.get('category') || undefined
+    const audience = searchParams.get('audience') || undefined
+    const useCase = searchParams.get('useCase') || undefined
+    const tags = searchParams.get('tags') ? searchParams.get('tags')!.split(',') : undefined
+    const minQuality = searchParams.get('minQuality') ? parseFloat(searchParams.get('minQuality')!) : undefined
+    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 24
+    
+    const result = await multilingualToolsService.searchTools({
+      language: lang,
+      query,
+      category,
+      audience,
+      useCase,
+      tags,
+      page,
+      limit,
+      filters: {
+        minQualityScore: minQuality
+      }
+    })
+    
+    return NextResponse.json({
+      success: true,
+      data: result.tools,
+      meta: {
+        queryTime: Date.now() - startTime,
+        language: lang,
+        fallbackCount: result.meta.fallbackCount,
+        pagination: result.pagination
+      }
+    })
+  } catch (error) {
+    console.error('Error searching tools:', error)
+    
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to search tools'
+    }, { status: 500 })
+  }
+}
+```
+
+## API d'Administration
+
+L'API d'administration fournit des endpoints protégés pour gérer le contenu du site.
+
+### GET /api/admin/tools
+
+Récupère une liste d'outils pour l'administration.
+
+**Fichier** : `/app/api/admin/tools/route.ts`
+
+**Sécurité** : Protégé par le middleware d'authentification admin
+
+**Paramètres de requête** :
+- Similaires à `/api/tools` mais avec des options supplémentaires pour l'administration
+
+### POST /api/admin/tools
+
+Crée un nouvel outil.
+
+**Fichier** : `/app/api/admin/tools/route.ts`
+
+**Sécurité** : Protégé par le middleware d'authentification admin
+
+**Corps de la requête** : Données complètes de l'outil
+
+## Gestion des Erreurs
+
+VideoIA.net implémente une gestion d'erreurs standardisée pour toutes les API.
+
+### Types d'Erreurs Communs
+
+| Code HTTP | Type d'Erreur | Description |
+|-----------|---------------|-------------|
+| 400 | Bad Request | Paramètres invalides ou manquants |
+| 401 | Unauthorized | Authentification requise |
+| 403 | Forbidden | Permissions insuffisantes |
+| 404 | Not Found | Ressource non trouvée |
+| 429 | Too Many Requests | Rate limit dépassé |
+| 500 | Internal Server Error | Erreur serveur interne |
+
+### Exemple de Gestion d'Erreurs
+
+```typescript
+try {
+  // Logique d'API...
+} catch (error) {
+  console.error('Error details:', error)
+  
+  // Déterminer le type d'erreur
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    // Erreurs Prisma spécifiques
+    if (error.code === 'P2025') {
+      return NextResponse.json({
+        success: false,
+        error: 'Resource not found'
+      }, { status: 404 })
+    }
+  }
+  
+  if (error instanceof z.ZodError) {
+    // Erreurs de validation
+    return NextResponse.json({
+      success: false,
+      error: 'Validation error',
+      details: error.flatten()
+    }, { status: 400 })
+  }
+  
+  // Erreur générique
+  return NextResponse.json({
+    success: false,
+    error: 'An unexpected error occurred'
+  }, { status: 500 })
+}
+```
+
+## Sécurité et Rate Limiting
+
+VideoIA.net implémente plusieurs mesures de sécurité pour protéger les API.
+
+### Middleware d'Authentification
+
+Le middleware d'authentification vérifie les tokens JWT pour les routes protégées.
+
+**Fichier** : `/src/lib/auth/adminMiddleware.ts`
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { getToken } from 'next-auth/jwt'
+
+export async function adminAuthMiddleware(request: NextRequest) {
+  const token = await getToken({ req: request })
+  
+  if (!token || token.role !== 'admin') {
+    return NextResponse.json({
+      success: false,
+      error: 'Unauthorized'
+    }, { status: 401 })
+  }
+  
+  return NextResponse.next()
+}
+```
+
+### Rate Limiting
+
+Le rate limiting est implémenté pour prévenir les abus.
+
+**Fichier** : `/src/lib/api/rateLimiter.ts`
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { Redis } from '@upstash/redis'
+
+const redis = Redis.fromEnv()
+
+export async function rateLimiter(request: NextRequest, options = { limit: 60, window: 60 }) {
+  const ip = request.ip || 'anonymous'
+  const key = `rate-limit:${ip}`
+  
+  const current = await redis.get<number>(key) || 0
+  
+  if (current >= options.limit) {
+    return NextResponse.json({
+      success: false,
+      error: 'Too many requests'
+    }, { 
+      status: 429,
+      headers: {
+        'Retry-After': options.window.toString()
+      }
+    })
+  }
+  
+  await redis.multi()
+    .incr(key)
+    .expire(key, options.window)
+    .exec()
+  
+  return NextResponse.next()
+}
+```
+
+## Tests et Documentation
+
+### Tests d'API
+
+Les tests d'API sont implémentés avec Jest et Supertest.
+
+**Exemple de Test** :
+
+```typescript
+// __tests__/api/tools.test.ts
+import { createMocks } from 'node-mocks-http'
+import { GET } from '@/app/api/tools/route'
+
+describe('GET /api/tools', () => {
+  it('should return a list of tools', async () => {
+    const { req, res } = createMocks({
+      method: 'GET',
+      url: '/api/tools?lang=en'
+    })
+    
+    await GET(req, res)
+    
+    expect(res._getStatusCode()).toBe(200)
+    
+    const data = JSON.parse(res._getData())
+    expect(data.success).toBe(true)
+    expect(Array.isArray(data.data)).toBe(true)
+  })
+  
+  it('should handle invalid parameters', async () => {
+    const { req, res } = createMocks({
+      method: 'GET',
+      url: '/api/tools?limit=invalid'
+    })
+    
+    await GET(req, res)
+    
+    expect(res._getStatusCode()).toBe(400)
+    
+    const data = JSON.parse(res._getData())
+    expect(data.success).toBe(false)
+    expect(data.error).toBe('Invalid parameters')
+  })
+})
+```
+
+### Documentation OpenAPI
+
+La documentation OpenAPI est générée automatiquement à partir des types TypeScript et des commentaires JSDoc.
+
+**Exemple de Documentation** :
+
+```typescript
+/**
+ * @openapi
+ * /api/tools:
+ *   get:
+ *     summary: Récupère une liste d'outils IA
+ *     parameters:
+ *       - name: lang
+ *         in: query
+ *         description: Code de langue (ex: 'fr', 'en')
+ *         schema:
+ *           type: string
+ *       - name: page
+ *         in: query
+ *         description: Numéro de page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *     responses:
+ *       200:
+ *         description: Liste d'outils récupérée avec succès
+ *       400:
+ *         description: Paramètres invalides
+ *       500:
+ *         description: Erreur serveur
+ */
+export async function GET(request: NextRequest) {
+  // Implémentation...
+}
+```
+
+---
+
+*Cette documentation est maintenue par l'équipe de développement VideoIA.net. Pour toute question ou suggestion concernant les API, veuillez contacter l'équipe technique.*

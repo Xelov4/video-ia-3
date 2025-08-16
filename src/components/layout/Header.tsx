@@ -124,10 +124,10 @@ export default function Header({ totalToolsCount = 16763, currentLanguage }: Hea
       active: pathname.startsWith('/tools') || pathname.startsWith(`/${currentLanguage}/tools`) 
     },
     { 
-      href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories`, 
+      href: `/${currentLanguage === 'en' ? '' : currentLanguage}/c`, 
       label: nav.categories, 
       icon: BeakerIcon,
-      active: pathname.startsWith('/categories') || pathname.startsWith(`/${currentLanguage}/categories`) 
+      active: pathname.startsWith('/c') || pathname.startsWith(`/${currentLanguage}/c`) 
     },
     { 
       href: `/${currentLanguage === 'en' ? '' : currentLanguage}/about`, 

@@ -514,8 +514,8 @@ export default function ToolsPageClient({
     if (viewMode !== 'grid') params.set('view', viewMode)
 
     const newURL = `/${lang}/tools?${params.toString()}`
-    router.replace(newURL, { scroll: false })
-  }, [lang, router, viewMode])
+    window.history.pushState({}, '', newURL)
+  }, [lang, viewMode])
 
   // Gestion des changements de filtres
   const handleFilterChange = useCallback((key: keyof Filters, value: any) => {

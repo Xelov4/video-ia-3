@@ -425,7 +425,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   hover
                   className="group cursor-pointer h-full"
                 >
-                  <a href={getLocalizedHref(`/tools/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
+                  <a href={getLocalizedHref(`/t/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
                     <CardContent className="p-6">
                       {tool.imageUrl && (
                         <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 overflow-hidden">
@@ -499,7 +499,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   hover
                   className="group cursor-pointer"
                 >
-                  <a href={getLocalizedHref(`/tools/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
+                  <a href={getLocalizedHref(`/t/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
                     <CardContent className="p-6">
                       <div className="flex items-start space-x-4">
                         <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center flex-shrink-0">

@@ -9,34 +9,35 @@
 
 'use client'
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo } from 'react'
-import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { 
+  supportedLocales, 
+  defaultLocale, 
+  type SupportedLocale 
+} from '../middleware'
 
 /**
- * Hook principal pour gérer la langue courante
+ * Hook pour accéder à la langue courante
  */
 export function useLanguage() {
   const pathname = usePathname()
   
-  // Extraire langue de l'URL
+  // Extraire la langue depuis l'URL
   const currentLanguage = useMemo(() => {
     const segments = pathname.split('/').filter(Boolean)
-    const firstSegment = segments[0] as SupportedLocale
+    const firstSegment = segments[0]
     
-    return supportedLocales.includes(firstSegment) 
-      ? firstSegment 
-      : defaultLocale
+    if (supportedLocales.includes(firstSegment as SupportedLocale)) {
+      return firstSegment as SupportedLocale
+    }
+    
+    return defaultLocale
   }, [pathname])
-
-  // Vérifier si c'est la langue par défaut
-  const isDefaultLanguage = currentLanguage === defaultLocale
 
   return {
     currentLanguage,
-    isDefaultLanguage,
-    supportedLanguages: supportedLocales,
-    defaultLanguage: defaultLocale
+    isDefaultLanguage: currentLanguage === defaultLocale
   }
 }
 
@@ -163,51 +164,86 @@ export function useAlternateUrls() {
  * Hook pour détection langue préférée utilisateur
  */
 export function useLanguagePreferences() {
-  const detectPreferredLanguage = useCallback((): SupportedLocale => {
-    // 1. Cookie utilisateur
+  const detectPreferredLanguage = useCallback(() => {
+    // Vérifier les cookies
     if (typeof document !== 'undefined') {
-      const cookies = document.cookie.split(';')
-      const langCookie = cookies.find(c => c.trim().startsWith('preferred-language='))
+      const cookieLang = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('preferred-language='))
+        ?.split('=')[1]
       
-      if (langCookie) {
-        const lang = langCookie.split('=')[1].trim() as SupportedLocale
-        if (supportedLocales.includes(lang)) {
-          return lang
-        }
+      if (cookieLang && supportedLocales.includes(cookieLang as SupportedLocale)) {
+        return cookieLang as SupportedLocale
       }
     }
-
-    // 2. Langue navigateur
-    if (typeof navigator !== 'undefined') {
-      const browserLang = navigator.language.split('-')[0] as SupportedLocale
-      if (supportedLocales.includes(browserLang)) {
-        return browserLang
+    
+    // Vérifier les en-têtes Accept-Language
+    if (typeof navigator !== 'undefined' && navigator.language) {
+      const browserLang = navigator.language.substring(0, 2)
+      if (supportedLocales.includes(browserLang as SupportedLocale)) {
+        return browserLang as SupportedLocale
       }
     }
-
+    
     return defaultLocale
   }, [])
 
-  return { detectPreferredLanguage }
+  return {
+    detectPreferredLanguage
+  }
 }
 
 /**
- * Hook pour métadonnées i18n
+ * Hook pour construction d'URLs avec la nouvelle structure courte
  */
-export function useI18nMetadata() {
+export function useShortUrlConstruction() {
   const { currentLanguage } = useLanguage()
-  const alternateUrls = useAlternateUrls()
 
-  const metadata = useMemo(() => ({
-    currentLanguage,
-    alternateUrls,
-    hreflangTags: Object.entries(alternateUrls).map(([lang, url]) => ({
-      hreflang: lang,
-      href: url
-    })),
-    canonicalUrl: alternateUrls[currentLanguage],
-    defaultUrl: alternateUrls[defaultLocale]
-  }), [currentLanguage, alternateUrls])
+  /**
+   * Construire URL pour une catégorie
+   */
+  const getCategoryUrl = useCallback((slug: string, lang?: SupportedLocale) => {
+    const targetLang = lang || currentLanguage
+    return targetLang === defaultLocale ? `/c/${slug}` : `/${targetLang}/c/${slug}`
+  }, [currentLanguage])
 
-  return metadata
+  /**
+   * Construire URL pour un public (audience)
+   */
+  const getAudienceUrl = useCallback((slug: string, lang?: SupportedLocale) => {
+    const targetLang = lang || currentLanguage
+    return targetLang === defaultLocale ? `/p/${slug}` : `/${targetLang}/p/${slug}`
+  }, [currentLanguage])
+
+  /**
+   * Construire URL pour un cas d'usage
+   */
+  const getUseCaseUrl = useCallback((slug: string, lang?: SupportedLocale) => {
+    const targetLang = lang || currentLanguage
+    return targetLang === defaultLocale ? `/u/${slug}` : `/${targetLang}/u/${slug}`
+  }, [currentLanguage])
+
+  /**
+   * Construire URL pour un outil
+   */
+  const getToolUrl = useCallback((slug: string, lang?: SupportedLocale) => {
+    const targetLang = lang || currentLanguage
+    return targetLang === defaultLocale ? `/t/${slug}` : `/${targetLang}/t/${slug}`
+  }, [currentLanguage])
+
+  /**
+   * Construire URL pour la liste des outils (garde la structure originale)
+   */
+  const getToolsUrl = useCallback((lang?: SupportedLocale) => {
+    const targetLang = lang || currentLanguage
+    return targetLang === defaultLocale ? `/tools` : `/${targetLang}/tools`
+  }, [currentLanguage])
+
+  return {
+    getCategoryUrl,
+    getAudienceUrl,
+    getUseCaseUrl,
+    getToolUrl,
+    getToolsUrl
+  }
 }

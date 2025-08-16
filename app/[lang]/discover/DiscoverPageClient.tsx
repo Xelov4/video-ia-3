@@ -452,7 +452,7 @@ export default function DiscoverPageClient({
                     <GridLayout cols={1} responsive={{ md: 2, lg: 3 }} gap="md">
                       {tools.map((tool) => (
                         <Card key={tool.id} variant="elevated" hover className="h-full group cursor-pointer">
-                          <a href={getLocalizedHref(`/tools/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
+                          <a href={getLocalizedHref(`/t/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
                             <CardContent className="p-6">
                               {tool.imageUrl && (
                                 <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 overflow-hidden">
@@ -503,7 +503,7 @@ export default function DiscoverPageClient({
                     <div className="space-y-4">
                       {tools.map((tool) => (
                         <Card key={tool.id} variant="outlined" hover className="group cursor-pointer">
-                          <a href={getLocalizedHref(`/tools/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
+                          <a href={getLocalizedHref(`/t/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
                             <CardContent className="p-6">
                               <div className="flex gap-6">
                                 {tool.imageUrl && (

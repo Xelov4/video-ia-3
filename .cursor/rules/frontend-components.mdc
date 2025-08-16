@@ -1,0 +1,536 @@
+---
+alwaysApply: false
+---
+# Composants Frontend de VideoIA.net
+
+*Date de dernière mise à jour : 16 août 2025*
+
+## Table des Matières
+1. [Vue d'Ensemble](#vue-densemble)
+2. [Structure des Composants](#structure-des-composants)
+3. [Composants de Layout](#composants-de-layout)
+4. [Composants d'Outils](#composants-doutils)
+5. [Composants UI de Base](#composants-ui-de-base)
+6. [Composants de Page](#composants-de-page)
+7. [Composants Client vs Server](#composants-client-vs-server)
+8. [Hooks Personnalisés](#hooks-personnalisés)
+9. [Patterns de Composition](#patterns-de-composition)
+10. [Bonnes Pratiques](#bonnes-pratiques)
+
+## Vue d'Ensemble
+
+VideoIA.net utilise une architecture de composants React moderne, organisée selon les principes de séparation des préoccupations et de réutilisabilité. L'application s'appuie sur Next.js 15 avec App Router, qui introduit le concept de Server Components et Client Components.
+
+Les composants sont organisés en plusieurs catégories :
+- **Composants de layout** : Structure globale de l'application
+- **Composants d'outils** : Affichage et interaction avec les outils IA
+- **Composants UI de base** : Éléments d'interface réutilisables
+- **Composants de page** : Pages complètes de l'application
+- **Composants utilitaires** : Fonctionnalités partagées
+
+## Structure des Composants
+
+Les composants sont organisés dans le répertoire `/src/components/` selon leur fonction :
+
+```
+src/components/
+├── layout/                 # Composants de mise en page
+│   ├── ModernHeader.tsx    # En-tête principal avec navigation
+│   ├── Footer.tsx          # Pied de page
+│   ├── Sidebar.tsx         # Barre latérale pour filtres
+│   └── Navigation.tsx      # Navigation principale
+├── tools/                  # Composants liés aux outils
+│   ├── ToolCard.tsx        # Carte d'affichage d'un outil
+│   ├── ToolsGrid.tsx       # Grille d'outils
+│   ├── ToolList.tsx        # Liste d'outils (vue alternative)
+│   ├── ToolDetail.tsx      # Détails d'un outil
+│   └── AdvancedFilters.tsx # Filtres de recherche avancés
+├── categories/             # Composants liés aux catégories
+│   ├── CategoryCard.tsx    # Carte de catégorie
+│   └── CategoryGrid.tsx    # Grille de catégories
+├── ui/                     # Composants UI réutilisables
+│   ├── Button.tsx          # Bouton personnalisé
+│   ├── Card.tsx            # Carte UI
+│   ├── Container.tsx       # Conteneur de mise en page
+│   ├── Input.tsx           # Champ de saisie
+│   └── Select.tsx          # Menu déroulant
+└── shared/                 # Composants partagés
+    ├── SearchBar.tsx       # Barre de recherche
+    ├── Pagination.tsx      # Pagination
+    └── LoadingSpinner.tsx  # Indicateur de chargement
+```
+
+## Composants de Layout
+
+### ModernHeader.tsx
+
+Le composant `ModernHeader.tsx` est l'en-tête principal du site, implémentant un mega menu et une navigation responsive.
+
+**Emplacement** : `/src/components/layout/ModernHeader.tsx`
+
+**Fonctionnalités clés** :
+- Navigation multilingue avec support des 7 langues
+- Mega menu avec catégories, audiences et cas d'usage
+- Barre de recherche intégrée
+- Mode responsive avec menu hamburger pour mobile
+- Changement de langue
+
+**Exemple d'utilisation** :
+```tsx
+// app/[lang]/layout.tsx
+import { ModernHeader } from '@/src/components/layout/ModernHeader'
+
+export default function RootLayout({ 
+  children,
+  params 
+}: { 
+  children: React.ReactNode
+  params: { lang: string }
+}) {
+  return (
+    <html lang={params.lang}>
+      <body>
+        <ModernHeader lang={params.lang} />
+        <main>{children}</main>
+        <Footer />
+      </body>
+    </html>
+  )
+}
+```
+
+### Footer.tsx
+
+Le composant `Footer.tsx` est le pied de page du site, contenant des liens importants et des informations légales.
+
+**Emplacement** : `/src/components/layout/Footer.tsx`
+
+**Fonctionnalités clés** :
+- Liens vers les pages importantes
+- Sélecteur de langue
+- Informations légales et copyright
+- Liens vers les réseaux sociaux
+
+## Composants d'Outils
+
+### ToolCard.tsx
+
+Le composant `ToolCard.tsx` est utilisé pour afficher un outil IA dans une carte interactive.
+
+**Emplacement** : `/src/components/tools/ToolCard.tsx`
+
+**Fonctionnalités clés** :
+- Affichage de l'image de l'outil avec fallback
+- Titre et description de l'outil
+- Badge de catégorie avec émoji
+- Indicateur de qualité
+- Lien vers la page détaillée de l'outil
+- Support multilingue avec indicateur de fallback
+
+**Exemple d'implémentation** :
+```tsx
+'use client'
+
+import Link from 'next/link'
+import Image from 'next/image'
+import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
+import { getCategoryEmojiString } from '@/src/lib/services/emojiMapping'
+
+interface ToolCardProps {
+  tool: ToolWithTranslation
+  showCategory?: boolean
+  size?: 'small' | 'medium' | 'large'
+  lang?: string
+}
+
+export const ToolCard: React.FC<ToolCardProps> = ({
+  tool,
+  showCategory = true,
+  size = 'medium',
+  lang = 'en'
+}) => {
+  // Textes conditionnels basés sur la langue
+  const viewText = {
+    en: 'View Tool',
+    fr: 'Voir l\'Outil',
+    es: 'Ver Herramienta',
+    de: 'Tool ansehen',
+    it: 'Visualizza Strumento',
+    nl: 'Bekijk Tool',
+    pt: 'Ver Ferramenta'
+  }[lang]
+  
+  // Tailles dynamiques selon la prop size
+  const cardSizes = {
+    small: 'h-48',
+    medium: 'h-64',
+    large: 'h-80'
+  }
+  
+  return (
+    <div className={`tool-card bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden ${cardSizes[size]}`}>
+      <div className="relative h-1/2">
+        <Image
+          src={tool.image_url || '/images/placeholders/tool-1.jpg'}
+          alt={tool.displayName}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        />
+        
+        {showCategory && tool.tool_category && (
+          <span className="absolute top-2 left-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            {getCategoryEmojiString(tool.tool_category)} {tool.tool_category}
+          </span>
+        )}
+        
+        {tool.is_featured && (
+          <span className="absolute top-2 right-2 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded">
+            ⭐ Featured
+          </span>
+        )}
+      </div>
+      
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+          {tool.displayName}
+        </h3>
+        
+        {tool.translationSource === 'fallback' && (
+          <span className="inline-block bg-amber-50 text-amber-800 text-xs px-2 py-0.5 rounded mb-2">
+            {lang === 'fr' ? 'Traduction EN' : 'EN Translation'}
+          </span>
+        )}
+        
+        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">
+          {tool.displayDescription || ''}
+        </p>
+        
+        <Link 
+          href={`/${lang}/tools/${tool.slug}`}
+          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+        >
+          {viewText}
+        </Link>
+      </div>
+    </div>
+  )
+}
+```
+
+### ToolsGrid.tsx
+
+Le composant `ToolsGrid.tsx` affiche une grille responsive d'outils avec pagination.
+
+**Emplacement** : `/src/components/tools/ToolsGrid.tsx`
+
+**Fonctionnalités clés** :
+- Affichage en grille responsive (1-3 colonnes selon la taille d'écran)
+- Pagination intégrée
+- Gestion des états de chargement
+- Support du mode infini (infinite scroll)
+
+### AdvancedFilters.tsx
+
+Le composant `AdvancedFilters.tsx` permet de filtrer les outils selon différents critères.
+
+**Emplacement** : `/src/components/tools/AdvancedFilters.tsx`
+
+**Fonctionnalités clés** :
+- Filtres par catégorie
+- Filtres par audience cible
+- Filtres par cas d'usage
+- Filtres par score de qualité
+- Filtres par prix (gratuit, freemium, payant)
+- Filtres par fonctionnalités (avec vidéo, avec image, etc.)
+
+## Composants UI de Base
+
+VideoIA.net utilise un système de composants UI personnalisés basés sur TailwindCSS. Ces composants sont situés dans le dossier `/src/components/ui/`.
+
+### Button.tsx
+
+**Emplacement** : `/src/components/ui/Button.tsx`
+
+```tsx
+import React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
+  {
+    variants: {
+      variant: {
+        default: "bg-blue-600 text-white hover:bg-blue-700",
+        outline: "border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700",
+        ghost: "bg-transparent hover:bg-gray-50 text-gray-700",
+        link: "bg-transparent underline-offset-4 hover:underline text-blue-600",
+      },
+      size: {
+        default: "h-10 py-2 px-4",
+        sm: "h-8 px-3 text-xs",
+        lg: "h-12 px-6 text-base",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    return (
+      <button
+        className={buttonVariants({ variant, size, className })}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+```
+
+### Card.tsx
+
+**Emplacement** : `/src/components/ui/Card.tsx`
+
+Le composant Card fournit une structure de carte réutilisable avec en-tête, contenu et pied de page.
+
+### Container.tsx
+
+**Emplacement** : `/src/components/ui/Container.tsx`
+
+Le composant Container fournit un conteneur responsive avec des marges automatiques.
+
+## Composants de Page
+
+Les composants de page sont situés dans le dossier `app/` et suivent la structure de routage de Next.js App Router.
+
+### Page d'accueil
+
+**Emplacement** : `app/[lang]/page.tsx`
+
+La page d'accueil présente les outils mis en avant, les catégories populaires et une introduction au site.
+
+### Page des outils
+
+**Emplacement** : `app/[lang]/tools/page.tsx`
+
+Cette page affiche la liste complète des outils avec des filtres avancés.
+
+**Structure** :
+```tsx
+// Server Component
+export default async function ToolsPage({ params }: { params: { lang: string } }) {
+  const { lang } = params
+  
+  // Chargement des données initiales côté serveur
+  const initialData = await loadInitialData(lang)
+  
+  // Passage des données au Client Component
+  return <ToolsPageClient 
+    lang={lang} 
+    initialData={initialData}
+    // ...autres props
+  />
+}
+```
+
+**Client Component associé** :
+```tsx
+// app/[lang]/tools/ToolsPageClient.tsx
+'use client'
+
+export default function ToolsPageClient({ 
+  lang, 
+  initialData 
+}: ToolsPageClientProps) {
+  // État et logique interactive
+  const [tools, setTools] = useState(initialData.tools)
+  const [filters, setFilters] = useState({})
+  
+  // Reste de l'implémentation...
+}
+```
+
+## Composants Client vs Server
+
+VideoIA.net utilise le modèle hybride de Next.js App Router qui distingue les Server Components et les Client Components.
+
+### Server Components
+
+Les Server Components sont rendus côté serveur et n'incluent pas d'interactivité client. Ils sont utilisés pour :
+- Chargement initial des données
+- Génération du HTML statique
+- Optimisation SEO
+
+**Exemple** : `app/[lang]/categories/page.tsx`
+
+### Client Components
+
+Les Client Components sont hydratés côté client et permettent l'interactivité. Ils sont marqués avec la directive `'use client'` et sont utilisés pour :
+- Gestion d'état local
+- Gestion des événements utilisateur
+- Animations et interactions
+
+**Exemple** : `src/components/tools/AdvancedFilters.tsx`
+
+## Hooks Personnalisés
+
+VideoIA.net utilise plusieurs hooks personnalisés pour factoriser la logique réutilisable.
+
+### useWebVitals
+
+**Emplacement** : `src/hooks/useWebVitals.ts`
+
+Hook pour mesurer et rapporter les Core Web Vitals.
+
+### useLocalStorage
+
+**Emplacement** : `src/hooks/useLocalStorage.ts`
+
+Hook pour persister l'état dans le localStorage.
+
+```tsx
+import { useState, useEffect } from 'react'
+
+export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const [storedValue, setStoredValue] = useState<T>(initialValue)
+  
+  useEffect(() => {
+    try {
+      const item = window.localStorage.getItem(key)
+      if (item) {
+        setStoredValue(JSON.parse(item))
+      }
+    } catch (error) {
+      console.error(`Error reading localStorage key "${key}":`, error)
+    }
+  }, [key])
+  
+  const setValue = (value: T) => {
+    try {
+      setStoredValue(value)
+      window.localStorage.setItem(key, JSON.stringify(value))
+    } catch (error) {
+      console.error(`Error setting localStorage key "${key}":`, error)
+    }
+  }
+  
+  return [storedValue, setValue]
+}
+```
+
+### useDebounce
+
+**Emplacement** : `src/hooks/useDebounce.ts`
+
+Hook pour débouncer les valeurs changeant rapidement, comme les entrées de recherche.
+
+## Patterns de Composition
+
+VideoIA.net utilise plusieurs patterns de composition pour créer des interfaces modulaires et réutilisables.
+
+### Composition de Composants
+
+```tsx
+function ToolDetailPage({ tool, lang }) {
+  return (
+    <Container>
+      <Breadcrumbs 
+        items={[
+          { label: 'Home', href: `/${lang}` },
+          { label: 'Tools', href: `/${lang}/tools` },
+          { label: tool.displayName }
+        ]} 
+      />
+      
+      <ToolHeader tool={tool} />
+      
+      <Grid cols={2}>
+        <ToolDescription tool={tool} />
+        <ToolMetadata tool={tool} />
+      </Grid>
+      
+      <RelatedTools toolCategory={tool.tool_category} lang={lang} />
+    </Container>
+  )
+}
+```
+
+### Render Props
+
+```tsx
+<DataFetcher 
+  url={`/api/tools?category=${category}&lang=${lang}`}
+  render={({ data, loading, error }) => (
+    loading ? <LoadingSpinner /> :
+    error ? <ErrorMessage error={error} /> :
+    <ToolsGrid tools={data} lang={lang} />
+  )}
+/>
+```
+
+## Bonnes Pratiques
+
+### 1. Séparation Server/Client
+
+- Utiliser les Server Components pour le chargement initial des données
+- Limiter les Client Components aux parties interactives
+- Préfixer les Client Components avec le nom du composant parent (ex: `ToolsPageClient.tsx`)
+
+### 2. Props Typing
+
+- Toujours définir des interfaces pour les props des composants
+- Utiliser des valeurs par défaut pour les props optionnelles
+
+```tsx
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'outline'
+  size?: 'sm' | 'md' | 'lg'
+  children: React.ReactNode
+  onClick?: () => void
+}
+
+export function Button({ 
+  variant = 'primary',
+  size = 'md',
+  children,
+  onClick
+}: ButtonProps) {
+  // Implémentation...
+}
+```
+
+### 3. Internationalisation
+
+- Toujours passer la prop `lang` aux composants qui affichent du texte
+- Utiliser des objets conditionnels pour les textes traduits
+- Implémenter des indicateurs de fallback pour les traductions manquantes
+
+### 4. Performance
+
+- Utiliser `React.memo` pour les composants qui ne changent pas souvent
+- Implémenter la pagination pour les listes longues (max 24 items par page)
+- Utiliser le lazy loading pour les composants et images
+- Optimiser les images avec `next/image`
+
+### 5. Accessibilité
+
+- Utiliser des attributs ARIA appropriés
+- Assurer la navigation au clavier
+- Maintenir un contraste suffisant pour le texte
+- Fournir des textes alternatifs pour les images
+
+---
+
+*Cette documentation est maintenue par l'équipe de développement VideoIA.net. Pour toute question ou suggestion concernant les composants frontend, veuillez contacter l'équipe technique.*

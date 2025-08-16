@@ -188,7 +188,7 @@ function generateToolEntries(tools: any[]): SitemapEntry[] {
         : SEO_CONFIG.priorities.toolDetail
 
       entries.push({
-        url: `${SEO_CONFIG.baseUrl}${langPrefix}/tools/${toolSlug}`,
+        url: `${SEO_CONFIG.baseUrl}${langPrefix}/t/${toolSlug}`,
         lastModified: lastModified,
         changeFrequency: SEO_CONFIG.frequencies.toolDetail,
         priority: basePriority * langMultiplier,

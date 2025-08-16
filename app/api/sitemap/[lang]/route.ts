@@ -150,12 +150,14 @@ export async function GET(
           ? new Date(tool.created_at).toISOString()
           : currentDate
       
+      const basePriority = tool.featured ? 0.8 : 0.6
+      const langMultiplier = lang === 'en' ? 1 : 0.8 // Adjust priority for English
       sitemapEntries.push({
-        url: `${baseUrl}${langPrefix}/tools/${toolSlug}`,
+        url: `${baseUrl}${langPrefix}/t/${toolSlug}`,
         lastModified: lastModified,
         changeFrequency: 'weekly',
-        priority: tool.featured ? 0.8 : 0.6,
-        alternates: buildAlternateUrls(`/tools/${toolSlug}`)
+        priority: basePriority * langMultiplier,
+        alternates: buildAlternateUrls(`/t/${toolSlug}`)
       })
     })
     

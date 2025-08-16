@@ -256,12 +256,12 @@ export default function Footer({
   ]
 
   const popularCategories = [
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/writing-assistant`, label: t.writingAssistant },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/image-editing`, label: t.imageEditing },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/video-editing`, label: t.videoEditing },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/music`, label: t.music },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/productivity`, label: t.productivity },
-    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/categories/chatbot`, label: t.chatbots },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/c/writing-assistant`, label: t.writingAssistant },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/c/image-editing`, label: t.imageEditing },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/c/video-editing`, label: t.videoEditing },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/c/music`, label: t.music },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/c/productivity`, label: t.productivity },
+    { href: `/${currentLanguage === 'en' ? '' : currentLanguage}/c/chatbot`, label: t.chatbots },
   ]
 
   const resourceLinks = [

@@ -1,5 +1,0 @@
-[33m7b98f4c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m)[m feat: implement advanced Discover page with multilingual filters
-[33me2632d9[m feat(Phase2.1): revolutionary homepage with data-driven architecture
-[33m4353e30[m feat(Phase1.4): extend multilingualToolsService with advanced filtering and new architecture
-[33m7f5de4c[m[33m ([m[1;31morigin/dev[m[33m)[m fix: resolve Next.js 15 params/searchParams async breaking changes
-[33m381a8d8[m refactor: migrate to 100% Prisma ORM architecture

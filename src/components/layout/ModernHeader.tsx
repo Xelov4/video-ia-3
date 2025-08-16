@@ -223,6 +223,12 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
     return path === '/' ? `/${lang}` : `/${lang}${path}`
   }
 
+  // New function for short URLs
+  const getShortUrl = (type: 'category' | 'audience' | 'usecase', slug: string) => {
+    const shortPath = `/${type === 'category' ? 'c' : type === 'audience' ? 'p' : 'u'}/${slug}`
+    return getLocalizedHref(shortPath)
+  }
+
   return (
     <>
       <header 

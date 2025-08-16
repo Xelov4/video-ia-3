@@ -65,8 +65,8 @@ export const ToolCard: React.FC<ToolCardProps> = ({
 
   // Build the tool URL based on the language
   const toolUrl = lang === 'en' 
-    ? `/tools/${tool.slug || tool.id}`
-    : `/${lang}/tools/${tool.slug || tool.id}`
+    ? `/t/${tool.slug || tool.id}`
+    : `/${lang}/t/${tool.slug || tool.id}`
 
   // Determine the category emoji
   const categoryEmoji = tool.toolCategory 

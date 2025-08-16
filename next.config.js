@@ -104,22 +104,60 @@ const nextConfig = {
   // Redirections pour migration SEO
   async redirects() {
     return [
-      // Anciennes URLs vers nouvelles URLs multilingues
+      // Redirect old tool URLs to new short format
       {
-        source: '/tool/:slug*',
-        destination: '/en/tools/:slug*',
-        permanent: true
+        source: '/:lang/tools/:slug*',
+        destination: '/:lang/t/:slug*',
+        permanent: true,
       },
       {
-        source: '/category/:slug*', 
-        destination: '/en/categories/:slug*',
-        permanent: true
+        source: '/tools/:slug*',
+        destination: '/en/t/:slug*',
+        permanent: true,
       },
-      // Rediriger les routes API problématiques vers une page d'erreur
+      // Redirect old category URLs to new short format
       {
-        source: '/api/tools/:id/translations/:path*',
-        destination: '/api/error/legacy-system',
-        permanent: false,
+        source: '/:lang/categories/:slug*',
+        destination: '/:lang/c/:slug*',
+        permanent: true,
+      },
+      {
+        source: '/categories/:slug*',
+        destination: '/en/c/:slug*',
+        permanent: true,
+      },
+      // Redirect old audience URLs to new short format
+      {
+        source: '/:lang/audiences/:slug*',
+        destination: '/:lang/p/:slug*',
+        permanent: true,
+      },
+      {
+        source: '/audiences/:slug*',
+        destination: '/en/p/:slug*',
+        permanent: true,
+      },
+      // Redirect old use case URLs to new short format
+      {
+        source: '/:lang/use-cases/:slug*',
+        destination: '/:lang/u/:slug*',
+        permanent: true,
+      },
+      {
+        source: '/use-cases/:slug*',
+        destination: '/en/u/:slug*',
+        permanent: true,
+      },
+      // Legacy redirects for backward compatibility
+      {
+        source: '/en/tools/:slug*',
+        destination: '/en/t/:slug*',
+        permanent: true,
+      },
+      {
+        source: '/en/categories/:slug*',
+        destination: '/en/c/:slug*',
+        permanent: true,
       },
     ]
   },
