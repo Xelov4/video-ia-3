@@ -166,6 +166,17 @@ export interface UITranslations {
     go_home: string
     share_on: string
   }
+
+  // Breadcrumb navigation
+  breadcrumb: {
+    home: string
+    tools: string
+    categories: string
+    tool_detail: string
+    category_tools: string
+    search_results: string
+    page: string
+  }
 }
 
 // Traductions par langue
@@ -301,6 +312,15 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       page_not_found: 'Page not found',
       go_home: 'Go Home',
       share_on: 'Share on'
+    },
+    breadcrumb: {
+      home: 'Home',
+      tools: 'AI Tools',
+      categories: 'Categories',
+      tool_detail: 'Tool Details',
+      category_tools: 'Category Tools',
+      search_results: 'Search Results',
+      page: 'Page'
     }
   },
 
@@ -435,6 +455,15 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       page_not_found: 'Page non trouvée',
       go_home: 'Retour à l\'accueil',
       share_on: 'Partager sur'
+    },
+    breadcrumb: {
+      home: 'Accueil',
+      tools: 'Outils IA',
+      categories: 'Catégories',
+      tool_detail: 'Détails de l\'outil',
+      category_tools: 'Outils de catégorie',
+      search_results: 'Résultats de recherche',
+      page: 'Page'
     }
   },
 
@@ -569,6 +598,15 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       page_not_found: 'Página no encontrada',
       go_home: 'Ir al inicio',
       share_on: 'Compartir en'
+    },
+    breadcrumb: {
+      home: 'Inicio',
+      tools: 'Herramientas IA',
+      categories: 'Categorías',
+      tool_detail: 'Detalles de la herramienta',
+      category_tools: 'Herramientas de categoría',
+      search_results: 'Resultados de búsqueda',
+      page: 'Página'
     }
   },
 
@@ -704,6 +742,15 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       page_not_found: 'Pagina non trovata',
       go_home: 'Vai alla home',
       share_on: 'Condividi su'
+    },
+    breadcrumb: {
+      home: 'Home',
+      tools: 'Strumenti IA',
+      categories: 'Categorie',
+      tool_detail: 'Dettagli strumento',
+      category_tools: 'Strumenti di categoria',
+      search_results: 'Risultati ricerca',
+      page: 'Pagina'
     }
   },
 
@@ -838,6 +885,15 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       page_not_found: 'Seite nicht gefunden',
       go_home: 'Zur Startseite',
       share_on: 'Teilen auf'
+    },
+    breadcrumb: {
+      home: 'Startseite',
+      tools: 'KI-Tools',
+      categories: 'Kategorien',
+      tool_detail: 'Tool-Details',
+      category_tools: 'Kategorie-Tools',
+      search_results: 'Suchergebnisse',
+      page: 'Seite'
     }
   },
 
@@ -972,6 +1028,15 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       page_not_found: 'Pagina niet gevonden',
       go_home: 'Ga naar home',
       share_on: 'Delen op'
+    },
+    breadcrumb: {
+      home: 'Home',
+      tools: 'AI Tools',
+      categories: 'Categorieën',
+      tool_detail: 'Tool details',
+      category_tools: 'Categorie tools',
+      search_results: 'Zoekresultaten',
+      page: 'Pagina'
     }
   },
 
@@ -1106,6 +1171,15 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       page_not_found: 'Página não encontrada',
       go_home: 'Ir para início',
       share_on: 'Compartilhar no'
+    },
+    breadcrumb: {
+      home: 'Início',
+      tools: 'Ferramentas IA',
+      categories: 'Categorias',
+      tool_detail: 'Detalhes da ferramenta',
+      category_tools: 'Ferramentas da categoria',
+      search_results: 'Resultados da pesquisa',
+      page: 'Página'
     }
   }
 }

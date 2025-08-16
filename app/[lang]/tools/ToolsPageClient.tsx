@@ -17,6 +17,7 @@ import { Separator } from '@/src/components/ui/separator'
 import { cn } from '@/src/lib/utils'
 
 import { multilingualToolsService, ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
+import BreadcrumbWrapper from '@/src/components/layout/BreadcrumbWrapper'
 
 interface ToolsPageClientProps {
   lang: SupportedLocale
@@ -505,6 +506,9 @@ export default function ToolsPageClient({
 
   return (
     <div className="min-h-screen bg-background pt-20 md:pt-24">
+      {/* Breadcrumb Navigation */}
+      <BreadcrumbWrapper lang={lang} />
+      
       <div className="container mx-auto px-4 py-8 md:py-12">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">

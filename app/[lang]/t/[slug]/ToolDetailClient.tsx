@@ -14,6 +14,7 @@ import { Separator } from '@/src/components/ui/separator'
 import { cn } from '@/src/lib/utils'
 
 import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
+import BreadcrumbWrapper from '@/src/components/layout/BreadcrumbWrapper'
 
 interface ToolDetailClientProps {
   tool: ToolWithTranslation
@@ -656,27 +657,10 @@ export default function ToolDetailClient({
 
   return (
     <div className="min-h-screen bg-background pt-20 md:pt-24">
+      {/* Breadcrumb Navigation */}
+      <BreadcrumbWrapper lang={lang} toolName={tool.displayName} />
+      
       <div className="container mx-auto px-4 py-8 md:py-12">
-        {/* Breadcrumb Navigation */}
-        <nav className="mb-6">
-          <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <li>
-              <a href={getLocalizedHref('/')} className="hover:text-primary transition-colors">
-                {t.home}
-              </a>
-            </li>
-            <li className="flex items-center">
-              <span className="mx-2">/</span>
-              <a href={getLocalizedHref('/tools')} className="hover:text-primary transition-colors">
-                {t.tools}
-              </a>
-            </li>
-            <li className="flex items-center">
-              <span className="mx-2">/</span>
-              <span className="text-foreground font-medium">{tool.displayName}</span>
-            </li>
-          </ol>
-        </nav>
 
         {/* Main Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
