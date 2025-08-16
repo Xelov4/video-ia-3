@@ -1,35 +1,22 @@
-/**
- * ToolsPageClient - Composant Interactif pour Page Tools
- * 
- * Interface de listing des outils avec filtres avancés, pagination optimisée,
- * vues multiples et gestion d'état URL pour partage et bookmarks.
- * 
- * Architecture basée sur DiscoverPageClient avec adaptations spécifiques :
- * - Pagination classique (vs pagination infinie)
- * - Filtres étendus pour outils
- * - Vues grille/liste/cartes
- * - URL state management complet
- */
-
 'use client'
 
-import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react'
+import * as React from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, Filter, Grid, List, Star, Users, Zap, Calendar, Eye } from 'lucide-react'
+import { Search, Filter, Grid, List, Star, Users, Zap, Calendar, Eye, SlidersHorizontal, Sparkles, TrendingUp, ArrowUpDown, ChevronLeft, ChevronRight, MoreHorizontal, Bot, Heart, Bookmark } from 'lucide-react'
 import { SupportedLocale } from '@/middleware'
+import Image from 'next/image'
 
-import { Container } from '@/src/components/ui/Container'
-import { Button } from '@/src/components/ui/Button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/Card'
-import { Grid as GridLayout } from '@/src/components/ui/Grid'
+import { Button } from '@/src/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card'
+import { Input } from '@/src/components/ui/input'
+import { Badge } from '@/src/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { Separator } from '@/src/components/ui/separator'
+import { cn } from '@/src/lib/utils'
 
 import { multilingualToolsService, ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
-import { useWebVitals } from '@/src/hooks/useWebVitals'
-
-// Lazy loading des composants lourds
-const ToolCard = lazy(() => import('@/src/components/tools/ToolCard'))
-const ToolList = lazy(() => import('@/src/components/tools/ToolList'))
-const AdvancedFilters = lazy(() => import('@/src/components/tools/AdvancedFilters'))
 
 interface ToolsPageClientProps {
   lang: SupportedLocale
@@ -51,23 +38,80 @@ interface Filters {
   useCase: string
   category: string
   minQuality: number
-  maxQuality: number
   sortBy: 'relevance' | 'name' | 'created_at' | 'view_count' | 'quality_score'
   sortOrder: 'asc' | 'desc'
   hasImage: boolean
   hasVideo: boolean
-  // Nouveaux filtres avancés
   priceRange: 'free' | 'freemium' | 'paid' | 'enterprise' | ''
-  platform: 'web' | 'mobile' | 'desktop' | 'api' | ''
-  language: string
-  tags: string[]
-  excludeTags: string[]
-  dateRange: 'today' | 'week' | 'month' | 'quarter' | 'year' | ''
-  minViews: number
-  maxViews: number
-  // Logique de filtres
-  filterLogic: 'AND' | 'OR'
-  exactMatch: boolean
+  featured: boolean
+}
+
+// Component pour une carte d'outil
+const ToolCard = ({ tool, lang, onClick }: { 
+  tool: ToolWithTranslation; 
+  lang: SupportedLocale; 
+  onClick: () => void;
+}) => {
+  const qualityScore = tool.quality_score || 0
+  const viewCount = tool.view_count || 0
+  
+  return (
+    <Card 
+      className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-md hover:-translate-y-1 bg-white"
+      onClick={onClick}
+    >
+      <CardContent className="p-0">
+        {/* Image */}
+        <div className="relative w-full h-48 bg-gray-100 overflow-hidden rounded-t-lg">
+          <Image 
+            src={tool.image_url || "/images/placeholders/ai-placeholder.jpg"}
+            alt={tool.displayName}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute top-3 right-3">
+            <Badge variant="secondary" className="bg-white/90 text-xs">
+              {tool.toolCategory}
+            </Badge>
+          </div>
+        </div>
+        
+        {/* Contenu */}
+        <div className="p-4">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
+              {tool.displayName}
+            </h3>
+            {qualityScore > 0 && (
+              <div className="flex items-center ml-2">
+                <Star className="h-3 w-3 text-yellow-400 mr-1" />
+                <span className="text-xs text-gray-600">{qualityScore.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
+          
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">
+            {tool.displayOverview || tool.displayDescription || `Discover the power of ${tool.displayName}`}
+          </p>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-xs text-gray-500">
+              <Users className="h-3 w-3 mr-1" />
+              <span>{viewCount > 0 ? `${viewCount.toLocaleString()} users` : 'New tool'}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Heart className="h-3 w-3" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <Bookmark className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function ToolsPageClient({
@@ -81,9 +125,260 @@ export default function ToolsPageClient({
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  // Monitoring des Core Web Vitals
-  useWebVitals()
-  
+  // Traductions pour l'interface
+  const getTranslations = (lang: SupportedLocale) => {
+    const translations = {
+      'en': {
+        title: 'AI Tools Directory',
+        subtitle: 'Discover 16,765+ AI tools with advanced filters',
+        searchPlaceholder: 'Search tools, categories, or features...',
+        filters: 'Filters',
+        sortBy: 'Sort by',
+        sortRelevance: 'Relevance',
+        sortName: 'Name',
+        sortDate: 'Date Added',
+        sortViews: 'Popularity', 
+        sortQuality: 'Quality',
+        orderAsc: 'Ascending',
+        orderDesc: 'Descending',
+        viewGrid: 'Grid view',
+        viewList: 'List view',
+        toolsFound: 'tools found',
+        showFilters: 'Show Filters',
+        hideFilters: 'Hide Filters',
+        resetFilters: 'Reset All',
+        allCategories: 'All Categories',
+        allAudiences: 'All Audiences',
+        allUseCases: 'All Use Cases',
+        minQuality: 'Minimum Quality',
+        pricing: 'Pricing',
+        featuredOnly: 'Featured Only',
+        withImages: 'With Images',
+        withVideos: 'With Videos',
+        noResults: 'No tools found',
+        noResultsDesc: 'Try adjusting your search terms or filters',
+        previous: 'Previous',
+        next: 'Next',
+        page: 'Page',
+        of: 'of',
+        showingResults: 'Showing'
+      },
+      'fr': {
+        title: 'Répertoire d\'Outils IA',
+        subtitle: 'Découvrez 16 765+ outils IA avec des filtres avancés',
+        searchPlaceholder: 'Rechercher des outils, catégories ou fonctionnalités...',
+        filters: 'Filtres',
+        sortBy: 'Trier par',
+        sortRelevance: 'Pertinence',
+        sortName: 'Nom',
+        sortDate: 'Date d\'ajout',
+        sortViews: 'Popularité',
+        sortQuality: 'Qualité',
+        orderAsc: 'Croissant',
+        orderDesc: 'Décroissant',
+        viewGrid: 'Vue grille',
+        viewList: 'Vue liste',
+        toolsFound: 'outils trouvés',
+        showFilters: 'Afficher Filtres',
+        hideFilters: 'Masquer Filtres',
+        resetFilters: 'Tout réinitialiser',
+        allCategories: 'Toutes les Catégories',
+        allAudiences: 'Toutes les Audiences',
+        allUseCases: 'Tous les Cas d\'usage',
+        minQuality: 'Qualité minimum',
+        pricing: 'Tarification',
+        featuredOnly: 'Vedettes uniquement',
+        withImages: 'Avec images',
+        withVideos: 'Avec vidéos',
+        noResults: 'Aucun outil trouvé',
+        noResultsDesc: 'Essayez d\'ajuster vos termes de recherche ou filtres',
+        previous: 'Précédent',
+        next: 'Suivant',
+        page: 'Page',
+        of: 'sur',
+        showingResults: 'Affichage de'
+      },
+      'es': {
+        title: 'Directorio de Herramientas IA',
+        subtitle: 'Descubre 16.765+ herramientas IA con filtros avanzados',
+        searchPlaceholder: 'Buscar herramientas, categorías o características...',
+        filters: 'Filtros',
+        sortBy: 'Ordenar por',
+        sortRelevance: 'Relevancia',
+        sortName: 'Nombre',
+        sortDate: 'Fecha de incorporación',
+        sortViews: 'Popularidad',
+        sortQuality: 'Calidad',
+        orderAsc: 'Ascendente',
+        orderDesc: 'Descendente',
+        viewGrid: 'Vista grilla',
+        viewList: 'Vista lista',
+        toolsFound: 'herramientas encontradas',
+        showFilters: 'Mostrar Filtros',
+        hideFilters: 'Ocultar Filtros',
+        resetFilters: 'Reiniciar Todo',
+        allCategories: 'Todas las Categorías',
+        allAudiences: 'Todas las Audiencias',
+        allUseCases: 'Todos los Casos de Uso',
+        minQuality: 'Calidad mínima',
+        pricing: 'Precios',
+        featuredOnly: 'Solo destacados',
+        withImages: 'Con imágenes',
+        withVideos: 'Con videos',
+        noResults: 'No se encontraron herramientas',
+        noResultsDesc: 'Intenta ajustar tus términos de búsqueda o filtros',
+        previous: 'Anterior',
+        next: 'Siguiente',
+        page: 'Página',
+        of: 'de',
+        showingResults: 'Mostrando'
+      },
+      'de': {
+        title: 'KI-Tools Verzeichnis',
+        subtitle: 'Entdecke 16.765+ KI-Tools mit erweiterten Filtern',
+        searchPlaceholder: 'Tools, Kategorien oder Features suchen...',
+        filters: 'Filter',
+        sortBy: 'Sortieren nach',
+        sortRelevance: 'Relevanz',
+        sortName: 'Name',
+        sortDate: 'Hinzugefügt am',
+        sortViews: 'Beliebtheit',
+        sortQuality: 'Qualität',
+        orderAsc: 'Aufsteigend',
+        orderDesc: 'Absteigend',
+        viewGrid: 'Rasteransicht',
+        viewList: 'Listenansicht',
+        toolsFound: 'Tools gefunden',
+        showFilters: 'Filter anzeigen',
+        hideFilters: 'Filter ausblenden',
+        resetFilters: 'Alle zurücksetzen',
+        allCategories: 'Alle Kategorien',
+        allAudiences: 'Alle Zielgruppen',
+        allUseCases: 'Alle Anwendungsfälle',
+        minQuality: 'Mindestqualität',
+        pricing: 'Preise',
+        featuredOnly: 'Nur hervorgehoben',
+        withImages: 'Mit Bildern',
+        withVideos: 'Mit Videos',
+        noResults: 'Keine Tools gefunden',
+        noResultsDesc: 'Versuche deine Suchbegriffe oder Filter anzupassen',
+        previous: 'Zurück',
+        next: 'Weiter',
+        page: 'Seite',
+        of: 'von',
+        showingResults: 'Zeige'
+      },
+      'it': {
+        title: 'Directory Strumenti IA',
+        subtitle: 'Scopri 16.765+ strumenti IA con filtri avanzati',
+        searchPlaceholder: 'Cerca strumenti, categorie o funzionalità...',
+        filters: 'Filtri',
+        sortBy: 'Ordina per',
+        sortRelevance: 'Rilevanza',
+        sortName: 'Nome',
+        sortDate: 'Data aggiunta',
+        sortViews: 'Popolarità',
+        sortQuality: 'Qualità',
+        orderAsc: 'Crescente',
+        orderDesc: 'Decrescente',
+        viewGrid: 'Vista griglia',
+        viewList: 'Vista lista',
+        toolsFound: 'strumenti trovati',
+        showFilters: 'Mostra Filtri',
+        hideFilters: 'Nascondi Filtri',
+        resetFilters: 'Reimposta Tutto',
+        allCategories: 'Tutte le Categorie',
+        allAudiences: 'Tutti i Pubblici',
+        allUseCases: 'Tutti i Casi d\'uso',
+        minQuality: 'Qualità minima',
+        pricing: 'Prezzi',
+        featuredOnly: 'Solo in evidenza',
+        withImages: 'Con immagini',
+        withVideos: 'Con video',
+        noResults: 'Nessuno strumento trovato',
+        noResultsDesc: 'Prova ad aggiustare i termini di ricerca o i filtri',
+        previous: 'Precedente',
+        next: 'Successivo',
+        page: 'Pagina',
+        of: 'di',
+        showingResults: 'Mostrando'
+      },
+      'nl': {
+        title: 'AI Tools Directory',
+        subtitle: 'Ontdek 16.765+ AI-tools met geavanceerde filters',
+        searchPlaceholder: 'Zoek tools, categorieën of functies...',
+        filters: 'Filters',
+        sortBy: 'Sorteer op',
+        sortRelevance: 'Relevantie',
+        sortName: 'Naam',
+        sortDate: 'Toegevoegd op',
+        sortViews: 'Populariteit',
+        sortQuality: 'Kwaliteit',
+        orderAsc: 'Oplopend',
+        orderDesc: 'Aflopend',
+        viewGrid: 'Rasterweergave',
+        viewList: 'Lijstweergave',
+        toolsFound: 'tools gevonden',
+        showFilters: 'Toon Filters',
+        hideFilters: 'Verberg Filters',
+        resetFilters: 'Alles resetten',
+        allCategories: 'Alle Categorieën',
+        allAudiences: 'Alle Doelgroepen',
+        allUseCases: 'Alle Use Cases',
+        minQuality: 'Minimale kwaliteit',
+        pricing: 'Prijzen',
+        featuredOnly: 'Alleen uitgelicht',
+        withImages: 'Met afbeeldingen',
+        withVideos: 'Met video\'s',
+        noResults: 'Geen tools gevonden',
+        noResultsDesc: 'Probeer je zoektermen of filters aan te passen',
+        previous: 'Vorige',
+        next: 'Volgende',
+        page: 'Pagina',
+        of: 'van',
+        showingResults: 'Tonen van'
+      },
+      'pt': {
+        title: 'Diretório de Ferramentas IA',
+        subtitle: 'Descubra 16.765+ ferramentas IA com filtros avançados',
+        searchPlaceholder: 'Buscar ferramentas, categorias ou recursos...',
+        filters: 'Filtros',
+        sortBy: 'Ordenar por',
+        sortRelevance: 'Relevância',
+        sortName: 'Nome',
+        sortDate: 'Data de adição',
+        sortViews: 'Popularidade',
+        sortQuality: 'Qualidade',
+        orderAsc: 'Crescente',
+        orderDesc: 'Decrescente',
+        viewGrid: 'Vista grade',
+        viewList: 'Vista lista',
+        toolsFound: 'ferramentas encontradas',
+        showFilters: 'Mostrar Filtros',
+        hideFilters: 'Ocultar Filtros',
+        resetFilters: 'Redefinir Tudo',
+        allCategories: 'Todas as Categorias',
+        allAudiences: 'Todas as Audiências',
+        allUseCases: 'Todos os Casos de Uso',
+        minQuality: 'Qualidade mínima',
+        pricing: 'Preços',
+        featuredOnly: 'Apenas em destaque',
+        withImages: 'Com imagens',
+        withVideos: 'Com vídeos',
+        noResults: 'Nenhuma ferramenta encontrada',
+        noResultsDesc: 'Tente ajustar seus termos de busca ou filtros',
+        previous: 'Anterior',
+        next: 'Próximo',
+        page: 'Página',
+        of: 'de',
+        showingResults: 'Mostrando'
+      }
+    }
+    return translations[lang] || translations['en']
+  }
+
+  const t = getTranslations(lang)
+
   // État des filtres
   const [filters, setFilters] = useState<Filters>({
     query: initialSearchParams.search || '',
@@ -91,874 +386,552 @@ export default function ToolsPageClient({
     useCase: initialSearchParams.useCase || '',
     category: initialSearchParams.category || '',
     minQuality: parseInt(initialSearchParams.minQuality || '0'),
-    maxQuality: parseInt(initialSearchParams.maxQuality || '10'),
     sortBy: (initialSearchParams.sort as Filters['sortBy']) || 'created_at',
     sortOrder: (initialSearchParams.order as 'asc' | 'desc') || 'desc',
     hasImage: initialSearchParams.hasImage === 'true',
     hasVideo: initialSearchParams.hasVideo === 'true',
-    // Nouveaux filtres avancés
     priceRange: (initialSearchParams.priceRange as Filters['priceRange']) || '',
-    platform: (initialSearchParams.platform as Filters['platform']) || '',
-    language: initialSearchParams.language || '',
-    tags: initialSearchParams.tags ? initialSearchParams.tags.split(',') : [],
-    excludeTags: initialSearchParams.excludeTags ? initialSearchParams.excludeTags.split(',') : [],
-    dateRange: (initialSearchParams.dateRange as Filters['dateRange']) || '',
-    minViews: parseInt(initialSearchParams.minViews || '0'),
-    maxViews: parseInt(initialSearchParams.maxViews || '999999'),
-    // Logique de filtres
-    filterLogic: (initialSearchParams.filterLogic as 'AND' | 'OR') || 'AND',
-    exactMatch: initialSearchParams.exactMatch === 'true'
+    featured: initialSearchParams.featured === 'true'
   })
 
-  // Constantes pour la pagination et le cache
+  // Constantes pour la pagination
   const ITEMS_PER_PAGE = 24
-  const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
   // État des résultats
   const [tools, setTools] = useState<ToolWithTranslation[]>([])
   const [loading, setLoading] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(parseInt(initialSearchParams.page || '1'))
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'cards'>(
-    (initialSearchParams.view as 'grid' | 'list' | 'cards') || 'grid'
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(
+    (initialSearchParams.view as 'grid' | 'list') || 'grid'
   )
   const [showFilters, setShowFilters] = useState(false)
-  const [paginationMode, setPaginationMode] = useState<'classic' | 'infinite'>('classic')
   
   // Calcul des variables de pagination
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)
   const hasNextPage = currentPage < totalPages
   const hasPreviousPage = currentPage > 1
-  const [savedSearches, setSavedSearches] = useState<Array<{ name: string; filters: Filters }>>([])
-  const [showSavedSearches, setShowSavedSearches] = useState(false)
-  
-  // Cache simple en mémoire pour les requêtes fréquentes
-  const [queryCache, setQueryCache] = useState<Map<string, { data: ToolWithTranslation[]; totalCount: number; timestamp: number }>>(new Map())
 
-  // Charger les recherches sauvegardées depuis localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(`tools-saved-searches-${lang}`)
-      if (saved) {
-        setSavedSearches(JSON.parse(saved))
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des recherches sauvegardées:', error)
-    }
+  // Fonction pour obtenir le lien localisé d'un outil
+  const getLocalizedHref = useCallback((tool: ToolWithTranslation) => {
+    const slug = tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')
+    return lang === 'en' ? `/t/${slug}` : `/${lang}/t/${slug}`
   }, [lang])
 
-  // Sauvegarder une recherche
-  const saveSearch = useCallback((name: string, currentFilters: Filters) => {
-    const newSavedSearch = { name, filters: { ...currentFilters } }
-    const updatedSearches = [...savedSearches, newSavedSearch]
-    setSavedSearches(updatedSearches)
-    
-    try {
-      localStorage.setItem(`tools-saved-searches-${lang}`, JSON.stringify(updatedSearches))
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error)
-    }
-  }, [savedSearches, lang])
-
-  // Déclaration anticipée de loadSavedSearch pour éviter les dépendances circulaires
-  const loadSavedSearch = useCallback((savedFilters: Filters) => {
-    setFilters(savedFilters)
-    // searchTools sera appelé dans un useEffect séparé
-  }, [])
-
-  // Supprimer une recherche sauvegardée
-  const deleteSavedSearch = useCallback((index: number) => {
-    const updatedSearches = savedSearches.filter((_, i) => i !== index)
-    setSavedSearches(updatedSearches)
-    
-    try {
-      localStorage.setItem(`tools-saved-searches-${lang}`, JSON.stringify(updatedSearches))
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error)
-    }
-  }, [savedSearches, lang])
-
-  // Gestion du cache des requêtes
-  const getCacheKey = useCallback((filters: Filters, page: number) => {
-    return JSON.stringify({ ...filters, page, lang })
-  }, [lang])
-
-  const getFromCache = useCallback((cacheKey: string) => {
-    const cached = queryCache.get(cacheKey)
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      return cached
-    }
-    return null
-  }, [queryCache])
-
-  const setCache = useCallback((cacheKey: string, data: ToolWithTranslation[], totalCount: number) => {
-    setQueryCache(prev => new Map(prev).set(cacheKey, {
-      data,
-      totalCount,
-      timestamp: Date.now()
-    }))
-  }, [])
-
-  // Gestion du changement de page - déclaration anticipée
-  const handlePageChange = useCallback((page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
-      
-      // La fonction searchTools sera appelée via un useEffect
-    }
-  }, [totalPages])
-
-  // Gestion du changement de vue
-  const handleViewChange = useCallback((newViewMode: 'grid' | 'list' | 'cards') => {
-    setViewMode(newViewMode)
-    // Mettre à jour l'URL avec le mode de vue
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('view', newViewMode)
-    router.push(`?${params.toString()}`)
-  }, [searchParams, router])
-
-  // Helper pour convertir les plages de dates
-  const getDateFromRange = (range: string): Date => {
-    const now = new Date()
-    switch (range) {
-      case 'today':
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      case 'week':
-        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      case 'month':
-        return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
-      case 'quarter':
-        return new Date(now.getFullYear(), now.getMonth() - 3, now.getDate())
-      case 'year':
-        return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-      default:
-        return new Date(0)
-    }
-  }
-
-  // Fonction de recherche avec pagination et logique de filtres avancés
+  // Fonction de recherche simplifiée
   const searchTools = useCallback(async (newFilters: Filters, page: number = 1) => {
     setLoading(true)
     try {
-      // Vérifier le cache d'abord
-      const cacheKey = getCacheKey(newFilters, page)
-      const cached = getFromCache(cacheKey)
-      
-      if (cached) {
-        setTools(cached.data)
-        setTotalCount(cached.totalCount)
-        setCurrentPage(page)
-        setLoading(false)
-        return
-      }
-
-      // Traitement de la requête de recherche avec correspondance exacte
-      let processedQuery = newFilters.query
-      if (newFilters.exactMatch && newFilters.query) {
-        // Correspondance exacte : ajouter des guillemets pour la recherche exacte
-        processedQuery = `"${newFilters.query}"`
-      }
-      
-      // Construction des filtres avec logique AND/OR
-      const baseFilters = {
+      const result = await multilingualToolsService.searchTools({
         language: lang,
-        query: processedQuery || undefined,
-        page,
-        limit: ITEMS_PER_PAGE,
+        query: newFilters.query || undefined,
+        audience: newFilters.audience || undefined,
+        useCase: newFilters.useCase || undefined,
+        category: newFilters.category || undefined,
+        filters: {
+          minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined,
+          hasImageUrl: newFilters.hasImage || undefined,
+          hasVideoUrl: newFilters.hasVideo || undefined,
+          featured: newFilters.featured || undefined,
+          priceRange: newFilters.priceRange || undefined
+        },
         sortBy: newFilters.sortBy,
-        sortOrder: newFilters.sortOrder
-      }
+        sortOrder: newFilters.sortOrder,
+        page,
+        limit: ITEMS_PER_PAGE
+      })
 
-      // Filtres conditionnels selon la logique choisie
-      if (newFilters.filterLogic === 'AND') {
-        // Logique ET : tous les filtres doivent être satisfaits
-        const result = await multilingualToolsService.searchTools({
-          ...baseFilters,
-          audience: newFilters.audience || undefined,
-          useCase: newFilters.useCase || undefined,
-          category: newFilters.category || undefined,
-          tags: newFilters.tags.length > 0 ? newFilters.tags : undefined,
-          filters: {
-            minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined,
-            maxQualityScore: newFilters.maxQuality < 10 ? newFilters.maxQuality : undefined,
-            hasImageUrl: newFilters.hasImage || undefined,
-            hasVideoUrl: newFilters.hasVideo || undefined,
-            minViewCount: newFilters.minViews > 0 ? newFilters.minViews : undefined,
-            maxViewCount: newFilters.maxViews < 999999 ? newFilters.maxViews : undefined,
-            updatedSince: newFilters.dateRange ? getDateFromRange(newFilters.dateRange) : undefined,
-            ...(newFilters.platform && { platform: newFilters.platform }),
-            ...(newFilters.priceRange && { priceRange: newFilters.priceRange }),
-            ...(newFilters.language && { language: newFilters.language })
-          }
-        })
-        setTools(result.tools)
-        setTotalCount(result.pagination.totalCount)
-      } else {
-        // Logique OU : au moins un filtre doit être satisfait
-        const searchPromises = []
-        
-        // Recherche par audience
-        if (newFilters.audience) {
-          searchPromises.push(
-            multilingualToolsService.searchTools({
-              ...baseFilters,
-              audience: newFilters.audience,
-              filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-            })
-          )
-        }
-        
-        // Recherche par cas d'usage
-        if (newFilters.useCase) {
-          searchPromises.push(
-            multilingualToolsService.searchTools({
-              ...baseFilters,
-              useCase: newFilters.useCase,
-              filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-            })
-          )
-        }
-        
-        // Recherche par catégorie
-        if (newFilters.category) {
-          searchPromises.push(
-            multilingualToolsService.searchTools({
-              ...baseFilters,
-              category: newFilters.category,
-              filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-            })
-          )
-        }
-        
-        // Recherche par tags
-        if (newFilters.tags.length > 0) {
-          searchPromises.push(
-            multilingualToolsService.searchTools({
-              ...baseFilters,
-              tags: newFilters.tags,
-              filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-            })
-          )
-        }
-        
-        // Si aucun filtre spécifique, recherche générale
-        if (searchPromises.length === 0) {
-          const result = await multilingualToolsService.searchTools({
-            ...baseFilters,
-            filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-          })
-          setTools(result.tools)
-          setTotalCount(result.pagination.totalCount)
-        } else {
-          // Combiner les résultats de toutes les recherches
-          const results = await Promise.all(searchPromises)
-          const allTools = results.flatMap(r => r.tools)
-          const uniqueTools = allTools.filter((tool, index, self) => 
-            index === self.findIndex(t => t.id === tool.id)
-          )
-          
-          // Appliquer les filtres de qualité et autres critères
-          const filteredTools = uniqueTools.filter(tool => {
-            if (newFilters.minQuality > 0 && (tool.quality_score || 0) < newFilters.minQuality) return false
-            if (newFilters.maxQuality < 10 && (tool.quality_score || 0) > newFilters.maxQuality) return false
-            if (newFilters.hasImage && !tool.image_url) return false
-            if (newFilters.hasVideo && !tool.video_url) return false
-            if (newFilters.minViews > 0 && (tool.view_count || 0) < newFilters.minViews) return false
-            if (newFilters.maxViews < 999999 && (tool.view_count || 0) > newFilters.maxViews) return false
-            return true
-          })
-          
-          setTools(filteredTools)
-          setTotalCount(filteredTools.length)
-        }
-      }
-
-      // Mettre en cache les résultats
-      const finalTools = newFilters.filterLogic === 'AND' ? 
-        (await multilingualToolsService.searchTools({
-          ...baseFilters,
-          audience: newFilters.audience || undefined,
-          useCase: newFilters.useCase || undefined,
-          category: newFilters.category || undefined,
-          tags: newFilters.tags.length > 0 ? newFilters.tags : undefined,
-          filters: {
-            minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined,
-            maxQualityScore: newFilters.maxQuality < 10 ? newFilters.maxQuality : undefined,
-            hasImageUrl: newFilters.hasImage || undefined,
-            hasVideoUrl: newFilters.hasVideo || undefined,
-            minViewCount: newFilters.minViews > 0 ? newFilters.minViews : undefined,
-            maxViewCount: newFilters.maxViews < 999999 ? newFilters.maxViews : undefined,
-            updatedSince: newFilters.dateRange ? getDateFromRange(newFilters.dateRange) : undefined,
-            ...(newFilters.platform && { platform: newFilters.platform }),
-            ...(newFilters.priceRange && { priceRange: newFilters.priceRange }),
-            ...(newFilters.language && { language: newFilters.language })
-          }
-        })).tools : 
-        (newFilters.filterLogic === 'OR' ? 
-          (() => {
-            const searchPromises = []
-            
-            if (newFilters.audience) {
-              searchPromises.push(
-                multilingualToolsService.searchTools({
-                  ...baseFilters,
-                  audience: newFilters.audience,
-                  filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-                })
-              )
-            }
-            
-            if (newFilters.useCase) {
-              searchPromises.push(
-                multilingualToolsService.searchTools({
-                  ...baseFilters,
-                  useCase: newFilters.useCase,
-                  filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-                })
-              )
-            }
-            
-            if (newFilters.category) {
-              searchPromises.push(
-                multilingualToolsService.searchTools({
-                  ...baseFilters,
-                  category: newFilters.category,
-                  filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-                })
-              )
-            }
-            
-            if (newFilters.tags.length > 0) {
-              searchPromises.push(
-                multilingualToolsService.searchTools({
-                  ...baseFilters,
-                  tags: newFilters.tags,
-                  filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-                })
-              )
-            }
-            
-            if (searchPromises.length === 0) {
-              return multilingualToolsService.searchTools({
-                ...baseFilters,
-                filters: { minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined }
-              }).then(r => r.tools)
-            } else {
-              return Promise.all(searchPromises).then(results => {
-                const allTools = results.flatMap(r => r.tools)
-                const uniqueTools = allTools.filter((tool, index, self) => 
-                  index === self.findIndex(t => t.id === tool.id)
-                )
-                
-                return uniqueTools.filter(tool => {
-                  if (newFilters.minQuality > 0 && (tool.quality_score || 0) < newFilters.minQuality) return false
-                  if (newFilters.maxQuality < 10 && (tool.quality_score || 0) > newFilters.maxQuality) return false
-                  if (newFilters.hasImage && !tool.image_url) return false
-                  if (newFilters.hasVideo && !tool.video_url) return false
-                  if (newFilters.minViews > 0 && (tool.view_count || 0) < newFilters.minViews) return false
-                  if (newFilters.maxViews < 999999 && (tool.view_count || 0) > newFilters.maxViews) return false
-                  return true
-                })
-              })
-            }
-          })() : 
-          []
-        )
-
-      const finalTotalCount = finalTools.length
-
-      // Mettre en cache les résultats
-      setCache(cacheKey, finalTools, finalTotalCount)
-
+      setTools(result.tools)
+      setTotalCount(result.pagination.totalCount)
       setCurrentPage(page)
-      // updateURL sera appelé via un useEffect séparé pour éviter les dépendances circulaires
     } catch (error) {
       console.error('Erreur lors de la recherche:', error)
     } finally {
       setLoading(false)
     }
-  }, [lang, getCacheKey, getFromCache, setCache, updateURL])
-
-  // Mise à jour de l'URL pour partage et bookmarks
-  const updateURL = useCallback((newFilters: Filters, page: number) => {
-    const params = new URLSearchParams()
-    
-    // Filtres de base
-    if (newFilters.query) params.set('search', newFilters.query)
-    if (newFilters.audience) params.set('audience', newFilters.audience)
-    if (newFilters.useCase) params.set('useCase', newFilters.useCase)
-    if (newFilters.category) params.set('category', newFilters.category)
-    if (newFilters.minQuality > 0) params.set('minQuality', newFilters.minQuality.toString())
-    if (newFilters.maxQuality < 10) params.set('maxQuality', newFilters.maxQuality.toString())
-    
-    // Nouveaux filtres avancés
-    if (newFilters.priceRange) params.set('priceRange', newFilters.priceRange)
-    if (newFilters.platform) params.set('platform', newFilters.platform)
-    if (newFilters.language) params.set('language', newFilters.language)
-    if (newFilters.tags.length > 0) params.set('tags', newFilters.tags.join(','))
-    if (newFilters.excludeTags.length > 0) params.set('excludeTags', newFilters.excludeTags.join(','))
-    if (newFilters.dateRange) params.set('dateRange', newFilters.dateRange)
-    if (newFilters.minViews > 0) params.set('minViews', newFilters.minViews.toString())
-    if (newFilters.maxViews < 999999) params.set('maxViews', newFilters.maxViews.toString())
-    
-    // Logique de filtres
-    if (newFilters.filterLogic !== 'AND') params.set('filterLogic', newFilters.filterLogic)
-    if (newFilters.exactMatch) params.set('exactMatch', 'true')
-    
-    // Paramètres de base
-    if (newFilters.sortBy !== 'created_at') params.set('sort', newFilters.sortBy)
-    if (newFilters.sortOrder !== 'desc') params.set('order', newFilters.sortOrder)
-    if (newFilters.hasImage) params.set('hasImage', 'true')
-    if (newFilters.hasVideo) params.set('hasVideo', 'true')
-    if (page > 1) params.set('page', page.toString())
-    if (viewMode !== 'grid') params.set('view', viewMode)
-
-    const newURL = `/${lang}/tools?${params.toString()}`
-    window.history.pushState({}, '', newURL)
-  }, [lang, viewMode])
+  }, [lang])
 
   // Gestion des changements de filtres
   const handleFilterChange = useCallback((key: keyof Filters, value: any) => {
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
-    // searchTools sera appelé via l'effet de dépendance sur filters
-  }, [filters])
+    searchTools(newFilters, 1)
+  }, [filters, searchTools])
 
+  // Réinitialiser les filtres
+  const resetFilters = useCallback(() => {
+    const resetFilters: Filters = {
+      query: '',
+      audience: '',
+      useCase: '',
+      category: '',
+      minQuality: 0,
+      sortBy: 'created_at',
+      sortOrder: 'desc',
+      hasImage: false,
+      hasVideo: false,
+      priceRange: '',
+      featured: false
+    }
+    setFilters(resetFilters)
+    searchTools(resetFilters, 1)
+  }, [searchTools])
 
+  // Gestion du changement de page
+  const handlePageChange = useCallback((page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+      searchTools(filters, page)
+    }
+  }, [totalPages, filters, searchTools])
 
-
+  // Gestion du clic sur un outil
+  const handleToolClick = useCallback((tool: ToolWithTranslation) => {
+    const href = getLocalizedHref(tool)
+    router.push(href)
+  }, [getLocalizedHref, router])
 
   // Effect pour la recherche initiale
   useEffect(() => {
-    if (typeof searchTools === 'function') {
-      searchTools(filters, currentPage)
-    }
+    searchTools(filters, currentPage)
   }, [])
-  
-  // Effect pour la mise à jour quand les filtres changent
-  useEffect(() => {
-    if (typeof searchTools === 'function') {
-      searchTools(filters, 1)
-    }
-  }, [filters])
-  
-  // Effect pour la mise à jour quand la page change
-  useEffect(() => {
-    if (typeof searchTools === 'function' && currentPage > 0) {
-      searchTools(filters, currentPage)
-    }
-  }, [currentPage])
-  
-  // Effect pour mettre à jour l'URL quand les filtres ou la page changent
-  useEffect(() => {
-    if (typeof updateURL === 'function') {
-      updateURL(filters, currentPage)
-    }
-  }, [filters, currentPage])
-
-
 
   // Filtres actifs
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    if (key === 'sortBy' || key === 'sortOrder' || key === 'filterLogic') return false
-    if (key === 'maxQuality' && value === 10) return false
-    if (key === 'maxViews' && value === 999999) return false
+    if (key === 'sortBy' || key === 'sortOrder') return false
     if (Array.isArray(value)) return value.length > 0
     return value !== '' && value !== 0 && value !== false
   }).length
 
   return (
-    <Container className="py-8">
-      {/* Header avec stats et contrôles */}
-      <div className="mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {lang === 'fr' ? 'Outils IA' : 'AI Tools'}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              {lang === 'fr' 
-                ? `${totalCount.toLocaleString()} outils disponibles`
-                : `${totalCount.toLocaleString()} tools available`
-              }
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* Bouton filtres mobile */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="lg:hidden"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              {lang === 'fr' ? 'Filtres' : 'Filters'}
-              {activeFiltersCount > 0 && (
-                <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                  {activeFiltersCount}
-                </span>
-              )}
-            </Button>
+    <div className="min-h-screen bg-background pt-20 md:pt-24">
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        {/* Header */}
+        <div className="text-center mb-8 md:mb-12">
+          <h1 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">{t.title}</h1>
+          <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto">
+            {t.subtitle}
+          </p>
+        </div>
 
-            {/* Sélecteur de vue */}
+        {/* Search and Controls */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 md:mb-8">
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder={t.searchPlaceholder}
+                value={filters.query}
+                onChange={(e) => handleFilterChange('query', e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Sort Controls */}
+            <Select value={`${filters.sortBy}-${filters.sortOrder}`} onValueChange={(value) => {
+              const [newSortBy, newSortOrder] = value.split('-') as [Filters['sortBy'], 'asc' | 'desc']
+              setFilters(prev => ({ ...prev, sortBy: newSortBy, sortOrder: newSortOrder }))
+              searchTools({ ...filters, sortBy: newSortBy, sortOrder: newSortOrder }, 1)
+            }}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created_at-desc">{t.sortDate} ({t.orderDesc})</SelectItem>
+                <SelectItem value="created_at-asc">{t.sortDate} ({t.orderAsc})</SelectItem>
+                <SelectItem value="view_count-desc">{t.sortViews} ({t.orderDesc})</SelectItem>
+                <SelectItem value="view_count-asc">{t.sortViews} ({t.orderAsc})</SelectItem>
+                <SelectItem value="quality_score-desc">{t.sortQuality} ({t.orderDesc})</SelectItem>
+                <SelectItem value="quality_score-asc">{t.sortQuality} ({t.orderAsc})</SelectItem>
+                <SelectItem value="name-asc">{t.sortName} ({t.orderAsc})</SelectItem>
+                <SelectItem value="name-desc">{t.sortName} ({t.orderDesc})</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* View Toggle */}
             <div className="flex border rounded-lg overflow-hidden">
               <Button
                 variant={viewMode === 'grid' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => handleViewChange('grid')}
+                onClick={() => setViewMode('grid')}
                 className="rounded-none"
               >
-                <Grid className="w-4 h-4" />
+                <Grid className="h-4 w-4" />
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => handleViewChange('list')}
+                onClick={() => setViewMode('list')}
                 className="rounded-none"
               >
-                <List className="w-4 h-4" />
+                <List className="h-4 w-4" />
               </Button>
             </div>
 
-            {/* Sélecteur de mode de pagination */}
-            <div className="flex border rounded-lg overflow-hidden">
-              <Button
-                variant={paginationMode === 'classic' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setPaginationMode('classic')}
-                className="rounded-none text-xs"
-              >
-                {lang === 'fr' ? 'Pages' : 'Pages'}
-              </Button>
-              <Button
-                variant={paginationMode === 'infinite' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setPaginationMode('infinite')}
-                className="rounded-none text-xs"
-              >
-                {lang === 'fr' ? 'Infinie' : 'Infinite'}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Barre de recherche */}
-        <div className="relative max-w-2xl">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder={lang === 'fr' ? 'Rechercher des outils...' : 'Search tools...'}
-            value={filters.query}
-            onChange={(e) => handleFilterChange('query', e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-8">
-        {/* Sidebar des filtres et recherches */}
-        <div className={`w-80 flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-          <div className="space-y-6">
-            {/* Filtres */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Filter className="w-5 h-5" />
-                  {lang === 'fr' ? 'Filtres' : 'Filters'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Suspense fallback={
-                  <div className="space-y-4">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                  </div>
-                }>
-                  <AdvancedFilters
-                    filters={filters}
-                    onFilterChange={handleFilterChange}
-                    onReset={() => {
-                      const resetFilters: Filters = {
-                        query: '',
-                        audience: '',
-                        useCase: '',
-                        category: '',
-                        minQuality: 0,
-                        maxQuality: 10,
-                        sortBy: 'created_at',
-                        sortOrder: 'desc',
-                        hasImage: false,
-                        hasVideo: false,
-                        priceRange: '',
-                        platform: '',
-                        language: '',
-                        tags: [],
-                        excludeTags: [],
-                        dateRange: '',
-                        minViews: 0,
-                        maxViews: 999999,
-                        filterLogic: 'AND',
-                        exactMatch: false
-                      }
-                      setFilters(resetFilters)
-                      searchTools(resetFilters, 1)
-                    }}
-                    audiences={audiences}
-                    useCases={useCases}
-                    categories={categories}
-                    lang={lang}
-                    activeFiltersCount={activeFiltersCount}
-                  />
-                </Suspense>
-              </CardContent>
-            </Card>
-
-            {/* Recherches Sauvegardées */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="w-5 h-5" />
-                  {lang === 'fr' ? 'Recherches Sauvegardées' : 'Saved Searches'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {savedSearches.length === 0 ? (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                      {lang === 'fr' ? 'Aucune recherche sauvegardée' : 'No saved searches'}
-                    </p>
-                  ) : (
-                    savedSearches.map((savedSearch, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="flex-1">
-                          <h5 className="font-medium text-gray-900 dark:text-white text-sm">
-                            {savedSearch.name}
-                          </h5>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {lang === 'fr' ? 'Cliquez pour charger' : 'Click to load'}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => loadSavedSearch(savedSearch.filters)}
-                            className="text-blue-600 hover:text-blue-700"
-                          >
-                            {lang === 'fr' ? 'Charger' : 'Load'}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteSavedSearch(index)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            {lang === 'fr' ? 'Supprimer' : 'Delete'}
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                  
-                  {/* Formulaire pour sauvegarder la recherche actuelle */}
-                  <div className="border-t pt-3">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder={lang === 'fr' ? 'Nom de la recherche' : 'Search name'}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            const input = e.target as HTMLInputElement
-                            if (input.value.trim()) {
-                              saveSearch(input.value.trim(), filters)
-                              input.value = ''
-                            }
-                          }
-                        }}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const input = document.querySelector('input[placeholder*="Nom"], input[placeholder*="Search"]') as HTMLInputElement
-                          if (input?.value.trim()) {
-                            saveSearch(input.value.trim(), filters)
-                            input.value = ''
-                          }
-                        }}
-                      >
-                        {lang === 'fr' ? 'Sauvegarder' : 'Save'}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Contenu principal */}
-        <div className="flex-1">
-          {/* Résultats */}
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400">
-                {lang === 'fr' ? 'Chargement...' : 'Loading...'}
-              </p>
-            </div>
-          ) : tools.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {lang === 'fr' ? 'Aucun outil trouvé' : 'No tools found'}
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const resetFilters: Filters = {
-                    query: '',
-                    audience: '',
-                    useCase: '',
-                    category: '',
-                    minQuality: 0,
-                    maxQuality: 10,
-                    sortBy: 'created_at',
-                    sortOrder: 'desc',
-                    hasImage: false,
-                    hasVideo: false
-                  }
-                  setFilters(resetFilters)
-                  searchTools(resetFilters, 1)
-                }}
-              >
-                {lang === 'fr' ? 'Réinitialiser les filtres' : 'Reset filters'}
-              </Button>
-            </div>
-          ) : (
-            <>
-              {/* Grille des outils */}
-              <div className="mb-8">
-                {viewMode === 'grid' && (
-                  <Suspense fallback={
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="animate-pulse">
-                          <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
-                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                        </div>
-                      ))}
-                    </div>
-                  }>
-                    <GridLayout cols={3} className="gap-6">
-                      {tools.map((tool) => (
-                        <ToolCard key={tool.id} tool={tool} lang={lang} />
-                      ))}
-                    </GridLayout>
-                  </Suspense>
-                )}
-
-                {viewMode === 'list' && (
-                  <Suspense fallback={
-                    <div className="space-y-4">
-                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div key={i} className="animate-pulse">
-                          <div className="h-24 bg-gray-200 rounded-lg"></div>
-                        </div>
-                      ))}
-                    </div>
-                  }>
-                    <ToolList tools={tools} lang={lang} />
-                  </Suspense>
-                )}
-              </div>
-
-              {/* Pagination selon le mode choisi */}
-              {totalPages > 1 && (
-                <>
-                  {paginationMode === 'classic' ? (
-                    /* Pagination classique */
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={!hasPreviousPage}
-                      >
-                        {lang === 'fr' ? 'Précédent' : 'Previous'}
-                      </Button>
-                      
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          const page = i + 1
-                          if (totalPages <= 5) return page
-                          
-                          if (page === 1) return page
-                          if (page === totalPages) return page
-                          if (page >= currentPage - 1 && page <= currentPage + 1) return page
-                          
-                          if (page === currentPage - 2) return '...'
-                          if (page === currentPage + 2) return '...'
-                          
-                          return null
-                        }).filter(Boolean).map((page, i) => (
-                          <Button
-                            key={i}
-                            variant={page === currentPage ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => typeof page === 'number' && handlePageChange(page)}
-                            disabled={page === '...'}
-                            className="min-w-[40px]"
-                          >
-                            {page}
-                          </Button>
-                        ))}
-                      </div>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={!hasNextPage}
-                      >
-                        {lang === 'fr' ? 'Suivant' : 'Next'}
-                      </Button>
-                    </div>
-                  ) : (
-                    /* Pagination infinie */
-                    <div className="text-center">
-                      {hasNextPage ? (
-                        <Button
-                          variant="outline"
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          className="px-8"
-                        >
-                          {lang === 'fr' ? 'Charger plus d\'outils' : 'Load more tools'}
-                        </Button>
-                      ) : (
-                        <p className="text-gray-500 dark:text-gray-400">
-                          {lang === 'fr' ? 'Tous les outils ont été chargés' : 'All tools have been loaded'}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </>
+            {/* Filter Toggle */}
+            <Button
+              variant={showFilters ? 'default' : 'outline'}
+              onClick={() => setShowFilters(!showFilters)}
+              size="sm"
+              className="lg:hidden"
+            >
+              <SlidersHorizontal className="h-4 w-4 mr-2" />
+              {t.filters}
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {activeFiltersCount}
+                </Badge>
               )}
+            </Button>
+          </div>
+        </div>
 
-              {/* Info pagination */}
-              <div className="text-center text-sm text-gray-500 mt-4">
-                {lang === 'fr' 
-                  ? `Affichage de ${((currentPage - 1) * ITEMS_PER_PAGE) + 1} à ${Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} sur ${totalCount.toLocaleString()} outils`
-                  : `Showing ${((currentPage - 1) * ITEMS_PER_PAGE) + 1} to ${Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of ${totalCount.toLocaleString()} tools`
-                }
+        {/* Results count */}
+        <div className="mb-6">
+          <p className="text-muted-foreground text-sm">
+            {totalCount.toLocaleString()} {t.toolsFound}
+          </p>
+        </div>
+
+        {/* Main Content Layout */}
+        <div className="flex gap-6">
+          {/* Filter Sidebar */}
+          <aside className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+            <div className="sticky top-24">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center">
+                      <Filter className="w-5 h-5 mr-2" />
+                      {t.filters}
+                    </CardTitle>
+                    {activeFiltersCount > 0 && (
+                      <Button variant="ghost" size="sm" onClick={resetFilters}>
+                        {t.resetFilters}
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Category Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t.allCategories}
+                    </label>
+                    <Select
+                      value={filters.category}
+                      onValueChange={(value) => handleFilterChange('category', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.allCategories} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{t.allCategories}</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.name} value={category.name}>
+                            {category.name} ({category.actualToolCount || category.toolCount || 0})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Audience Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t.allAudiences}
+                    </label>
+                    <Select
+                      value={filters.audience}
+                      onValueChange={(value) => handleFilterChange('audience', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.allAudiences} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{t.allAudiences}</SelectItem>
+                        {audiences.map((audience) => (
+                          <SelectItem key={audience.name} value={audience.name}>
+                            {audience.name} ({audience.count})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Use Case Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t.allUseCases}
+                    </label>
+                    <Select
+                      value={filters.useCase}
+                      onValueChange={(value) => handleFilterChange('useCase', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.allUseCases} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{t.allUseCases}</SelectItem>
+                        {useCases.map((useCase) => (
+                          <SelectItem key={useCase.name} value={useCase.name}>
+                            {useCase.name} ({useCase.count})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Quality Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t.minQuality}
+                    </label>
+                    <Select
+                      value={filters.minQuality.toString()}
+                      onValueChange={(value) => handleFilterChange('minQuality', parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Any Quality</SelectItem>
+                        <SelectItem value="50">5.0+ ⭐</SelectItem>
+                        <SelectItem value="60">6.0+ ⭐⭐</SelectItem>
+                        <SelectItem value="70">7.0+ ⭐⭐⭐</SelectItem>
+                        <SelectItem value="80">8.0+ ⭐⭐⭐⭐</SelectItem>
+                        <SelectItem value="90">9.0+ ⭐⭐⭐⭐⭐</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Pricing Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t.pricing}
+                    </label>
+                    <Select
+                      value={filters.priceRange}
+                      onValueChange={(value) => handleFilterChange('priceRange', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Pricing" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Pricing</SelectItem>
+                        <SelectItem value="free">Free</SelectItem>
+                        <SelectItem value="freemium">Freemium</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="enterprise">Enterprise</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Feature Toggles */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-700">{t.featuredOnly}</label>
+                      <Button
+                        variant={filters.featured ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleFilterChange('featured', !filters.featured)}
+                      >
+                        <Star className="h-3 w-3 mr-1" />
+                        {filters.featured ? 'On' : 'Off'}
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-700">{t.withImages}</label>
+                      <Button
+                        variant={filters.hasImage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleFilterChange('hasImage', !filters.hasImage)}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        {filters.hasImage ? 'On' : 'Off'}
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium text-gray-700">{t.withVideos}</label>
+                      <Button
+                        variant={filters.hasVideo ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleFilterChange('hasVideo', !filters.hasVideo)}
+                      >
+                        <Zap className="h-3 w-3 mr-1" />
+                        {filters.hasVideo ? 'On' : 'Off'}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </aside>
+
+          {/* Tools Display */}
+          <main className="flex-1">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading tools...</p>
               </div>
-            </>
-          )}
+            ) : tools.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 text-muted-foreground">
+                  <Search className="w-full h-full" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{t.noResults}</h3>
+                <p className="text-muted-foreground mb-4">{t.noResultsDesc}</p>
+                <Button variant="outline" onClick={resetFilters}>
+                  {t.resetFilters}
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Tools Grid */}
+                {viewMode === 'grid' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
+                    {tools.map((tool) => (
+                      <ToolCard
+                        key={tool.id}
+                        tool={tool}
+                        lang={lang}
+                        onClick={() => handleToolClick(tool)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  /* List View */
+                  <div className="space-y-4 mb-8">
+                    {tools.map((tool) => (
+                      <Card key={tool.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleToolClick(tool)}>
+                        <CardContent className="p-4">
+                          <div className="flex gap-4">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                              <Image
+                                src={tool.image_url || "/images/placeholders/ai-placeholder.jpg"}
+                                alt={tool.displayName}
+                                width={64}
+                                height={64}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between mb-2">
+                                <h3 className="font-semibold text-gray-900 hover:text-primary transition-colors">
+                                  {tool.displayName}
+                                </h3>
+                                <div className="flex items-center space-x-2">
+                                  {tool.quality_score && (
+                                    <div className="flex items-center">
+                                      <Star className="w-3 h-3 text-yellow-400 mr-1" />
+                                      <span className="text-sm text-gray-600">{tool.quality_score.toFixed(1)}</span>
+                                    </div>
+                                  )}
+                                  <Badge variant="secondary" className="text-xs">
+                                    {tool.toolCategory}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                                {tool.displayOverview || tool.displayDescription}
+                              </p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center text-sm text-gray-500">
+                                  <Users className="w-3 h-3 mr-1" />
+                                  <span>{tool.view_count || 0} users</span>
+                                </div>
+                                <div className="text-primary text-sm font-medium hover:underline">
+                                  Learn More →
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-8">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={!hasPreviousPage}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      {t.previous}
+                    </Button>
+                    
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        const page = i + 1
+                        if (totalPages <= 5) {
+                          return (
+                            <Button
+                              key={page}
+                              variant={page === currentPage ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handlePageChange(page)}
+                              className="min-w-[40px]"
+                            >
+                              {page}
+                            </Button>
+                          )
+                        }
+                        
+                        // Complex pagination logic for many pages
+                        if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                          return (
+                            <Button
+                              key={page}
+                              variant={page === currentPage ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => handlePageChange(page)}
+                              className="min-w-[40px]"
+                            >
+                              {page}
+                            </Button>
+                          )
+                        }
+                        
+                        if (page === currentPage - 2 || page === currentPage + 2) {
+                          return <span key={page} className="px-2">...</span>
+                        }
+                        
+                        return null
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={!hasNextPage}
+                    >
+                      {t.next}
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Info pagination */}
+                <div className="text-center text-sm text-muted-foreground mt-4">
+                  {t.showingResults} {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} {t.of} {totalCount.toLocaleString()} {t.toolsFound}
+                </div>
+              </>
+            )}
+          </main>
         </div>
       </div>
-    </Container>
+    </div>
   )
 }

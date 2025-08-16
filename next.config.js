@@ -104,59 +104,59 @@ const nextConfig = {
   // Redirections pour migration SEO
   async redirects() {
     return [
-      // Redirect old tool URLs to new short format (exclude API routes)
+      // Redirect individual tool URLs to new short format (but not the tools listing page)
       {
-        source: '/:lang((?!api).+)/tools/:slug*',
-        destination: '/:lang/t/:slug*',
+        source: '/:lang((?!api).+)/tools/:slug([^/]+)',
+        destination: '/:lang/t/:slug',
         permanent: true,
       },
       {
-        source: '/tools/:slug*',
-        destination: '/en/t/:slug*',
+        source: '/tools/:slug([^/]+)',
+        destination: '/en/t/:slug',
         permanent: true,
       },
-      // Redirect old category URLs to new short format (exclude API routes)
+      // Redirect individual category URLs to new short format (but not the categories listing page)
       {
-        source: '/:lang((?!api).+)/categories/:slug*',
-        destination: '/:lang/c/:slug*',
-        permanent: true,
-      },
-      {
-        source: '/categories/:slug*',
-        destination: '/en/c/:slug*',
-        permanent: true,
-      },
-      // Redirect old audience URLs to new short format (exclude API routes)
-      {
-        source: '/:lang((?!api).+)/audiences/:slug*',
-        destination: '/:lang/p/:slug*',
+        source: '/:lang((?!api).+)/categories/:slug([^/]+)',
+        destination: '/:lang/c/:slug',
         permanent: true,
       },
       {
-        source: '/audiences/:slug*',
-        destination: '/en/p/:slug*',
+        source: '/categories/:slug([^/]+)',
+        destination: '/en/c/:slug',
         permanent: true,
       },
-      // Redirect old use case URLs to new short format (exclude API routes)
+      // Redirect individual audience URLs to new short format (but not the audiences listing page)
       {
-        source: '/:lang((?!api).+)/use-cases/:slug*',
-        destination: '/:lang/u/:slug*',
-        permanent: true,
-      },
-      {
-        source: '/use-cases/:slug*',
-        destination: '/en/u/:slug*',
-        permanent: true,
-      },
-      // Legacy redirects for backward compatibility
-      {
-        source: '/en/tools/:slug*',
-        destination: '/en/t/:slug*',
+        source: '/:lang((?!api).+)/audiences/:slug([^/]+)',
+        destination: '/:lang/p/:slug',
         permanent: true,
       },
       {
-        source: '/en/categories/:slug*',
-        destination: '/en/c/:slug*',
+        source: '/audiences/:slug([^/]+)',
+        destination: '/en/p/:slug',
+        permanent: true,
+      },
+      // Redirect individual use case URLs to new short format (but not the use-cases listing page)
+      {
+        source: '/:lang((?!api).+)/use-cases/:slug([^/]+)',
+        destination: '/:lang/u/:slug',
+        permanent: true,
+      },
+      {
+        source: '/use-cases/:slug([^/]+)',
+        destination: '/en/u/:slug',
+        permanent: true,
+      },
+      // Legacy redirects for individual pages only
+      {
+        source: '/en/tools/:slug([^/]+)',
+        destination: '/en/t/:slug',
+        permanent: true,
+      },
+      {
+        source: '/en/categories/:slug([^/]+)',
+        destination: '/en/c/:slug',
         permanent: true,
       },
     ]

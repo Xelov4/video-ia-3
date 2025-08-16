@@ -16,8 +16,8 @@ import { notFound } from 'next/navigation'
 import { Inter } from 'next/font/google'
 import { SupportedLocale, supportedLocales } from '@/middleware'
 
-import ModernHeader from '@/src/components/layout/ModernHeader'
-import ModernFooter from '@/src/components/layout/ModernFooter'
+import ShadcnHeader from '@/src/components/layout/ShadcnHeader'
+import ShadcnFooter from '@/src/components/layout/ShadcnFooter'
 import { I18nProvider } from '@/src/lib/i18n/context'
 import '../globals.css'
 
@@ -238,8 +238,8 @@ export default async function RootLayout({ children, params }: LayoutProps) {
           
           {/* Layout structure moderne */}
           <div className="min-h-screen flex flex-col">
-            {/* Header moderne avec navigation intelligente */}
-            <ModernHeader lang={validatedLang} />
+            {/* Header moderne avec shadcn/ui */}
+            <ShadcnHeader currentLanguage={validatedLang} />
             
             {/* Main content area */}
             <main 
@@ -250,8 +250,8 @@ export default async function RootLayout({ children, params }: LayoutProps) {
               {children}
             </main>
             
-            {/* Footer moderne avec liens utiles */}
-            <ModernFooter lang={validatedLang} />
+            {/* Footer moderne avec shadcn/ui */}
+            <ShadcnFooter currentLanguage={validatedLang} />
           </div>
           
           {/* Service Worker registration */}

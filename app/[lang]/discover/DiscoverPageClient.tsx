@@ -12,10 +12,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Filter, Grid, List, Sparkles, TrendingUp, Star, Users } from 'lucide-react'
 import { SupportedLocale } from '@/middleware'
 
-import { Container } from '@/src/components/ui/Container'
-import { Button } from '@/src/components/ui/Button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/Card'
-import { Grid as GridLayout } from '@/src/components/ui/Grid'
+import { Button } from '@/src/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card'
 
 import { multilingualToolsService, ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
 

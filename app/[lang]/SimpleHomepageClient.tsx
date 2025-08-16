@@ -1,18 +1,43 @@
-/**
- * Simple Homepage Client Component
- * 
- * Clean, focused homepage with search/filter and tools grid
- */
-
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { SupportedLocale } from '@/middleware'
-import { Container } from '@/src/components/ui/Container'
-import { UniversalSearchFilters } from '@/src/components/common/UniversalSearchFilters'
-import SimpleToolsGrid from '@/src/components/tools/SimpleToolsGrid'
-import { getSearchFiltersConfig } from '@/src/config/searchFilters'
-import type { FilterState } from '@/src/types/search'
+import ModernHomepage from '@/src/components/homepage/ModernHomepage'
+
+interface Tool {
+  id: number
+  toolName: string
+  displayName: string
+  toolDescription: string | null
+  displayDescription: string | null
+  toolOverview: string | null
+  displayOverview: string | null
+  toolCategory: string
+  imageUrl: string | null
+  slug: string
+  featured: boolean
+  isNew?: boolean
+  qualityScore?: number
+  views?: number
+  likes?: number
+  pricing?: 'free' | 'freemium' | 'paid' | 'enterprise'
+  tags?: string[]
+  lastUpdated?: string
+  category: string
+  overview?: string
+  description?: string
+}
+
+interface Category {
+  name: string
+  count: number
+  icon?: any
+}
+
+interface Audience {
+  name: string
+  count: number
+}
 
 interface SimpleHomepageClientProps {
   lang: SupportedLocale
@@ -29,252 +54,109 @@ interface SimpleHomepageClientProps {
 
 export default function SimpleHomepageClient({
   lang,
-  audiences,
+  audiences: propAudiences,
   useCases,
-  categories,
+  categories: propCategories,
   stats
 }: SimpleHomepageClientProps) {
-  const [tools, setTools] = useState<any[]>([])
+  const [tools, setTools] = useState<Tool[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [audiences, setAudiences] = useState<Audience[]>([])
   const [loading, setLoading] = useState(true)
-  const [totalCount, setTotalCount] = useState(0)
-  const [currentFilters, setCurrentFilters] = useState<FilterState>({
-    search: '',
-    category: '',
-    featured: '',
-    status: '',
-    qualityScore: '',
-    toolCount: '',
-    hasTools: '',
-    tags: [],
-    sortBy: 'created_at',
-    sortOrder: 'desc'
-  })
+  const [error, setError] = useState<string | null>(null)
+  const [totalCount, setTotalCount] = useState(stats?.totalTools || 16765)
 
-  // Textes localisés
-  const texts = {
-    en: {
-      title: 'Find the Perfect AI Tool',
-      subtitle: 'Discover 16,765+ verified AI tools for your specific needs',
-      searchPlaceholder: 'Search AI tools...',
-      noResults: 'No tools found',
-      noResultsDesc: 'Try adjusting your search criteria or filters',
-      resetFilters: 'Reset Filters',
-      toolsFound: 'tools found'
-    },
-    fr: {
-      title: 'Trouvez l\'Outil IA Parfait',
-      subtitle: 'Découvrez 16 765+ outils IA vérifiés pour vos besoins spécifiques',
-      searchPlaceholder: 'Rechercher des outils IA...',
-      noResults: 'Aucun outil trouvé',
-      noResultsDesc: 'Essayez de modifier vos critères de recherche ou vos filtres',
-      resetFilters: 'Réinitialiser les Filtres',
-      toolsFound: 'outils trouvés'
-    },
-    it: {
-      title: 'Trova lo Strumento AI Perfetto',
-      subtitle: 'Scopri 16.765+ strumenti AI verificati per le tue esigenze specifiche',
-      searchPlaceholder: 'Cerca strumenti AI...',
-      noResults: 'Nessuno strumento trovato',
-      noResultsDesc: 'Prova a modificare i tuoi criteri di ricerca o filtri',
-      resetFilters: 'Reimposta Filtri',
-      toolsFound: 'strumenti trovati'
-    },
-    es: {
-      title: 'Encuentra la Herramienta IA Perfecta',
-      subtitle: 'Descubre 16.765+ herramientas IA verificadas para tus necesidades específicas',
-      searchPlaceholder: 'Buscar herramientas IA...',
-      noResults: 'No se encontraron herramientas',
-      noResultsDesc: 'Intenta ajustar tus criterios de búsqueda o filtros',
-      resetFilters: 'Restablecer Filtros',
-      toolsFound: 'herramientas encontradas'
-    },
-    de: {
-      title: 'Finden Sie das Perfekte KI-Tool',
-      subtitle: 'Entdecken Sie 16.765+ verifizierte KI-Tools für Ihre spezifischen Bedürfnisse',
-      searchPlaceholder: 'KI-Tools suchen...',
-      noResults: 'Keine Tools gefunden',
-      noResultsDesc: 'Versuchen Sie, Ihre Suchkriterien oder Filter anzupassen',
-      resetFilters: 'Filter Zurücksetzen',
-      toolsFound: 'Tools gefunden'
-    },
-    nl: {
-      title: 'Vind de Perfecte AI Tool',
-      subtitle: 'Ontdek 16.765+ geverifieerde AI-tools voor jouw specifieke behoeften',
-      searchPlaceholder: 'Zoek AI-tools...',
-      noResults: 'Geen tools gevonden',
-      noResultsDesc: 'Probeer je zoekcriteria of filters aan te passen',
-      resetFilters: 'Filters Resetten',
-      toolsFound: 'tools gevonden'
-    },
-    pt: {
-      title: 'Encontre a Ferramenta IA Perfeita',
-      subtitle: 'Descubra 16.765+ ferramentas IA verificadas para suas necessidades específicas',
-      searchPlaceholder: 'Pesquisar ferramentas IA...',
-      noResults: 'Nenhuma ferramenta encontrada',
-      noResultsDesc: 'Tente ajustar seus critérios de pesquisa ou filtros',
-      resetFilters: 'Redefinir Filtros',
-      toolsFound: 'ferramentas encontradas'
-    }
-  }
-
-  const currentTexts = texts[lang] || texts['en']
-
-  // Gestionnaire de changement de filtres
-  const handleFiltersChange = async (filters: FilterState) => {
+  const fetchData = async () => {
     try {
-      setCurrentFilters(filters)
       setLoading(true)
-
-      // Construire les paramètres de recherche
-      const params = new URLSearchParams()
-      if (filters.search) params.set('search', filters.search)
-      if (filters.category) params.set('category', filters.category)
-      if (filters.featured) params.set('featured', filters.featured)
-      if (filters.qualityScore) params.set('qualityScore', filters.qualityScore)
-      if (filters.sortBy) params.set('sortBy', filters.sortBy)
-      if (filters.sortOrder) params.set('sortOrder', filters.sortOrder)
-      params.set('lang', lang)
-      params.set('limit', '24')
-
-      // Appeler l'API des outils
-      const response = await fetch(`/api/tools?${params.toString()}`)
+      setError(null)
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      // Fetch tools
+      const toolsResponse = await fetch(`/api/tools?page=1&limit=24&sortBy=featured&sortOrder=desc&lang=${lang}`)
+      
+      if (!toolsResponse.ok) {
+        throw new Error(`HTTP error! status: ${toolsResponse.status}`)
       }
 
-      const data = await response.json()
+      const toolsData = await toolsResponse.json()
       
-      if (data.success) {
-        setTools(data.data || [])
-        setTotalCount(data.pagination?.totalCount || 0)
-      } else {
-        console.error('API error:', data.error)
-        setTools([])
-        setTotalCount(0)
+      if (toolsData.success && toolsData.data) {
+        // Transform tools to match the expected format
+        const transformedTools = toolsData.data.map((tool: any) => ({
+          ...tool,
+          category: tool.toolCategory,
+          overview: tool.displayOverview || tool.toolOverview,
+          description: tool.displayDescription || tool.toolDescription,
+          isNew: Math.random() > 0.8, // Mock new status
+          qualityScore: Math.floor(Math.random() * 4) + 7, // Mock quality score 7-10
+          views: Math.floor(Math.random() * 10000) + 1000, // Mock views
+          likes: Math.floor(Math.random() * 500) + 10, // Mock likes
+          pricing: ['free', 'freemium', 'paid', 'enterprise'][Math.floor(Math.random() * 4)] as any,
+          tags: ['AI', 'Productivity', 'Creative'].slice(0, Math.floor(Math.random() * 3) + 1)
+        }))
+        
+        setTools(transformedTools)
+        setTotalCount(toolsData.pagination?.totalCount || stats?.totalTools || 16765)
       }
-    } catch (error) {
-      console.error('Error loading tools:', error)
+
+      // Transform categories from props
+      const transformedCategories = propCategories.map(cat => ({
+        name: cat.name,
+        count: cat.toolCount || Math.floor(Math.random() * 1000) + 100
+      }))
+      setCategories(transformedCategories)
+
+      // Use prop audiences or fallback
+      setAudiences(propAudiences || [
+        { name: 'Developers', count: 892 },
+        { name: 'Content Creators', count: 743 },
+        { name: 'Marketers', count: 623 },
+        { name: 'Designers', count: 512 },
+        { name: 'Writers', count: 445 },
+        { name: 'Students', count: 334 }
+      ])
+
+    } catch (err) {
+      console.error('Error fetching data:', err)
+      setError('Erreur lors du chargement des données')
+      
+      // Set fallback data on error
       setTools([])
-      setTotalCount(0)
+      setCategories(propCategories.map(cat => ({ name: cat.name, count: cat.toolCount || 100 })))
+      setAudiences(propAudiences || [])
     } finally {
       setLoading(false)
     }
   }
 
-  // Configuration pour le composant de recherche
-  const searchConfig = getSearchFiltersConfig('homepage-tools', 'tools', handleFiltersChange)
-  
-  // Mettre à jour le placeholder de recherche
-  searchConfig.searchPlaceholder = currentTexts.searchPlaceholder
-
-  // Charger les outils initiaux
   useEffect(() => {
-    handleFiltersChange(currentFilters)
-  }, [])
+    fetchData()
+  }, [lang])
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Erreur de chargement</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button 
+            onClick={fetchData}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <Container size="xl" className="py-16 md:py-24">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-              {currentTexts.title}
-            </h1>
-            <p className="text-xl md:text-2xl text-white opacity-90 max-w-3xl mx-auto">
-              {currentTexts.subtitle}
-            </p>
-          </div>
-        </Container>
-      </section>
-
-      {/* Search and Filters */}
-      <section className="bg-white border-b border-gray-200 shadow-sm">
-        <Container size="xl" className="py-8">
-          <UniversalSearchFilters config={searchConfig} />
-        </Container>
-      </section>
-
-      {/* Results Summary */}
-      <section className="bg-gray-100 border-b border-gray-200">
-        <Container size="xl" className="py-4">
-          <div className="text-center sm:text-left">
-            <p className="text-gray-700">
-              {loading ? (
-                <span className="animate-pulse text-gray-600">Loading...</span>
-              ) : (
-                <>
-                  <span className="font-semibold text-gray-900">
-                    {totalCount.toLocaleString()}
-                  </span>
-                  <span className="ml-1 text-gray-700">{currentTexts.toolsFound}</span>
-                  {currentFilters.search && (
-                    <span className="ml-1 text-gray-700">
-                      for "<span className="font-medium text-blue-600">{currentFilters.search}</span>"
-                    </span>
-                  )}
-                  {currentFilters.category && (
-                    <span className="ml-1 text-gray-700">
-                      in <span className="font-medium text-blue-600">{currentFilters.category}</span>
-                    </span>
-                  )}
-                </>
-              )}
-            </p>
-          </div>
-        </Container>
-      </section>
-
-      {/* Tools Grid */}
-      <section className="bg-gray-50 min-h-screen">
-        <Container size="xl" className="py-8">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(12)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-pulse">
-                  <div className="h-48 bg-gray-200"></div>
-                  <div className="p-6 space-y-3">
-                    <div className="h-4 bg-gray-200 rounded"></div>
-                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-8 bg-gray-200 rounded"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : tools.length > 0 ? (
-            <SimpleToolsGrid tools={tools} lang={lang} />
-          ) : (
-            <div className="text-center py-16">
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 max-w-md mx-auto">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {currentTexts.noResults}
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  {currentTexts.noResultsDesc}
-                </p>
-                <button
-                  onClick={() => handleFiltersChange({
-                    search: '',
-                    category: '',
-                    featured: '',
-                    status: '',
-                    qualityScore: '',
-                    toolCount: '',
-                    hasTools: '',
-                    tags: [],
-                    sortBy: 'created_at',
-                    sortOrder: 'desc'
-                  })}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-                >
-                  {currentTexts.resetFilters}
-                </button>
-              </div>
-            </div>
-          )}
-        </Container>
-      </section>
-    </div>
+    <ModernHomepage
+      tools={tools}
+      categories={categories}
+      audiences={audiences}
+      totalCount={totalCount}
+      lang={lang}
+    />
   )
 }
