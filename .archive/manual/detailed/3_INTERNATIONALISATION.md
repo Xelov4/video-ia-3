@@ -1,0 +1,769 @@
+# Système d'Internationalisation de VideoIA.net
+
+*Date de dernière mise à jour : 16 août 2025*
+
+## Table des Matières
+1. [Vue d'Ensemble](#vue-densemble)
+2. [Langues Supportées](#langues-supportées)
+3. [Architecture i18n](#architecture-i18n)
+4. [Configuration du Middleware](#configuration-du-middleware)
+5. [Structure des Routes](#structure-des-routes)
+6. [Contexte i18n](#contexte-i18n)
+7. [Traduction des Contenus](#traduction-des-contenus)
+8. [Gestion des Fallbacks](#gestion-des-fallbacks)
+9. [Optimisation SEO](#optimisation-seo)
+10. [Bonnes Pratiques](#bonnes-pratiques)
+
+## Vue d'Ensemble
+
+VideoIA.net implémente un système d'internationalisation (i18n) complet qui permet d'offrir l'intégralité du contenu dans 7 langues différentes. Le système est conçu pour être :
+
+- **Natif** : Utilise le système de routage natif de Next.js App Router
+- **Performant** : Optimisé pour minimiser l'impact sur les performances
+- **Complet** : Couvre l'UI, les données et le SEO
+- **Robuste** : Gestion des fallbacks pour le contenu non traduit
+- **Extensible** : Facilement extensible à de nouvelles langues
+
+L'internationalisation est implémentée à plusieurs niveaux :
+1. **Routage** : Routes multilingues avec paramètre `[lang]`
+2. **Middleware** : Détection et redirection automatique de langue
+3. **Base de données** : Tables de traduction pour les outils et catégories
+4. **UI** : Textes conditionnels basés sur la langue courante
+5. **SEO** : Méta-données et balises spécifiques à chaque langue
+
+## Langues Supportées
+
+Le système supporte actuellement 7 langues :
+
+| Code | Langue      | Statut       | Fichier de Configuration                 |
+|------|-------------|--------------|------------------------------------------|
+| en   | Anglais     | Primaire     | `/src/lib/i18n/locales/en.json`          |
+| fr   | Français    | Complet      | `/src/lib/i18n/locales/fr.json`          |
+| es   | Espagnol    | Complet      | `/src/lib/i18n/locales/es.json`          |
+| de   | Allemand    | Complet      | `/src/lib/i18n/locales/de.json`          |
+| it   | Italien     | Complet      | `/src/lib/i18n/locales/it.json`          |
+| nl   | Néerlandais | Partiel      | `/src/lib/i18n/locales/nl.json`          |
+| pt   | Portugais   | Partiel      | `/src/lib/i18n/locales/pt.json`          |
+
+Ces langues sont définies comme constantes dans le fichier `/src/lib/i18n/types.ts` :
+
+```typescript
+export type SupportedLanguage = 'en' | 'fr' | 'it' | 'es' | 'de' | 'nl' | 'pt'
+export const SUPPORTED_LANGUAGES: SupportedLanguage[] = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt']
+export const DEFAULT_LANGUAGE: SupportedLanguage = 'en'
+```
+
+## Architecture i18n
+
+L'architecture d'internationalisation de VideoIA.net est structurée en plusieurs couches :
+
+```
++------------------+     +------------------+     +------------------+
+|                  |     |                  |     |                  |
+|  URL Routing     |     |  UI Components   |     |  Database        |
+|  /[lang]/...     | <-> |  Conditional     | <-> |  Translation     |
+|  Middleware      |     |  Text Rendering  |     |  Tables          |
+|                  |     |                  |     |                  |
++------------------+     +------------------+     +------------------+
+          ^                       ^                       ^
+          |                       |                       |
+          v                       v                       v
++------------------------------------------------------------------+
+|                                                                  |
+|                      i18n Context & Types                        |
+|  - SupportedLanguage Type                                        |
+|  - Language Detection                                            |
+|  - Fallback Logic                                                |
+|                                                                  |
++------------------------------------------------------------------+
+```
+
+### Fichiers Clés
+
+- `/middleware.ts` - Middleware de routage i18n
+- `/src/lib/i18n/types.ts` - Types et constantes i18n
+- `/src/lib/i18n/context.tsx` - Contexte React pour i18n côté client
+- `/src/lib/i18n/locales/` - Fichiers de traduction statiques
+- `/src/lib/database/services/multilingual-tools.ts` - Service pour les outils multilingues
+- `/src/lib/database/services/multilingual-categories.ts` - Service pour les catégories multilingues
+
+## Configuration du Middleware
+
+Le middleware Next.js est utilisé pour gérer le routage multilingue. Il intercepte toutes les requêtes et redirige vers la langue appropriée.
+
+### Implémentation du Middleware
+
+Le fichier `/middleware.ts` à la racine du projet contient la logique de routage i18n :
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './src/lib/i18n/types'
+
+// Chemins qui ne doivent pas être traités par le middleware i18n
+const PUBLIC_PATHS = ['/api/', '/admin/', '/images/', '/logos/', '/_next/', '/favicon.ico']
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  
+  // Ignorer les chemins publics
+  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+    return NextResponse.next()
+  }
+  
+  // Vérifier si le chemin contient déjà un code de langue
+  const pathnameHasLang = SUPPORTED_LANGUAGES.some(
+    lang => pathname.startsWith(`/${lang}/`) || pathname === `/${lang}`
+  )
+  
+  if (pathnameHasLang) {
+    return NextResponse.next()
+  }
+  
+  // Déterminer la langue préférée de l'utilisateur
+  let lang = DEFAULT_LANGUAGE
+  
+  // Vérifier les cookies
+  const langCookie = request.cookies.get('NEXT_LOCALE')?.value
+  if (langCookie && SUPPORTED_LANGUAGES.includes(langCookie as any)) {
+    lang = langCookie as typeof DEFAULT_LANGUAGE
+  } else {
+    // Vérifier les en-têtes Accept-Language
+    const acceptLanguage = request.headers.get('accept-language')
+    if (acceptLanguage) {
+      const preferredLang = acceptLanguage
+        .split(',')
+        .map(item => item.split(';')[0].trim().substring(0, 2))
+        .find(item => SUPPORTED_LANGUAGES.includes(item as any))
+      
+      if (preferredLang) {
+        lang = preferredLang as typeof DEFAULT_LANGUAGE
+      }
+    }
+  }
+  
+  // Rediriger vers la version localisée
+  const newUrl = new URL(`/${lang}${pathname === '/' ? '' : pathname}`, request.url)
+  return NextResponse.redirect(newUrl)
+}
+
+export const config = {
+  matcher: [
+    // Matcher pour toutes les routes sauf les fichiers statiques et API
+    '/((?!api|_next/static|_next/image|favicon.ico|images|logos).*)',
+  ],
+}
+```
+
+### Détection de Langue
+
+La détection de langue suit cet ordre de priorité :
+1. Paramètre de langue dans l'URL (`/fr/tools`)
+2. Cookie `NEXT_LOCALE`
+3. En-tête HTTP `Accept-Language`
+4. Langue par défaut (`en`)
+
+## Structure des Routes
+
+Toutes les pages publiques sont organisées sous le paramètre dynamique `[lang]` :
+
+```
+app/
+├── [lang]/               # Routes multilingues
+│   ├── page.tsx          # Page d'accueil (/fr, /en, etc.)
+│   ├── layout.tsx        # Layout principal
+│   ├── categories/       # Pages des catégories
+│   │   ├── page.tsx      # Liste des catégories (/fr/categories)
+│   │   └── [slug]/       # Pages de catégorie spécifique
+│   │       └── page.tsx  # Détail d'une catégorie (/fr/categories/video-editing)
+│   └── tools/            # Pages des outils
+│       ├── page.tsx      # Liste des outils (/fr/tools)
+│       └── [slug]/       # Pages d'outil spécifique
+│           └── page.tsx  # Détail d'un outil (/fr/tools/chatgpt)
+```
+
+### Exemple de Page Multilingue
+
+Voici un exemple simplifié de la page d'accueil (`app/[lang]/page.tsx`) :
+
+```tsx
+import { Metadata } from 'next'
+import { SupportedLanguage } from '@/src/lib/i18n/types'
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
+import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
+
+// Génération des métadonnées spécifiques à la langue
+export async function generateMetadata({ params }: { params: { lang: SupportedLanguage } }): Promise<Metadata> {
+  const { lang } = params
+  
+  const titles = {
+    en: 'VideoIA.net - AI Tools Directory',
+    fr: 'VideoIA.net - Répertoire d\'Outils IA',
+    es: 'VideoIA.net - Directorio de Herramientas IA',
+    de: 'VideoIA.net - Verzeichnis für KI-Tools',
+    it: 'VideoIA.net - Directory di Strumenti IA',
+    nl: 'VideoIA.net - AI-tools Directory',
+    pt: 'VideoIA.net - Diretório de Ferramentas IA'
+  }
+  
+  return {
+    title: titles[lang],
+    description: getDescription(lang),
+    alternates: {
+      canonical: `https://video-ia.net/${lang}`,
+      languages: {
+        en: 'https://video-ia.net/en',
+        fr: 'https://video-ia.net/fr',
+        es: 'https://video-ia.net/es',
+        de: 'https://video-ia.net/de',
+        it: 'https://video-ia.net/it',
+        nl: 'https://video-ia.net/nl',
+        pt: 'https://video-ia.net/pt'
+      }
+    }
+  }
+}
+
+// Page d'accueil avec contenu spécifique à la langue
+export default async function HomePage({ params }: { params: { lang: SupportedLanguage } }) {
+  const { lang } = params
+  
+  // Récupération des données avec la langue spécifiée
+  const featuredTools = await multilingualToolsService.getFeaturedTools(lang, 12)
+  const featuredCategories = await multilingualCategoriesService.getFeaturedCategories(lang, 8)
+  
+  // Textes conditionnels basés sur la langue
+  const welcomeText = {
+    en: 'Discover the Best AI Tools',
+    fr: 'Découvrez les Meilleurs Outils IA',
+    es: 'Descubre las Mejores Herramientas de IA',
+    de: 'Entdecken Sie die besten KI-Tools',
+    it: 'Scopri i Migliori Strumenti IA',
+    nl: 'Ontdek de Beste AI-tools',
+    pt: 'Descubra as Melhores Ferramentas de IA'
+  }
+  
+  return (
+    <main>
+      <h1 className="text-4xl font-bold">{welcomeText[lang]}</h1>
+      
+      {/* Reste du contenu spécifique à la langue */}
+    </main>
+  )
+}
+
+// Helper pour les descriptions multilingues
+function getDescription(lang: SupportedLanguage): string {
+  const descriptions = {
+    en: 'Comprehensive directory of AI tools for video creation, content, and automation.',
+    fr: 'Répertoire complet d\'outils IA pour la création vidéo, le contenu et l\'automatisation.',
+    // Autres langues...
+  }
+  
+  return descriptions[lang] || descriptions.en
+}
+```
+
+## Contexte i18n
+
+Pour les composants client qui ont besoin d'accéder à la langue courante, un contexte React est fourni dans `/src/lib/i18n/context.tsx` :
+
+```tsx
+'use client'
+
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import { SupportedLanguage, DEFAULT_LANGUAGE } from './types'
+
+interface I18nContextType {
+  currentLanguage: SupportedLanguage
+  setLanguage: (lang: SupportedLanguage) => void
+  isLanguageSupported: (lang: string) => boolean
+}
+
+const I18nContext = createContext<I18nContextType | null>(null)
+
+export function I18nProvider({ 
+  children, 
+  currentLanguage 
+}: { 
+  children: React.ReactNode
+  currentLanguage: SupportedLanguage
+}) {
+  const [language, setLanguage] = useState<SupportedLanguage>(currentLanguage || DEFAULT_LANGUAGE)
+  
+  const changeLanguage = (newLang: SupportedLanguage) => {
+    setLanguage(newLang)
+    
+    // Stocker la préférence dans un cookie
+    document.cookie = `NEXT_LOCALE=${newLang};path=/;max-age=${60 * 60 * 24 * 365}`
+    
+    // Rediriger vers la version localisée de la page courante
+    const currentPath = window.location.pathname.split('/').slice(2).join('/')
+    window.location.href = `/${newLang}/${currentPath}`
+  }
+  
+  const isLanguageSupported = (lang: string): boolean => {
+    return ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt'].includes(lang)
+  }
+  
+  return (
+    <I18nContext.Provider value={{ 
+      currentLanguage: language, 
+      setLanguage: changeLanguage,
+      isLanguageSupported
+    }}>
+      {children}
+    </I18nContext.Provider>
+  )
+}
+
+export function useI18n() {
+  const context = useContext(I18nContext)
+  if (!context) {
+    throw new Error('useI18n must be used within an I18nProvider')
+  }
+  return context
+}
+```
+
+### Utilisation du Contexte i18n
+
+Le contexte est initialisé dans le layout principal (`app/[lang]/layout.tsx`) :
+
+```tsx
+import { I18nProvider } from '@/src/lib/i18n/context'
+import { SupportedLanguage } from '@/src/lib/i18n/types'
+
+export default function RootLayout({ 
+  children,
+  params
+}: { 
+  children: React.ReactNode
+  params: { lang: SupportedLanguage }
+}) {
+  return (
+    <html lang={params.lang}>
+      <body>
+        <I18nProvider currentLanguage={params.lang}>
+          {/* Reste du layout */}
+          {children}
+        </I18nProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+Et utilisé dans les composants client :
+
+```tsx
+'use client'
+
+import { useI18n } from '@/src/lib/i18n/context'
+
+export function LanguageSwitcher() {
+  const { currentLanguage, setLanguage } = useI18n()
+  
+  return (
+    <div className="language-switcher">
+      <select 
+        value={currentLanguage} 
+        onChange={(e) => setLanguage(e.target.value as SupportedLanguage)}
+      >
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="nl">Nederlands</option>
+        <option value="pt">Português</option>
+      </select>
+    </div>
+  )
+}
+```
+
+## Traduction des Contenus
+
+VideoIA.net utilise deux approches pour la traduction des contenus :
+
+### 1. Traduction Statique (UI)
+
+Pour les éléments d'interface utilisateur, les textes sont conditionnels basés sur la langue :
+
+```tsx
+const buttonText = {
+  en: 'Search',
+  fr: 'Rechercher',
+  es: 'Buscar',
+  de: 'Suchen',
+  it: 'Cerca',
+  nl: 'Zoeken',
+  pt: 'Pesquisar'
+}[lang]
+```
+
+Pour les textes plus complexes ou réutilisables, des fichiers de traduction JSON sont utilisés :
+
+```typescript
+// /src/lib/i18n/locales/fr.json
+{
+  "common": {
+    "search": "Rechercher",
+    "categories": "Catégories",
+    "tools": "Outils",
+    "viewMore": "Voir plus"
+  },
+  "home": {
+    "welcome": "Bienvenue sur VideoIA.net",
+    "subtitle": "Le répertoire le plus complet d'outils IA pour la création vidéo"
+  }
+}
+```
+
+Ces traductions sont chargées et utilisées via un hook personnalisé :
+
+```typescript
+// /src/hooks/useTranslations.ts
+import { useParams } from 'next/navigation'
+import { SupportedLanguage, DEFAULT_LANGUAGE } from '@/src/lib/i18n/types'
+import enTranslations from '@/src/lib/i18n/locales/en.json'
+import frTranslations from '@/src/lib/i18n/locales/fr.json'
+// Import des autres langues...
+
+export function useTranslations() {
+  const { lang = DEFAULT_LANGUAGE } = useParams()
+  
+  const translations = {
+    en: enTranslations,
+    fr: frTranslations,
+    // Autres langues...
+  }
+  
+  return translations[lang as SupportedLanguage] || translations[DEFAULT_LANGUAGE]
+}
+```
+
+### 2. Traduction Dynamique (Données)
+
+Pour les données dynamiques (outils, catégories), les traductions sont stockées dans la base de données dans les tables `ToolTranslation` et `CategoryTranslation`.
+
+Le service `MultilingualToolsService` gère la récupération des traductions appropriées :
+
+```typescript
+// /src/lib/database/services/multilingual-tools.ts
+export class MultilingualToolsService {
+  // ...
+  
+  static async getToolBySlug(slug: string, lang: SupportedLanguage): Promise<ToolWithTranslation | null> {
+    // Récupérer l'outil avec ses traductions
+    const tool = await prisma.tool.findUnique({
+      where: { slug },
+      include: {
+        translations: {
+          where: {
+            language_code: {
+              in: [lang, DEFAULT_LANGUAGE]
+            }
+          }
+        }
+      }
+    })
+    
+    if (!tool) return null
+    
+    // Traiter les traductions
+    return this.processToolTranslations(tool, lang)
+  }
+  
+  private static processToolTranslations(tool: ToolWithTranslations, lang: SupportedLanguage): ToolWithTranslation {
+    // Trouver la traduction exacte ou fallback
+    const exactTranslation = tool.translations.find(t => t.language_code === lang)
+    const fallbackTranslation = tool.translations.find(t => t.language_code === DEFAULT_LANGUAGE)
+    
+    // Déterminer quelle traduction utiliser
+    const translation = exactTranslation || fallbackTranslation
+    const translationSource = exactTranslation ? 'exact' : (fallbackTranslation ? 'fallback' : 'original')
+    
+    // Construire l'objet avec les champs traduits
+    return {
+      ...tool,
+      displayName: translation?.name || tool.name,
+      displayDescription: translation?.description || tool.description,
+      displayOverview: translation?.overview || tool.overview,
+      resolvedLanguage: lang,
+      translationSource,
+      translationQuality: translation?.quality_score || null
+    }
+  }
+}
+```
+
+## Gestion des Fallbacks
+
+VideoIA.net implémente un système robuste de fallbacks pour garantir que le contenu est toujours disponible, même si une traduction spécifique manque :
+
+### Hiérarchie de Fallback
+1. Traduction exacte dans la langue demandée
+2. Traduction dans la langue par défaut (anglais)
+3. Contenu original non traduit
+
+### Indicateurs de Fallback
+
+Pour la transparence, l'application indique quand un fallback est utilisé :
+
+```tsx
+function ToolDescription({ tool }: { tool: ToolWithTranslation }) {
+  return (
+    <div>
+      <h1>{tool.displayName}</h1>
+      
+      {tool.translationSource === 'fallback' && (
+        <div className="bg-amber-50 text-amber-800 p-2 rounded text-sm mb-4">
+          {tool.resolvedLanguage === 'fr' 
+            ? 'Traduction non disponible. Affichage en anglais.'
+            : 'Translation not available. Showing in English.'}
+        </div>
+      )}
+      
+      <p>{tool.displayDescription}</p>
+    </div>
+  )
+}
+```
+
+### En-têtes HTTP
+
+Les API renvoient des en-têtes HTTP pour indiquer la langue résolue et si un fallback a été utilisé :
+
+```typescript
+// app/api/tools/[slug]/route.ts
+export async function GET(
+  request: Request,
+  { params }: { params: { slug: string } }
+) {
+  const { searchParams } = new URL(request.url)
+  const lang = validateLanguageParam(searchParams.get('lang'))
+  
+  const tool = await multilingualToolsService.getToolBySlug(params.slug, lang)
+  
+  if (!tool) {
+    return NextResponse.json({ success: false, error: 'Tool not found' }, { status: 404 })
+  }
+  
+  const headers = new Headers()
+  headers.set('x-language', tool.resolvedLanguage)
+  headers.set('x-fallback-used', tool.translationSource === 'fallback' ? 'true' : 'false')
+  
+  return NextResponse.json(
+    { success: true, data: tool },
+    { headers }
+  )
+}
+```
+
+## Optimisation SEO
+
+L'internationalisation est optimisée pour le SEO avec plusieurs techniques :
+
+### 1. Balises Alternate et Canonical
+
+Chaque page inclut des balises `link rel="alternate"` pour toutes les versions linguistiques :
+
+```tsx
+// app/[lang]/tools/[slug]/page.tsx
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { lang, slug } = params
+  const tool = await multilingualToolsService.getToolBySlug(slug, lang)
+  
+  if (!tool) {
+    return { title: 'Tool Not Found' }
+  }
+  
+  return {
+    title: tool.displayName,
+    description: tool.displayDescription?.substring(0, 160),
+    alternates: {
+      canonical: `https://video-ia.net/${lang}/tools/${slug}`,
+      languages: {
+        en: `https://video-ia.net/en/tools/${slug}`,
+        fr: `https://video-ia.net/fr/tools/${slug}`,
+        es: `https://video-ia.net/es/tools/${slug}`,
+        de: `https://video-ia.net/de/tools/${slug}`,
+        it: `https://video-ia.net/it/tools/${slug}`,
+        nl: `https://video-ia.net/nl/tools/${slug}`,
+        pt: `https://video-ia.net/pt/tools/${slug}`
+      }
+    }
+  }
+}
+```
+
+### 2. Attribut `lang` HTML
+
+L'attribut `lang` est correctement défini sur l'élément `<html>` :
+
+```tsx
+// app/[lang]/layout.tsx
+export default function RootLayout({ children, params }: RootLayoutProps) {
+  return (
+    <html lang={params.lang}>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+### 3. Images Spécifiques à la Langue
+
+Les Open Graph images sont spécifiques à chaque langue :
+
+```tsx
+// app/[lang]/layout.tsx
+export async function generateMetadata({ params }: RootLayoutProps): Promise<Metadata> {
+  const { lang } = params
+  
+  return {
+    // ...autres métadonnées...
+    openGraph: {
+      images: [{ 
+        url: `/images/og-image-${lang}.jpg`,
+        width: 1200,
+        height: 630
+      }]
+    }
+  }
+}
+```
+
+### 4. Sitemap Multilingue
+
+Le sitemap XML inclut des entrées pour chaque langue avec les balises `<xhtml:link rel="alternate">` :
+
+```typescript
+// app/sitemap.ts
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const tools = await prisma.tool.findMany({
+    where: { is_active: true },
+    select: { slug: true }
+  })
+  
+  const categories = await prisma.category.findMany({
+    select: { slug: true }
+  })
+  
+  const sitemapEntries: MetadataRoute.Sitemap = []
+  
+  // Ajouter les pages d'accueil pour chaque langue
+  SUPPORTED_LANGUAGES.forEach(lang => {
+    sitemapEntries.push({
+      url: `https://video-ia.net/${lang}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1,
+      // Alternatives linguistiques
+      alternates: SUPPORTED_LANGUAGES.map(altLang => ({
+        hreflang: altLang,
+        href: `https://video-ia.net/${altLang}`
+      }))
+    })
+    
+    // Ajouter les pages d'outils pour chaque langue
+    tools.forEach(tool => {
+      sitemapEntries.push({
+        url: `https://video-ia.net/${lang}/tools/${tool.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+        alternates: SUPPORTED_LANGUAGES.map(altLang => ({
+          hreflang: altLang,
+          href: `https://video-ia.net/${altLang}/tools/${tool.slug}`
+        }))
+      })
+    })
+    
+    // Ajouter les pages de catégories pour chaque langue
+    // ...
+  })
+  
+  return sitemapEntries
+}
+```
+
+## Bonnes Pratiques
+
+### 1. Toujours Utiliser le Paramètre `lang`
+
+Toutes les fonctions et composants qui affichent du contenu doivent accepter et utiliser le paramètre `lang` :
+
+```tsx
+function ToolCard({ tool, lang }: { tool: ToolWithTranslation; lang: SupportedLanguage }) {
+  // Utiliser lang pour les textes conditionnels
+}
+```
+
+### 2. Validation des Paramètres de Langue
+
+Toujours valider les paramètres de langue avec la fonction utilitaire :
+
+```typescript
+// /src/lib/i18n/types.ts
+export function validateLanguageParam(lang: string | null | undefined): SupportedLanguage {
+  if (!lang || !SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage)) {
+    return DEFAULT_LANGUAGE
+  }
+  return lang as SupportedLanguage
+}
+```
+
+### 3. Tests Multilingues
+
+Tester chaque fonctionnalité dans toutes les langues supportées :
+
+```typescript
+// /src/tests/i18n/pages.test.ts
+describe('Pages i18n', () => {
+  SUPPORTED_LANGUAGES.forEach(lang => {
+    it(`should render home page correctly in ${lang}`, async () => {
+      const response = await fetch(`http://localhost:3000/${lang}`)
+      expect(response.status).toBe(200)
+      
+      const html = await response.text()
+      // Vérifier le contenu spécifique à la langue
+    })
+  })
+})
+```
+
+### 4. Éviter les Textes Hardcodés
+
+Ne jamais hardcoder des textes en anglais ou dans une autre langue :
+
+```tsx
+// ❌ Mauvais
+<button>Search</button>
+
+// ✅ Bon
+<button>{
+  {
+    en: 'Search',
+    fr: 'Rechercher',
+    // Autres langues...
+  }[lang]
+}</button>
+```
+
+### 5. Utiliser des URL Cohérentes
+
+Toujours inclure le paramètre de langue dans les URLs :
+
+```tsx
+// ❌ Mauvais
+<Link href={`/tools/${tool.slug}`}>
+
+// ✅ Bon
+<Link href={`/${lang}/tools/${tool.slug}`}>
+```
+
+---
+
+*Cette documentation est maintenue par l'équipe de développement VideoIA.net. Pour toute question ou suggestion concernant l'internationalisation, veuillez contacter l'équipe technique.*
