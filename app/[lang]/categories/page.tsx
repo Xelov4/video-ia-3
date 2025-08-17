@@ -9,7 +9,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SupportedLocale, supportedLocales } from '@/middleware'
 import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
-import CategoriesControls from '@/src/components/categories/CategoriesControls'
+import CategoriesPageClient from './CategoriesPageClient'
 
 // Interface pour paramètres
 interface CategoriesPageProps {
@@ -137,7 +137,7 @@ export default async function CategoriesPage({ params, searchParams }: Categorie
     })
     
     // Gestion compatible avec les deux formats de retour possibles
-    let categories = Array.isArray(categoriesData) ? categoriesData : 
+    const categories = Array.isArray(categoriesData) ? categoriesData : 
                     (categoriesData && 'categories' in categoriesData) ? categoriesData.categories : []
     
     // Tri des catégories selon les paramètres

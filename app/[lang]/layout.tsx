@@ -199,75 +199,45 @@ export default async function RootLayout({ children, params }: LayoutProps) {
   const validatedLang = validateLanguageParam(lang)
   
   return (
-    <html 
-      lang={validatedLang}
-      className={`${inter.variable} scroll-smooth`}
-      suppressHydrationWarning
-    >
-      <head>
-        {/* Critical CSS sera inliné ici */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* Preload critical resources */}
-        <link rel="preload" href="/api/data-extraction?type=audiences&limit=10" as="fetch" crossOrigin="anonymous" />
-        
-        {/* Theme color pour mobile */}
-        <meta name="theme-color" content="#0066FF" />
-        <meta name="msapplication-TileColor" content="#0066FF" />
-        
-        {/* Favicons */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
-      </head>
-      
-      <body 
-        className={`${inter.className} antialiased bg-gray-50 text-gray-900`}
-        suppressHydrationWarning
+    <I18nProvider currentLanguage={validatedLang}>
+      {/* Skip to main content pour a11y */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50"
       >
-        <I18nProvider currentLanguage={validatedLang}>
-          {/* Skip to main content pour a11y */}
-          <a 
-            href="#main-content" 
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50"
-          >
-            Skip to main content
-          </a>
-          
-          {/* Layout structure moderne */}
-          <div className="min-h-screen flex flex-col">
-            {/* Header moderne avec shadcn/ui */}
-            <ShadcnHeader currentLanguage={validatedLang} />
-            
-            {/* Main content area */}
-            <main 
-              id="main-content"
-              className="flex-1 relative"
-              role="main"
-            >
-              {children}
-            </main>
-            
-            {/* Footer moderne avec shadcn/ui */}
-            <ShadcnFooter currentLanguage={validatedLang} />
-          </div>
-          
-          {/* Service Worker registration */}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                if ('serviceWorker' in navigator) {
-                  window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js');
-                  });
-                }
-              `
-            }}
-          />
-        </I18nProvider>
-      </body>
-    </html>
+        Skip to main content
+      </a>
+      
+      {/* Layout structure moderne */}
+      <div className={`${inter.className} min-h-screen flex flex-col`}>
+        {/* Header moderne avec shadcn/ui */}
+        <ShadcnHeader currentLanguage={validatedLang} />
+        
+        {/* Main content area */}
+        <main 
+          id="main-content"
+          className="flex-1 relative"
+          role="main"
+        >
+          {children}
+        </main>
+        
+        {/* Footer moderne avec shadcn/ui */}
+        <ShadcnFooter currentLanguage={validatedLang} />
+      </div>
+      
+      {/* Service Worker registration */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js');
+              });
+            }
+          `
+        }}
+      />
+    </I18nProvider>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { SupportedLocale } from '@/middleware'
 import ModernHomepage from '@/src/components/homepage/ModernHomepage'
 
@@ -31,7 +31,7 @@ interface Tool {
 interface Category {
   name: string
   count: number
-  icon?: any
+  icon?: React.ReactNode
 }
 
 interface Audience {
@@ -55,20 +55,19 @@ interface SimpleHomepageClientProps {
 export default function SimpleHomepageClient({
   lang,
   audiences: propAudiences,
-  useCases,
   categories: propCategories,
   stats
 }: SimpleHomepageClientProps) {
   const [tools, setTools] = useState<Tool[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [audiences, setAudiences] = useState<Audience[]>([])
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState(stats?.totalTools || 16765)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      setLoading(true)
+      setIsLoading(true)
       setError(null)
       
       // Fetch tools
@@ -82,7 +81,7 @@ export default function SimpleHomepageClient({
       
       if (toolsData.success && toolsData.data) {
         // Transform tools to match the expected format
-        const transformedTools = toolsData.data.map((tool: any) => ({
+        const transformedTools = toolsData.data.map((tool: Record<string, unknown>) => ({
           ...tool,
           category: tool.toolCategory,
           overview: tool.displayOverview || tool.toolOverview,
@@ -91,7 +90,7 @@ export default function SimpleHomepageClient({
           qualityScore: Math.floor(Math.random() * 4) + 7, // Mock quality score 7-10
           views: Math.floor(Math.random() * 10000) + 1000, // Mock views
           likes: Math.floor(Math.random() * 500) + 10, // Mock likes
-          pricing: ['free', 'freemium', 'paid', 'enterprise'][Math.floor(Math.random() * 4)] as any,
+          pricing: ['free', 'freemium', 'paid', 'enterprise'][Math.floor(Math.random() * 4)] as Tool['pricing'],
           tags: ['AI', 'Productivity', 'Creative'].slice(0, Math.floor(Math.random() * 3) + 1)
         }))
         
@@ -125,13 +124,13 @@ export default function SimpleHomepageClient({
       setCategories(propCategories.map(cat => ({ name: cat.name, count: cat.toolCount || 100 })))
       setAudiences(propAudiences || [])
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
-  }
+  }, [lang, propAudiences, propCategories, stats?.totalTools])
 
   useEffect(() => {
     fetchData()
-  }, [lang])
+  }, [lang, fetchData])
 
   if (error) {
     return (

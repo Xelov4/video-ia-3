@@ -189,7 +189,7 @@ const LoginPage = () => {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-blue-200">Compte Principal</div>
                         <div className="text-xs text-blue-300 truncate">admin@video-ia.net</div>
-                        <div className="text-xs text-blue-300">VideoIA2024!</div>
+                        <div className="text-xs text-blue-300">Admin123!</div>
                       </div>
                       <Badge variant="secondary" className="bg-blue-600 text-white text-xs">
                         Super Admin
@@ -207,7 +207,7 @@ const LoginPage = () => {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-green-200">Compte Secondaire</div>
                         <div className="text-xs text-green-300 truncate">admin2@video-ia.net</div>
-                        <div className="text-xs text-green-300">SecurePass2024!</div>
+                        <div className="text-xs text-green-300">Admin456!</div>
                       </div>
                       <Badge variant="secondary" className="bg-green-600 text-white text-xs">
                         Admin

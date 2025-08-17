@@ -462,6 +462,58 @@ class MultilingualToolsService {
   }
 
   /**
+   * Get tools by category with multilingual support
+   */
+  async getToolsByCategory(
+    categorySlug: string, 
+    language: SupportedLanguage, 
+    options: {
+      page?: number;
+      limit?: number;
+      sortBy?: 'name' | 'created_at' | 'view_count' | 'quality_score';
+      sortOrder?: 'asc' | 'desc';
+    } = {}
+  ): Promise<PaginatedToolsResult> {
+    try {
+      const { 
+        page = 1, 
+        limit = 24, 
+        sortBy = 'quality_score', 
+        sortOrder = 'desc' 
+      } = options;
+
+      // Use the existing searchTools function with category filter
+      return this.searchTools({
+        language,
+        category: categorySlug,
+        page,
+        limit,
+        sortBy,
+        sortOrder
+      });
+    } catch (error) {
+      console.error('Error in getToolsByCategory:', error);
+      // Return empty result with pagination structure
+      return {
+        tools: [],
+        pagination: {
+          totalCount: 0,
+          page: options.page || 1,
+          limit: options.limit || 24,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false
+        },
+        meta: {
+          queryTime: 0,
+          language,
+          fallbackCount: 0
+        }
+      };
+    }
+  }
+
+  /**
    * Clear cache
    */
   clearCache(): void {

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { SupportedLanguage } from '@/src/lib/i18n/types'
-import { multilingualCategoriesService } from '@/src/lib/database/services/multilingual-categories'
+import { multilingualCategoriesService, CategoryWithTranslation } from '@/src/lib/database/services/multilingual-categories'
 import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers'
 
 interface CategoriesPageProps {
@@ -74,7 +74,7 @@ export default async function CategoriesPage({ params }: CategoriesPageProps) {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {serializedCategories.map((category: any) => (
+          {serializedCategories.map((category: CategoryWithTranslation) => (
             <div key={category.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -87,7 +87,7 @@ export default async function CategoriesPage({ params }: CategoriesPageProps) {
                     </a>
                   </h3>
                   <span className="text-sm text-gray-500">
-                    {category.tool_count} tools
+                    {category.toolCount} tools
                   </span>
                 </div>
                 
@@ -99,9 +99,9 @@ export default async function CategoriesPage({ params }: CategoriesPageProps) {
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">
-                    {category.tool_count} {lang === 'fr' ? 'outils' : 'tools'}
+                    {category.toolCount} {lang === 'fr' ? 'outils' : 'tools'}
                   </span>
-                  {category.is_featured && (
+                  {category.isFeatured && (
                     <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full">
                       ⭐ {lang === 'fr' ? 'En vedette' : 'Featured'}
                     </span>

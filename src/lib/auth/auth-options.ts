@@ -22,10 +22,13 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log('Credentials manquantes')
           return null
         }
 
         try {
+          console.log('Tentative de connexion pour:', credentials.email)
+          
           // Check if user exists
           const result = await pool.query(
             'SELECT * FROM admin_users WHERE email = $1 AND is_active = true',
@@ -33,17 +36,22 @@ export const authOptions: NextAuthOptions = {
           )
 
           if (result.rows.length === 0) {
+            console.log('Utilisateur non trouvé ou inactif:', credentials.email)
             return null
           }
 
           const user = result.rows[0]
+          console.log('Utilisateur trouvé:', user.email, 'Rôle:', user.role)
 
           // Verify password
           const isValidPassword = await bcrypt.compare(credentials.password, user.password_hash)
 
           if (!isValidPassword) {
+            console.log('Mot de passe incorrect pour:', credentials.email)
             return null
           }
+
+          console.log('Authentification réussie pour:', credentials.email)
 
           // Update last login
           await pool.query(
@@ -52,14 +60,14 @@ export const authOptions: NextAuthOptions = {
           )
 
           return {
-            id: user.id,
+            id: user.id.toString(),
             email: user.email,
             name: user.name,
             role: user.role,
             image: user.avatar_url
           }
         } catch (error) {
-          console.error('Auth error:', error)
+          console.error('Erreur d\'authentification:', error)
           return null
         }
       }
@@ -76,6 +84,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
+        token.id = user.id
       }
       return token
     },
@@ -91,5 +100,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/admin/login',
     error: '/admin/login',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'dev-secret-change-in-production'
+  secret: process.env.NEXTAUTH_SECRET || 'dev-secret-change-in-production',
+  debug: process.env.NODE_ENV === 'development',
+  useSecureCookies: process.env.NODE_ENV === 'production'
 }

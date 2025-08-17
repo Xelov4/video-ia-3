@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/ta
 import { Separator } from '@/src/components/ui/separator'
 import { cn } from '@/src/lib/utils'
 
-import { multilingualToolsService, ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
+import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
 import BreadcrumbWrapper from '@/src/components/layout/BreadcrumbWrapper'
 
 interface ToolsPageClientProps {
@@ -419,32 +419,43 @@ export default function ToolsPageClient({
     return lang === 'en' ? `/t/${slug}` : `/${lang}/t/${slug}`
   }, [lang])
 
-  // Fonction de recherche simplifiée
+  // Fonction de recherche via l'API
   const searchTools = useCallback(async (newFilters: Filters, page: number = 1) => {
     setLoading(true)
     try {
-      const result = await multilingualToolsService.searchTools({
-        language: lang,
-        query: newFilters.query || undefined,
-        audience: newFilters.audience || undefined,
-        useCase: newFilters.useCase || undefined,
-        category: newFilters.category || undefined,
-        filters: {
-          minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined,
-          hasImageUrl: newFilters.hasImage || undefined,
-          hasVideoUrl: newFilters.hasVideo || undefined,
-          featured: newFilters.featured || undefined,
-          priceRange: newFilters.priceRange || undefined
-        },
-        sortBy: newFilters.sortBy,
-        sortOrder: newFilters.sortOrder,
-        page,
-        limit: ITEMS_PER_PAGE
+      // Build the search URL
+      const params = new URLSearchParams({
+        lang,
+        page: page.toString(),
+        limit: ITEMS_PER_PAGE.toString()
       })
-
-      setTools(result.tools)
-      setTotalCount(result.pagination.totalCount)
-      setCurrentPage(page)
+      
+      // Add filters if they exist
+      if (newFilters.query) params.set('query', newFilters.query)
+      if (newFilters.audience && newFilters.audience !== 'all_audiences') params.set('audience', newFilters.audience)
+      if (newFilters.useCase && newFilters.useCase !== 'all_usecases') params.set('useCase', newFilters.useCase)
+      if (newFilters.category && newFilters.category !== 'all_categories') params.set('category', newFilters.category)
+      if (newFilters.minQuality > 0) params.set('minQualityScore', newFilters.minQuality.toString())
+      if (newFilters.hasImage) params.set('hasImageUrl', 'true')
+      if (newFilters.hasVideo) params.set('hasVideoUrl', 'true')
+      if (newFilters.featured) params.set('featured', 'true')
+      if (newFilters.priceRange && newFilters.priceRange !== 'all_pricing') params.set('priceRange', newFilters.priceRange)
+      if (newFilters.sortBy) params.set('sortBy', newFilters.sortBy)
+      if (newFilters.sortOrder) params.set('sortOrder', newFilters.sortOrder)
+      
+      // Fetch results from the API endpoint
+      const response = await fetch(`/api/tools/search?${params.toString()}`)
+      if (!response.ok) throw new Error('Search request failed')
+      
+      const data = await response.json()
+      
+      if (data.success && data.data) {
+        setTools(data.data)
+        setTotalCount(data.meta.pagination.totalCount)
+        setCurrentPage(page)
+      } else {
+        console.error('API returned error:', data.error)
+      }
     } catch (error) {
       console.error('Erreur lors de la recherche:', error)
     } finally {
@@ -541,7 +552,7 @@ export default function ToolsPageClient({
               searchTools({ ...filters, sortBy: newSortBy, sortOrder: newSortOrder }, 1)
             }}>
               <SelectTrigger className="w-48">
-                <SelectValue />
+                <SelectValue placeholder={`${t.sortBy}...`} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="created_at-desc">{t.sortDate} ({t.orderDesc})</SelectItem>
@@ -633,7 +644,7 @@ export default function ToolsPageClient({
                         <SelectValue placeholder={t.allCategories} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">{t.allCategories}</SelectItem>
+                        <SelectItem value="all_categories">{t.allCategories}</SelectItem>
                         {categories.map((category) => (
                           <SelectItem key={category.name} value={category.name}>
                             {category.name} ({category.actualToolCount || category.toolCount || 0})
@@ -656,7 +667,7 @@ export default function ToolsPageClient({
                         <SelectValue placeholder={t.allAudiences} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">{t.allAudiences}</SelectItem>
+                        <SelectItem value="all_audiences">{t.allAudiences}</SelectItem>
                         {audiences.map((audience) => (
                           <SelectItem key={audience.name} value={audience.name}>
                             {audience.name} ({audience.count})
@@ -679,7 +690,7 @@ export default function ToolsPageClient({
                         <SelectValue placeholder={t.allUseCases} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">{t.allUseCases}</SelectItem>
+                        <SelectItem value="all_usecases">{t.allUseCases}</SelectItem>
                         {useCases.map((useCase) => (
                           <SelectItem key={useCase.name} value={useCase.name}>
                             {useCase.name} ({useCase.count})
@@ -699,7 +710,7 @@ export default function ToolsPageClient({
                       onValueChange={(value) => handleFilterChange('minQuality', parseInt(value))}
                     >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder={`${t.sortBy}...`} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="0">Any Quality</SelectItem>
@@ -725,7 +736,7 @@ export default function ToolsPageClient({
                         <SelectValue placeholder="All Pricing" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Pricing</SelectItem>
+                        <SelectItem value="all_pricing">All Pricing</SelectItem>
                         <SelectItem value="free">Free</SelectItem>
                         <SelectItem value="freemium">Freemium</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>

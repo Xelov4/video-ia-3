@@ -9,11 +9,14 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, Filter, Grid, List, Sparkles, TrendingUp, Star, Users } from 'lucide-react'
+import Image from 'next/image'
+import { Search, Filter, Grid as GridIcon, List, Sparkles, TrendingUp, Star, Users } from 'lucide-react'
 import { SupportedLocale } from '@/middleware'
 
 import { Button } from '@/src/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card'
+import { Container } from '@/src/components/ui/Container'
+import { Grid } from '@/src/components/ui/Grid'
 
 import { multilingualToolsService, ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
 
@@ -291,7 +294,7 @@ export default function DiscoverPageClient({
                     className={`p-2 ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
                     title={getText('viewGrid')}
                   >
-                    <Grid className="w-4 h-4" />
+                    <GridIcon className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
@@ -447,17 +450,19 @@ export default function DiscoverPageClient({
                 <>
                   {/* Grid Results */}
                   {viewMode === 'grid' ? (
-                    <GridLayout cols={1} responsive={{ md: 2, lg: 3 }} gap="md">
+                    <Grid cols={1} responsive={{ md: 2, lg: 3 }} gap="md">
                       {tools.map((tool) => (
                         <Card key={tool.id} variant="elevated" hover className="h-full group cursor-pointer">
                           <a href={getLocalizedHref(`/t/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`)}>
                             <CardContent className="p-6">
                               {tool.imageUrl && (
                                 <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                                  <img 
-                                    src={tool.imageUrl} 
+                                  <Image
+                                    src={tool.imageUrl}
                                     alt={tool.displayName}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                    width={300}
+                                    height={200}
                                   />
                                 </div>
                               )}
@@ -495,7 +500,7 @@ export default function DiscoverPageClient({
                           </a>
                         </Card>
                       ))}
-                    </GridLayout>
+                    </Grid>
                   ) : (
                     /* List Results */
                     <div className="space-y-4">
@@ -506,10 +511,12 @@ export default function DiscoverPageClient({
                               <div className="flex gap-6">
                                 {tool.imageUrl && (
                                   <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img 
+                                    <Image 
                                       src={tool.imageUrl} 
                                       alt={tool.displayName}
                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                      width={100}
+                                      height={100}
                                     />
                                   </div>
                                 )}

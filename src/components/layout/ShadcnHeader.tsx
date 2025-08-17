@@ -177,7 +177,7 @@ export default function ShadcnHeader({
           <div className="flex items-center justify-center space-x-4 text-xs font-medium">
             <div className="flex items-center space-x-1">
               <Zap className="h-3 w-3" />
-              <span>{totalTools.toLocaleString()} AI Tools</span>
+              <span>{totalTools.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')} AI Tools</span>
             </div>
             <Separator orientation="vertical" className="h-3 bg-white/30" />
             <div className="flex items-center space-x-1">
@@ -204,7 +204,7 @@ export default function ShadcnHeader({
                 Video-IA.net
               </h1>
               <Badge variant="secondary" className="text-xs bg-blue-600 text-white border-blue-500">
-                16K+ Tools
+                {Math.floor(totalTools / 1000)}K+ Tools
               </Badge>
             </div>
           </Link>
