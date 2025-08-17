@@ -1,127 +1,210 @@
+/**
+ * Admin Categories Page
+ * Categories management with statistics and icon selection
+ */
+
 'use client'
 
-import { useSession } from 'next-auth/react'
-import { redirect } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import Link from 'next/link'
+import { Plus, Folder, BarChart3, Settings, Eye, Edit, Trash2 } from 'lucide-react'
+import { AdminTable } from '@/src/components/admin/AdminTable'
+import { AdvancedFilters } from '@/src/components/admin/AdvancedFilters'
+import { Button } from "@/src/components/ui/button"
+import { Badge } from "@/src/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/src/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/src/components/ui/alert-dialog"
 
 interface Category {
   id: number
   name: string
   slug: string
   description: string
-  icon_name: string
-  tool_count: number
-  is_featured: boolean
-  created_at: string
+  emoji: string
+  toolCount: number
+  isActive: boolean
+  parentId: number | null
+  createdAt: string
+  updatedAt: string
 }
 
 export default function AdminCategoriesPage() {
-  const { data: session, status } = useSession()
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  
+  // Mock data for rapid development
+  const mockCategories: Category[] = [
+    { id: 1, name: 'Génération d\'images', slug: 'ai-image', description: 'Outils de création d\'images IA', emoji: '🎨', toolCount: 45, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-15' },
+    { id: 2, name: 'Génération de texte', slug: 'ai-text', description: 'Outils de rédaction automatique', emoji: '✍️', toolCount: 38, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-10' },
+    { id: 3, name: 'Génération de vidéos', slug: 'ai-video', description: 'Création de vidéos avec IA', emoji: '🎬', toolCount: 23, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-12' },
+    { id: 4, name: 'Synthèse vocale', slug: 'ai-voice', description: 'Génération de voix artificielle', emoji: '🎤', toolCount: 19, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-08' },
+    { id: 5, name: 'Analyse de données', slug: 'ai-analysis', description: 'Outils d\'analyse intelligente', emoji: '📊', toolCount: 31, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-14' }
+  ]
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      redirect('/admin/login')
-    }
-  }, [status])
+  const filterOptions = [
+    { key: 'search', label: 'Recherche', type: 'text' as const, placeholder: 'Nom de catégorie...' },
+    { key: 'active', label: 'Actives uniquement', type: 'checkbox' as const },
+    { key: 'minTools', label: 'Minimum d\'outils', type: 'number' as const, placeholder: '10' }
+  ]
 
-  useEffect(() => {
-    if (session) {
-      fetchCategories()
-    }
-  }, [session])
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/categories')
-      const data = await response.json()
-      setCategories(data.categories || [])
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (status === 'loading') {
-    return <div className="flex items-center justify-center min-h-screen">Chargement...</div>
-  }
-
-  if (!session) {
-    return null
-  }
-
-  return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Catégories</h1>
-        <p className="text-gray-600">Gérez les catégories d'outils</p>
-      </div>
-
-      {loading ? (
-        <div className="text-center py-12">Chargement des catégories...</div>
-      ) : (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Liste des Catégories</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nom
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Slug
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Outils
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    En vedette
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Créé le
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {categories.map((category) => (
-                  <tr key={category.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="text-sm font-medium text-gray-900">
-                          {category.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {category.slug}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {category.tool_count}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        category.is_featured 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {category.is_featured ? 'Oui' : 'Non'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(category.created_at).toLocaleDateString('fr-FR')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+  const columns = [
+    {
+      key: 'category',
+      label: 'Catégorie',
+      sortable: true,
+      render: (value: any, row: Category) => (
+        <div className="flex items-center space-x-3">
+          <div className="text-2xl">{row.emoji}</div>
+          <div>
+            <div className="font-medium">{row.name}</div>
+            <div className="text-sm text-muted-foreground">{row.description}</div>
           </div>
         </div>
-      )}
+      )
+    },
+    {
+      key: 'stats',
+      label: 'Statistiques',
+      render: (value: any, row: Category) => (
+        <div className="space-y-2">
+          <Badge variant="outline" className="bg-blue-50">
+            {row.toolCount} outils
+          </Badge>
+          <div className="text-sm text-muted-foreground">
+            Slug: {row.slug}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Statut',
+      render: (value: any, row: Category) => (
+        <Badge variant={row.isActive ? 'default' : 'secondary'}>
+          {row.isActive ? 'Active' : 'Inactive'}
+        </Badge>
+      )
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (value: any, row: Category) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">Actions</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/categories/${row.id}`}>
+                <Eye className="h-4 w-4 mr-2" />Voir
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/categories/${row.id}/edit`}>
+                <Edit className="h-4 w-4 mr-2" />Modifier
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(row.id)}>
+              <Trash2 className="h-4 w-4 mr-2" />Supprimer
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    }
+  ]
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Gestion des catégories</h1>
+          <p className="text-muted-foreground">Organisez vos outils par catégories</p>
+        </div>
+        <Button asChild>
+          <Link href="/admin/categories/new">
+            <Plus className="mr-2 h-4 w-4" />Ajouter une catégorie
+          </Link>
+        </Button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total catégories</CardTitle>
+            <Folder className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">5</div>
+            <p className="text-xs text-muted-foreground">+1 ce mois</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Outils totaux</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">156</div>
+            <p className="text-xs text-muted-foreground">Répartis dans toutes les catégories</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Moyenne par catégorie</CardTitle>
+            <Settings className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">31.2</div>
+            <p className="text-xs text-muted-foreground">outils par catégorie</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <AdvancedFilters
+        filters={filterOptions}
+        onFiltersChange={() => {}}
+        onReset={() => {}}
+        showCount={mockCategories.length}
+      />
+
+      {/* Categories Table */}
+      <AdminTable
+        title="Catégories"
+        description={`${mockCategories.length} catégories au total`}
+        columns={columns}
+        data={mockCategories}
+        loading={false}
+        totalCount={mockCategories.length}
+        pageSize={20}
+        currentPage={1}
+        onPageChange={() => {}}
+        onSort={() => {}}
+        sortColumn="name"
+        sortDirection="asc"
+      />
+
+      {/* Delete Dialog */}
+      <AlertDialog open={deleteId !== null} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer cette catégorie ? Tous les outils associés seront déplacés vers "Non catégorisé".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
