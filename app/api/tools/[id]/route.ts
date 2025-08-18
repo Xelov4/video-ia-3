@@ -133,7 +133,7 @@ export async function PUT(
     const body = await request.json()
     
     // Validate required fields
-    if (!body.tool_name) {
+    if (!body.toolName) {
       return NextResponse.json(
         {
           success: false,
@@ -157,24 +157,24 @@ export async function PUT(
 
     // Prepare update data
     const updateData = {
-      tool_name: body.tool_name,
-      tool_category: body.tool_category || existingTool.tool_category,
-      tool_link: body.tool_link || existingTool.tool_link,
+      toolName: body.toolName,
+      toolCategory: body.toolCategory || existingTool.toolCategory,
+      toolLink: body.toolLink || existingTool.toolLink,
       overview: body.overview || existingTool.overview,
-      tool_description: body.tool_description || existingTool.tool_description,
-      target_audience: body.target_audience || existingTool.target_audience,
-      key_features: body.key_features || existingTool.key_features,
-      use_cases: body.use_cases || existingTool.use_cases,
+      toolDescription: body.toolDescription || existingTool.toolDescription,
+      targetAudience: body.targetAudience || existingTool.targetAudience,
+      keyFeatures: body.keyFeatures || existingTool.keyFeatures,
+      useCases: body.useCases || existingTool.useCases,
       tags: body.tags || existingTool.tags,
-      image_url: body.image_url || existingTool.image_url,
+      imageUrl: body.imageUrl || existingTool.imageUrl,
       slug: body.slug || existingTool.slug,
-      is_active: body.is_active !== undefined ? body.is_active : existingTool.is_active,
+      isActive: body.isActive !== undefined ? body.isActive : existingTool.isActive,
       featured: body.featured !== undefined ? body.featured : existingTool.featured,
       quality_score: body.quality_score !== undefined ? body.quality_score : existingTool.quality_score,
-      meta_title: body.meta_title || existingTool.meta_title,
-      meta_description: body.meta_description || existingTool.meta_description,
-      seo_keywords: body.seo_keywords || existingTool.seo_keywords,
-      updated_at: new Date()
+      metaTitle: body.metaTitle || existingTool.metaTitle,
+      metaDescription: body.metaDescription || existingTool.metaDescription,
+      seoKeywords: body.seoKeywords || existingTool.seoKeywords,
+      updatedAt: new Date()
     }
 
     // Update tool
@@ -254,7 +254,8 @@ export async function DELETE(
 
     // Soft delete by setting is_active to false
     const deletedTool = await toolsService.updateTool(toolId, {
-      is_active: false
+      isActive: false,
+      updatedAt: new Date()
     })
     
     if (!deletedTool) {

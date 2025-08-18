@@ -4,7 +4,6 @@
  */
 
 import { scrapeWebsite } from '@/src/lib/scraper/core';
-import { analyzeWithGemini, analyzePricingWithGemini, analyzeAffiliateLinks, translateToFrench } from '@/src/lib/ai/analyzer';
 import { 
   enhancedAnalyzeWithGemini, 
   enhancedPricingAnalysis, 
@@ -13,132 +12,58 @@ import {
 } from '@/src/lib/ai/enhancedAnalyzer';
 import { ToolAnalysis } from '@/src/types/analysis';
 
-export class ScraperService {
-  /**
-   * Professional tool analysis workflow with enhanced AI processing
-   */
-  async analyzeProfessionalTool(url: string): Promise<ToolAnalysis> {
-    console.log(`🚀 Starting professional analysis for: ${url}`);
+/**
+ * Professional tool analysis workflow with enhanced AI processing
+ */
+export async function runFullAnalysis(url: string): Promise<ToolAnalysis> {
+  console.log(`🚀 Starting professional analysis for: ${url}`);
 
-    try {
-      // Step 1: Enhanced website scraping
-      console.log('📡 Step 1: Enhanced website scraping...');
-      const scrapingData = await scrapeWebsite(url);
-      console.log(`✅ Scraping completed: ${scrapingData.content.length} chars, ${scrapingData.features.length} features`);
-
-      // Step 2: Professional AI analysis with enhanced prompts
-      console.log('🧠 Step 2: Professional AI analysis...');
-      const analysis = await enhancedAnalyzeWithGemini(scrapingData);
-      console.log(`✅ Enhanced AI analysis completed: ${analysis.toolName} (${analysis.confidence}% confidence)`);
-
-      // Step 3: Enhanced pricing analysis
-      console.log('💰 Step 3: Enhanced pricing analysis...');
-      const pricingDetails = await enhancedPricingAnalysis(scrapingData);
-      analysis.pricingDetails = pricingDetails;
-      console.log(`✅ Enhanced pricing analysis completed: ${pricingDetails.model}`);
-
-      // Step 4: Enhanced affiliate program analysis
-      console.log('🤝 Step 4: Enhanced affiliate analysis...');
-      const affiliateInfo = await enhancedAffiliateAnalysis(scrapingData);
-      analysis.affiliateInfo = affiliateInfo;
-      console.log(`✅ Enhanced affiliate analysis completed: ${affiliateInfo.hasAffiliateProgram ? 'Program found' : 'No program'}`);
-
-      // Step 5: Enhanced French translation with SEO optimization
-      console.log('🇫🇷 Step 5: Enhanced French translation...');
-      try {
-        const frenchTranslation = await enhancedFrenchTranslation(analysis);
-        analysis.translations = frenchTranslation;
-        console.log('✅ Enhanced French translation completed');
-      } catch (error) {
-        console.log('⚠️ French translation failed, continuing without translation');
-      }
-
-      // Step 6: Quality assessment and scoring
-      console.log('📊 Step 6: Quality assessment...');
-      analysis.completenessScore = calculateCompletenessScore(analysis);
-      console.log(`✅ Quality assessment completed: ${analysis.completenessScore}% complete`);
-
-      console.log('🎉 Professional analysis complete!');
-      console.log(`📊 Final results: ${analysis.toolName} - ${analysis.category} - ${analysis.confidence}% confidence`);
-      
-      return analysis;
-
-    } catch (error) {
-      console.error('Professional analysis error:', error);
-      
-      // Fallback to standard analysis if enhanced fails
-      console.log('⚠️ Falling back to standard analysis workflow...');
-      return this.analyzeToolWebsite(url);
-    }
-  }
-
-  /**
-   * Complete tool analysis workflow (original method)
-   */
-  async analyzeToolWebsite(url: string): Promise<ToolAnalysis> {
-    console.log(`🚀 Starting analysis for: ${url}`);
-
-    // Step 1: Scrape the website
-    console.log('📡 Step 1: Scraping website content...');
+  try {
+    // Step 1: Enhanced website scraping
+    console.log('📡 Step 1: Enhanced website scraping...');
     const scrapingData = await scrapeWebsite(url);
-    console.log('✅ Scraping completed successfully');
-    console.log(`📊 Extracted data: ${scrapingData.content.length} characters, ${scrapingData.features.length} features, ${scrapingData.pricing.length} pricing mentions`);
+    console.log(`✅ Scraping completed: ${scrapingData.content.length} chars, ${scrapingData.features.length} features`);
 
-    // Step 2: Analyze pricing
-    console.log('💰 Step 2: Analyzing pricing information...');
-    const pricingDetails = await analyzePricingWithGemini(scrapingData);
-    console.log('✅ Pricing analysis completed');
-    console.log(`📊 Pricing model: ${pricingDetails.model}, Free tier: ${pricingDetails.freeTier}, Paid plans: ${pricingDetails.paidPlans}`);
+    // Step 2: Professional AI analysis with enhanced prompts
+    console.log('🧠 Step 2: Professional AI analysis...');
+    const analysis = await enhancedAnalyzeWithGemini(scrapingData);
+    console.log(`✅ Enhanced AI analysis completed: ${analysis.toolName} (${analysis.confidence}% confidence)`);
 
-    // Step 3: Analyze affiliate links
-    console.log('🤝 Step 3: Analyzing affiliate programs...');
-    const affiliateInfo = await analyzeAffiliateLinks(scrapingData);
-    console.log('✅ Affiliate analysis completed');
-    console.log(`📊 Has affiliate program: ${affiliateInfo.hasAffiliateProgram}`);
-
-    // Step 4: Try AI analysis, fallback to basic analysis if rate limited
-    console.log('🧠 Step 4: Performing AI analysis...');
-    let analysis: ToolAnalysis;
-    try {
-      analysis = await analyzeWithGemini(scrapingData);
-      console.log('✅ AI analysis completed successfully');
-      console.log(`📊 Tool identified: ${analysis.toolName}, Category: ${analysis.category}, Confidence: ${analysis.confidence}%`);
-    } catch (error) {
-      console.log('⚠️ AI analysis failed, using fallback analysis');
-      const { analyzeWithFallback } = await import('@/src/lib/ai/analyzer');
-      analysis = analyzeWithFallback(scrapingData);
-      console.log('✅ Fallback analysis completed');
-    }
-
-    // Add pricing details and affiliate info to analysis
+    // Step 3: Enhanced pricing analysis
+    console.log('💰 Step 3: Enhanced pricing analysis...');
+    const pricingDetails = await enhancedPricingAnalysis(scrapingData);
     analysis.pricingDetails = pricingDetails;
+    console.log(`✅ Enhanced pricing analysis completed: ${pricingDetails.model}`);
+
+    // Step 4: Enhanced affiliate program analysis
+    console.log('🤝 Step 4: Enhanced affiliate analysis...');
+    const affiliateInfo = await enhancedAffiliateAnalysis(scrapingData);
     analysis.affiliateInfo = affiliateInfo;
+    console.log(`✅ Enhanced affiliate analysis completed: ${affiliateInfo.hasAffiliateProgram ? 'Program found' : 'No program'}`);
 
-    // Step 5: Generate French translation
-    console.log('🇫🇷 Step 5: Generating French translation...');
+    // Step 5: Enhanced French translation with SEO optimization
+    console.log('🇫🇷 Step 5: Enhanced French translation...');
     try {
-      const frenchTranslation = await translateToFrench(analysis);
+      const frenchTranslation = await enhancedFrenchTranslation(analysis);
       analysis.translations = frenchTranslation;
-      console.log('✅ French translation completed');
+      console.log('✅ Enhanced French translation completed');
     } catch (error) {
-      console.log('⚠️ Translation failed, continuing without translation');
+      console.log('⚠️ French translation failed, continuing without translation');
     }
 
-    console.log('🎉 Analysis complete!');
+    // Step 6: Quality assessment and scoring
+    console.log('📊 Step 6: Quality assessment...');
+    analysis.completenessScore = calculateCompletenessScore(analysis);
+    console.log(`✅ Quality assessment completed: ${analysis.completenessScore}% complete`);
+
+    console.log('🎉 Professional analysis complete!');
     console.log(`📊 Final results: ${analysis.toolName} - ${analysis.category} - ${analysis.confidence}% confidence`);
+    
     return analysis;
-  }
 
-  /**
-   * Validate URL format
-   */
-  validateUrl(url: string): boolean {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
+  } catch (error) {
+    console.error('Professional analysis error:', error);
+    throw error; // Re-throw the error to be caught by the API route
   }
 }
 
@@ -174,7 +99,6 @@ function calculateCompletenessScore(analysis: ToolAnalysis): number {
   optionalFields.forEach(field => {
     const value = (analysis as any)[field];
     if (value !== null && value !== undefined && value !== '' && 
-        (Array.isArray(value) ? value.length > 0 : true) &&
         (typeof value === 'object' ? Object.keys(value).length > 0 : true)) {
       completedOptional++;
     }

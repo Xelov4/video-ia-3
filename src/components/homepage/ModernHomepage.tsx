@@ -20,6 +20,9 @@ interface ModernHomepageProps {
   featuredTools?: any[]
   totalCount?: number
   lang?: string
+  hasMore?: boolean
+  onLoadMore?: () => void
+  loadingMore?: boolean
 }
 
 // Traductions pour les stats du héros
@@ -150,7 +153,10 @@ export default function ModernHomepage({
   audiences = [],
   featuredTools = [],
   totalCount = 16765,
-  lang = 'fr'
+  lang = 'fr',
+  hasMore = false,
+  onLoadMore,
+  loadingMore = false
 }: ModernHomepageProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false) // Fermé par défaut pour un design plus propre
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid')
@@ -448,9 +454,16 @@ export default function ModernHomepage({
             // Utiliser le vrai nom de catégorie de la DB pour le filtre
             const categoryDbName = category.dbName || category.name
             
+            // Generate slug from category name for URL
+            const categorySlug = categoryDbName.toLowerCase()
+              .replace(/\s+/g, '-')
+              .replace(/[^a-z0-9-]/g, '')
+              .replace(/-+/g, '-')
+              .trim()
+            
             const categoryLink = lang === 'en' 
-              ? `/tools?category=${encodeURIComponent(categoryDbName)}` 
-              : `/${lang}/tools?category=${encodeURIComponent(categoryDbName)}`
+              ? `/c/${categorySlug}` 
+              : `/${lang}/c/${categorySlug}`
             
             return (
               <Card 
@@ -564,6 +577,10 @@ export default function ModernHomepage({
               onLike={(toolId) => {
                 console.log('Like tool:', toolId)
               }}
+              hasMore={hasMore}
+              onLoadMore={onLoadMore}
+              loadingMore={loadingMore}
+              totalCount={totalCount}
             />
           </div>
         </div>

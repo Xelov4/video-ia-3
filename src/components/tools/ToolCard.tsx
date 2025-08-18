@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
 import { getCategoryEmojiString } from '@/src/lib/services/emojiMapping'
+import { SafeImage } from '@/src/components/ui/SafeImage'
 
 interface ToolCardProps {
   tool: ToolWithTranslation
@@ -73,15 +74,8 @@ export const ToolCard: React.FC<ToolCardProps> = ({
     ? getCategoryEmojiString(tool.toolCategory) 
     : '🔧'
 
-  // Choose placeholder image if no image is available - using a data URI for now
-  const imageUrl = tool.imageUrl || `data:image/svg+xml;base64,${Buffer.from(`
-    <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="#e5e7eb"/>
-      <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-family="Arial, sans-serif" font-size="16" fill="#6b7280">
-        ${tool.displayName}
-      </text>
-    </svg>
-  `.trim()).toString('base64')}`
+  // Choose placeholder image if no image is available
+  const imageUrl = tool.imageUrl || '/images/placeholder-tool.png'
 
   // Show translation warning if fallback was used
   const showTranslationWarning = tool.resolvedLanguage !== lang
@@ -134,7 +128,7 @@ export const ToolCard: React.FC<ToolCardProps> = ({
         <div className="h-full flex flex-col">
           {/* Image */}
           <div className="relative w-full h-48 bg-gray-200 overflow-hidden">
-            <Image
+            <SafeImage
               src={imageUrl}
               alt={tool.displayName}
               fill

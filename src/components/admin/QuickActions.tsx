@@ -49,6 +49,13 @@ const actions = [
     href: '/admin/scraper',
     icon: ComputerDesktopIcon,
     color: 'bg-indigo-500 hover:bg-indigo-600'
+  },
+  {
+    name: 'Health Check',
+    description: 'Vérifier le statut HTTP des outils',
+    href: '/admin/image-http',
+    icon: ComputerDesktopIcon,
+    color: 'bg-red-500 hover:bg-red-600'
   }
 ]
 

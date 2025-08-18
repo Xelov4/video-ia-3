@@ -9,6 +9,7 @@ import React, { memo } from 'react'
 import { Star, Eye, Calendar, Tag, ExternalLink } from 'lucide-react'
 import { Card, CardContent } from '@/src/components/ui/Card'
 import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
+import { SafeImage } from '@/src/components/ui/SafeImage'
 
 interface ToolListProps {
   tools: ToolWithTranslation[]
@@ -46,12 +47,12 @@ const ToolList = memo(({ tools, lang }: ToolListProps) => {
                 {/* Image de l'outil */}
                 {hasImage && (
                   <div className="relative w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                    <img
+                    <SafeImage
                       src={tool.image_url}
                       alt={tool.displayName || tool.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                      decoding="async"
+                      fill
+                      sizes="96px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     {hasVideo && (
                       <div className="absolute top-1 right-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded-full">

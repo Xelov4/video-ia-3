@@ -1,55 +1,76 @@
-/**
- * Admin Categories API
- * CRUD operations for categories management
- */
-
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/src/lib/auth/auth-options'
+import { prisma } from '@/src/lib/database/client'
+import { z } from 'zod'
 
-const mockCategories = [
-  { id: 1, name: 'Génération d\'images', slug: 'ai-image', description: 'Outils de création d\'images IA', emoji: '<¨', toolCount: 45, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-15' },
-  { id: 2, name: 'Génération de texte', slug: 'ai-text', description: 'Outils de rédaction automatique', emoji: '', toolCount: 38, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-10' },
-  { id: 3, name: 'Génération de vidéos', slug: 'ai-video', description: 'Création de vidéos avec IA', emoji: '<¬', toolCount: 23, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-12' },
-  { id: 4, name: 'Synthèse vocale', slug: 'ai-voice', description: 'Génération de voix artificielle', emoji: '<¤', toolCount: 19, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-08' },
-  { id: 5, name: 'Analyse de données', slug: 'ai-analysis', description: 'Outils d\'analyse intelligente', emoji: '=Ê', toolCount: 31, isActive: true, parentId: null, createdAt: '2024-01-01', updatedAt: '2024-01-14' }
-]
-
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    return NextResponse.json({
-      categories: mockCategories,
-      totalCount: mockCategories.length
-    })
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
+const categorySchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid slug format'),
+  description: z.string().optional(),
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  displayOrder: z.number().int().optional(),
+  isFeatured: z.boolean().optional(),
+})
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const body = await request.json()
-    const newCategory = {
-      id: mockCategories.length + 1,
-      ...body,
-      toolCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    const validation = categorySchema.safeParse(body)
+
+    if (!validation.success) {
+      return NextResponse.json({ success: false, error: 'Invalid input', details: validation.error.flatten() }, { status: 400 })
     }
 
-    mockCategories.push(newCategory)
-    return NextResponse.json(newCategory, { status: 201 })
+    const { name, slug, description, metaTitle, metaDescription, displayOrder, isFeatured } = validation.data
+
+    const existingCategory = await prisma.category.findFirst({
+      where: { OR: [{ name }, { slug }] },
+    })
+
+    if (existingCategory) {
+      return NextResponse.json({ success: false, error: 'Category with this name or slug already exists' }, { status: 409 })
+    }
+
+    const newCategory = await prisma.category.create({
+      data: {
+        name,
+        slug,
+        description,
+        metaTitle,
+        metaDescription,
+        displayOrder,
+        isFeatured,
+      },
+    })
+
+    return NextResponse.json({ success: true, category: newCategory }, { status: 201 })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error creating category:', error)
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 })
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: {
+        displayOrder: 'asc',
+      },
+      include: {
+        _count: {
+          select: { tools: true },
+        },
+      },
+    })
+
+    const categoriesWithToolCount = categories.map(category => ({
+      ...category,
+      toolCount: category._count.tools,
+    }))
+
+    return NextResponse.json({ success: true, categories: categoriesWithToolCount })
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 })
+  }
+} 

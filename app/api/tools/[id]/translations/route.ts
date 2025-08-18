@@ -1,6 +1,6 @@
 /**
  * API Routes for Tool Translations Management
- * Handles CRUD operations for multilingual tool content
+ * Handles CRUD operations for multilingual tool content using Prisma ORM
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -18,21 +18,18 @@ interface RouteContext {
  */
 export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Next.js 15 requires awaiting params
     const { id } = await params
     const toolId = parseInt(id)
     if (isNaN(toolId)) {
       return NextResponse.json({ error: 'Invalid tool ID' }, { status: 400 })
     }
 
-    // Fetch translations from database
-    const translations = await fetchToolTranslations(toolId)
+    const translations = await ToolsService.getToolTranslations(toolId)
 
     return NextResponse.json({
       success: true,
@@ -55,13 +52,11 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Next.js 15 requires awaiting params
     const { id } = await params
     const toolId = parseInt(id)
     if (isNaN(toolId)) {
@@ -77,19 +72,37 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       metaTitle, 
       metaDescription,
       translationSource = 'human',
-      qualityScore = 0,
       humanReviewed = false
     } = body
 
-    // Validate required fields
     if (!languageCode || !name) {
       return NextResponse.json({ 
         error: 'Language code and name are required' 
       }, { status: 400 })
     }
 
-    // Create translation in database
-    const translationId = await createToolTranslation({
+    // Check if translation already exists
+    const existing = await ToolsService.getToolTranslation(toolId, languageCode)
+    if (existing) {
+      // If it exists, update it instead of creating a new one
+      const updatedTranslation = await ToolsService.updateToolTranslation(existing.id, {
+        name: name.trim(),
+        overview: overview?.trim() || '',
+        description: description?.trim() || '',
+        metaTitle: metaTitle?.trim() || '',
+        metaDescription: metaDescription?.trim() || '',
+        translationSource,
+        humanReviewed: Boolean(humanReviewed)
+      })
+
+      return NextResponse.json({
+        success: true,
+        translation: updatedTranslation,
+        message: 'Translation updated successfully'
+      })
+    }
+
+    const createdTranslation = await ToolsService.createToolTranslation({
       toolId,
       languageCode,
       name: name.trim(),
@@ -98,12 +111,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       metaTitle: metaTitle?.trim() || '',
       metaDescription: metaDescription?.trim() || '',
       translationSource,
-      qualityScore: Math.max(0, Math.min(10, parseFloat(qualityScore) || 0)),
       humanReviewed: Boolean(humanReviewed)
     })
-
-    // Fetch the created translation
-    const createdTranslation = await fetchToolTranslation(translationId)
 
     return NextResponse.json({
       success: true,
@@ -114,7 +123,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   } catch (error: any) {
     console.error('Error creating tool translation:', error)
     
-    if (error.message?.includes('duplicate') || error.code === '23505') {
+    if (error.code === 'P2002') { // Prisma unique constraint violation
       return NextResponse.json({ 
         error: 'Translation already exists for this language' 
       }, { status: 409 })
@@ -125,121 +134,4 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       { status: 500 }
     )
   }
-}
-
-/**
- * Helper function to fetch all translations for a tool
- */
-async function fetchToolTranslations(toolId: number) {
-  const { getPool } = await import('@/src/lib/database/postgres')
-  const pool = getPool()
-  
-  const query = `
-    SELECT 
-      id,
-      tool_id as "toolId",
-      language_code as "languageCode", 
-      name,
-      overview,
-      description,
-      meta_title as "metaTitle",
-      meta_description as "metaDescription",
-      translation_source as "translationSource",
-      quality_score as "qualityScore",
-      human_reviewed as "humanReviewed",
-      created_at as "createdAt",
-      updated_at as "updatedAt"
-    FROM tool_translations 
-    WHERE tool_id = $1
-    ORDER BY 
-      CASE language_code 
-        WHEN 'en' THEN 1 
-        ELSE 2 
-      END, 
-      language_code ASC
-  `
-  
-  const result = await pool.query(query, [toolId])
-  return result.rows
-}
-
-/**
- * Helper function to create a new translation
- */
-async function createToolTranslation(data: {
-  toolId: number
-  languageCode: string
-  name: string
-  overview: string
-  description: string
-  metaTitle: string
-  metaDescription: string
-  translationSource: string
-  qualityScore: number
-  humanReviewed: boolean
-}) {
-  const { getPool } = await import('@/src/lib/database/postgres')
-  const pool = getPool()
-  
-  const query = `
-    INSERT INTO tool_translations (
-      tool_id, 
-      language_code, 
-      name, 
-      overview, 
-      description, 
-      meta_title, 
-      meta_description,
-      translation_source,
-      quality_score,
-      human_reviewed
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    RETURNING id
-  `
-  
-  const values = [
-    data.toolId,
-    data.languageCode,
-    data.name,
-    data.overview,
-    data.description,
-    data.metaTitle,
-    data.metaDescription,
-    data.translationSource,
-    data.qualityScore,
-    data.humanReviewed
-  ]
-  
-  const result = await pool.query(query, values)
-  return result.rows[0].id
-}
-
-/**
- * Helper function to fetch a single translation
- */
-async function fetchToolTranslation(translationId: number) {
-  const { getPool } = await import('@/src/lib/database/postgres')
-  const pool = getPool()
-  
-  const query = `
-    SELECT 
-      id,
-      tool_id as "toolId",
-      language_code as "languageCode", 
-      name,
-      overview,
-      description,
-      meta_title as "metaTitle",
-      meta_description as "metaDescription",
-      translation_source as "translationSource",
-      quality_score as "qualityScore",
-      human_reviewed as "humanReviewed",
-      created_at as "createdAt",
-      updated_at as "updatedAt"
-    FROM tool_translations 
-    WHERE id = $1
-  `
-  
-  const result = await pool.query(query, [translationId])
-  return result.rows[0]
 }

@@ -350,6 +350,20 @@ export class ToolsService {
   }
 
   /**
+   * Get a specific translation for a tool
+   */
+  static async getToolTranslation(toolId: number, languageCode: string): Promise<ToolTranslation | null> {
+    return prisma.toolTranslation.findUnique({
+      where: {
+        toolId_languageCode: {
+          toolId,
+          languageCode
+        }
+      }
+    })
+  }
+
+  /**
    * Créer une traduction pour un outil
    */
   static async createToolTranslation(data: {

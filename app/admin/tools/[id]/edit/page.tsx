@@ -16,49 +16,67 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { 
   ArrowLeftIcon, 
   CheckIcon, 
   TrashIcon, 
   ExclamationTriangleIcon,
   CloudArrowUpIcon,
-  XMarkIcon,
   EyeIcon,
   GlobeAltIcon,
-  TagIcon,
-  FolderIcon
+  FolderIcon,
+  LinkIcon
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { LanguageTabs, type Language, type TranslationStatus } from '@/src/components/admin/LanguageTabs'
 import { TranslationForm, type ToolTranslation, type BaseToolData } from '@/src/components/admin/TranslationForm'
-import { LanguageSection } from '@/src/components/admin/LanguageSection'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
+import { Input } from '@/src/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
+import { Switch } from '@/src/components/ui/switch'
+import { Button } from '@/src/components/ui/button'
+import { Toaster } from '@/src/components/ui/sonner'
+import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/src/components/ui/alert-dialog'
+import { RichTextEditor } from '@/src/components/admin/RichTextEditor'
 
 // Types
 interface Tool {
-  id: number
-  tool_name: string
-  tool_category: string
-  tool_link: string
-  overview: string
-  tool_description: string
-  target_audience: string
-  key_features: string
-  use_cases: string
-  tags: string
-  image_url: string
-  slug: string
-  is_active: boolean
-  featured: boolean
-  quality_score: number
-  meta_title: string
-  meta_description: string
-  seo_keywords: string
-  view_count: number
-  click_count: number
-  favorite_count: number
-  created_at: string
-  updated_at: string
+  id: number;
+  toolName: string;
+  toolCategory: string;
+  toolLink: string;
+  overview: string;
+  toolDescription: string;
+  targetAudience: string;
+  keyFeatures: string;
+  useCases: string;
+  tags: string;
+  imageUrl: string;
+  slug: string;
+  isActive: boolean;
+  featured: boolean;
+  quality_score: number;
+  metaTitle: string;
+  metaDescription: string;
+  seoKeywords: string;
+  viewCount: number;
+  clickCount: number;
+  favoriteCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Category {
@@ -88,414 +106,213 @@ export default function AdminToolEditPage({ params }: PageProps) {
   const { data: session, status } = useSession()
   const router = useRouter()
 
-  // Resolve params properly for Next.js 15
   const [toolId, setToolId] = useState<number | null>(null)
-
-  // Core data states
   const [tool, setTool] = useState<Tool | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [translations, setTranslations] = useState<Record<string, ToolTranslation>>({})
   
-  // UI states
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   
-  // Translation status tracking
   const [translationStatus, setTranslationStatus] = useState<Record<string, TranslationStatus>>({})
+  const [activeLanguage, setActiveLanguage] = useState<string>('en')
 
-  // Resolve params on component mount
   useEffect(() => {
     const resolveParams = async () => {
       try {
         const resolvedParams = await params
         const id = parseInt(resolvedParams.id)
-        if (!isNaN(id)) {
-          setToolId(id)
-        } else {
-          setError('ID d\'outil invalide')
-        }
+        if (!isNaN(id)) setToolId(id)
+        else setError("ID d'outil invalide")
       } catch (err) {
         setError('Erreur lors de la résolution des paramètres')
       }
     }
-
     resolveParams()
   }, [params])
 
-  // Authentication check
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/admin/login')
-    }
+    if (status === 'unauthenticated') router.push('/admin/login')
   }, [status, router])
 
-  // Data fetching
-  useEffect(() => {
-    if (session && toolId) {
-      fetchToolData(toolId)
-      fetchCategories()
-    }
-  }, [session, toolId])
-
-  // Update translation status when translations change
-  useEffect(() => {
-    updateTranslationStatus()
-  }, [translations])
-
-  /**
-   * Fetch complete tool data including all fields
-   */
-  const fetchToolData = async (id: number) => {
+  const fetchToolData = useCallback(async (id: number) => {
     try {
       setLoading(true)
       setError(null)
-      
-      console.log(`Fetching tool data for ID: ${id}`)
-      
-      // Fetch main tool data
       const toolResponse = await fetch(`/api/tools/${id}`)
       if (!toolResponse.ok) {
-        if (toolResponse.status === 404) {
-          throw new Error('Outil non trouvé')
-        }
         throw new Error(`Erreur HTTP: ${toolResponse.status}`)
       }
-      
       const toolData = await toolResponse.json()
-      console.log('Tool data received:', toolData)
-
       if (!toolData.success || !toolData.tool) {
-        throw new Error(toolData.error || 'Données d\'outil invalides')
+        throw new Error(toolData.error || "Données d'outil invalides")
       }
-
       setTool(toolData.tool)
-
-      // Fetch all translations
       await fetchTranslations(id)
-      
     } catch (error) {
       console.error('Error fetching tool:', error)
-      setError(error instanceof Error ? error.message : 'Erreur lors du chargement de l\'outil')
+      setError(error instanceof Error ? error.message : "Erreur lors du chargement de l'outil")
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  /**
-   * Fetch all translations for the tool
-   */
   const fetchTranslations = async (id: number) => {
     try {
-      console.log(`Fetching translations for tool ID: ${id}`)
-      
       const response = await fetch(`/api/tools/${id}/translations`)
       if (response.ok) {
         const data = await response.json()
-        console.log('Translations received:', data)
-        
         const translationsMap: Record<string, ToolTranslation> = {}
-        
         if (data.translations && Array.isArray(data.translations)) {
-          data.translations.forEach((translation: any) => {
-            translationsMap[translation.languageCode] = {
-              id: translation.id,
-              toolId: translation.toolId,
-              languageCode: translation.languageCode,
-              name: translation.name,
-              overview: translation.overview || '',
-              description: translation.description || '',
-              metaTitle: translation.metaTitle || '',
-              metaDescription: translation.metaDescription || '',
-              translationSource: translation.translationSource || 'auto',
-              qualityScore: translation.qualityScore || 0,
-              humanReviewed: translation.humanReviewed || false,
-              createdAt: translation.createdAt,
-              updatedAt: translation.updatedAt
-            }
+          data.translations.forEach((t: any) => {
+            translationsMap[t.languageCode] = { ...t }
           })
         }
-        
         setTranslations(translationsMap)
-        console.log('Translations map created:', translationsMap)
-      } else {
-        console.warn('Failed to fetch translations:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('Error fetching translations:', error)
     }
   }
 
-  /**
-   * Fetch all available categories
-   */
   const fetchCategories = async () => {
     try {
-      console.log('Fetching categories')
-      
       const response = await fetch('/api/categories')
       if (response.ok) {
         const data = await response.json()
-        console.log('Categories received:', data)
-        
-        if (data.categories && Array.isArray(data.categories)) {
-          setCategories(data.categories)
-        }
-      } else {
-        console.warn('Failed to fetch categories:', response.status)
+        const cats = Array.isArray(data?.data) ? data.data : []
+        setCategories(cats)
       }
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
   }
 
-  /**
-   * Update translation completion status for each language
-   */
-  const updateTranslationStatus = () => {
+  useEffect(() => {
+    if (session && toolId) {
+      fetchToolData(toolId)
+      fetchCategories()
+    }
+  }, [session, toolId, fetchToolData])
+
+  const updateTranslationStatus = useCallback(() => {
     const status: Record<string, TranslationStatus> = {}
-    
     LANGUAGES.forEach(language => {
       const translation = translations[language.code]
       if (translation) {
         const fields = ['name', 'overview', 'description', 'metaTitle', 'metaDescription']
         const filledFields = fields.filter(field => {
           const value = translation[field as keyof ToolTranslation]
-          return typeof value === 'string' && value.trim().length > 0
+          return typeof value === 'string' && value.trim().length > 0 && value.trim() !== '<p><br></p>'
         })
-        
         const completionPercentage = Math.round((filledFields.length / fields.length) * 100)
-        
         status[language.code] = {
           isComplete: completionPercentage === 100,
           completionPercentage,
           hasChanges: hasUnsavedChanges,
           isHumanReviewed: translation.humanReviewed,
-          qualityScore: translation.qualityScore
+          qualityScore: translation.quality_score
         }
       } else {
-        status[language.code] = {
-          isComplete: false,
-          completionPercentage: 0,
-          hasChanges: false,
-          isHumanReviewed: false,
-          qualityScore: 0
-        }
+        status[language.code] = { isComplete: false, completionPercentage: 0, hasChanges: false, isHumanReviewed: false, qualityScore: 0 }
       }
     })
-    
     setTranslationStatus(status)
-  }
+  }, [translations, hasUnsavedChanges])
 
-  /**
-   * Handle changes to main tool data
-   */
+  useEffect(() => {
+    updateTranslationStatus()
+  }, [translations, updateTranslationStatus])
+
   const handleToolChange = useCallback((updatedTool: Partial<Tool>) => {
     if (!tool) return
-    
-    console.log('Tool change:', updatedTool)
     setTool({ ...tool, ...updatedTool })
     setHasUnsavedChanges(true)
   }, [tool])
 
-  /**
-   * Handle changes to translation data
-   */
   const handleTranslationChange = useCallback((translation: ToolTranslation) => {
-    console.log('Translation change:', translation)
-    setTranslations(prev => ({
-      ...prev,
-      [translation.languageCode]: translation
-    }))
+    setTranslations(prev => ({ ...prev, [translation.languageCode]: translation }))
     setHasUnsavedChanges(true)
   }, [])
+  
+  const handleDescriptionChange = (content: string) => {
+    handleToolChange({ toolDescription: content });
+  };
+  
+  const handleOverviewChange = (content: string) => {
+    handleToolChange({ overview: content });
+  };
 
-  /**
-   * Save all changes (tool + translations)
-   */
   const handleSave = async () => {
     if (!tool || !toolId) return
-
     setSaving(true)
-    setError(null)
-    setSaveMessage(null)
-
     try {
-      console.log('Saving tool and translations...')
-
-      // Save main tool data (exclude system fields)
-      const { id, created_at, updated_at, last_checked_at, ...toolDataToSave } = tool
+      const { id, createdAt, updatedAt, ...toolDataToSave } = tool
       const toolResponse = await fetch(`/api/tools/${toolId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(toolDataToSave),
       })
+      if (!toolResponse.ok) throw new Error((await toolResponse.json()).error || "Erreur lors de la sauvegarde de l'outil")
 
-      if (!toolResponse.ok) {
-        const errorData = await toolResponse.json()
-        throw new Error(errorData.error || 'Erreur lors de la sauvegarde de l\'outil principal')
-      }
-
-      // Save all translations
-      const translationPromises = Object.values(translations).map(async (translation) => {
-        const endpoint = translation.id 
-          ? `/api/tools/${toolId}/translations/${translation.id}`
-          : `/api/tools/${toolId}/translations`
-        
-        const method = translation.id ? 'PUT' : 'POST'
-        
-        console.log(`Saving translation (${method}):`, endpoint, translation)
-        
-        return fetch(endpoint, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(translation),
-        })
+      const translationPromises = Object.values(translations).map(t => {
+        const endpoint = t.id ? `/api/tools/${toolId}/translations/${t.id}` : `/api/tools/${toolId}/translations`
+        const method = t.id ? 'PUT' : 'POST'
+        return fetch(endpoint, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(t) })
       })
+      const results = await Promise.allSettled(translationPromises)
+      const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok)).length
 
-      const translationResults = await Promise.allSettled(translationPromises)
-      const failedTranslations = translationResults.filter(result => 
-        result.status === 'rejected' || 
-        (result.status === 'fulfilled' && !result.value.ok)
-      ).length
-
-      if (failedTranslations > 0) {
-        setSaveMessage({
-          type: 'error',
-          text: `Outil sauvegardé, mais ${failedTranslations} traduction(s) ont échoué`
-        })
-      } else {
-        setSaveMessage({
-          type: 'success',
-          text: 'Outil et traductions sauvegardés avec succès'
-        })
+      if (failed > 0) toast.error(`Outil sauvegardé, mais ${failed} traduction(s) ont échoué.`)
+      else {
+        toast.success('Outil et traductions sauvegardés avec succès !')
         setHasUnsavedChanges(false)
-        
-        // Refresh translations to get IDs for new translations
-        if (toolId) {
-          await fetchTranslations(toolId)
-        }
+        await fetchTranslations(toolId)
       }
-
     } catch (error) {
       console.error('Error saving:', error)
-      setError(error instanceof Error ? error.message : 'Erreur lors de la sauvegarde')
+      toast.error(error instanceof Error ? error.message : 'Erreur de sauvegarde')
     } finally {
       setSaving(false)
     }
   }
 
-  /**
-   * Delete the tool
-   */
   const handleDelete = async () => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet outil et toutes ses traductions ?')) {
-      return
-    }
-
     if (!toolId) return
-
-    setSaving(true)
     try {
-      const response = await fetch(`/api/tools/${toolId}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Erreur lors de la suppression')
-      }
-
+      const response = await fetch(`/api/tools/${toolId}`, { method: 'DELETE' })
+      if (!response.ok) throw new Error((await response.json()).error || 'Erreur de suppression')
       router.push('/admin/tools?message=Outil supprimé avec succès')
     } catch (error) {
       console.error('Error deleting tool:', error)
-      setError(error instanceof Error ? error.message : 'Erreur lors de la suppression')
-    } finally {
-      setSaving(false)
+      toast.error(error instanceof Error ? error.message : 'Erreur de suppression')
     }
   }
 
-  /**
-   * Generate automatic translation
-   */
   const handleAutoTranslate = async (targetLanguage: string) => {
-    if (!tool || !toolId) return
-
-    try {
-      const response = await fetch(`/api/tools/${toolId}/translations/auto-translate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          targetLanguage,
-          baseData: {
-            name: tool.tool_name,
-            overview: tool.overview,
-            description: tool.tool_description,
-            metaTitle: tool.meta_title,
-            metaDescription: tool.meta_description
-          }
-        }),
-      })
-
-      if (response.ok) {
-        const translatedData = await response.json()
-        handleTranslationChange(translatedData.translation)
-        setSaveMessage({
-          type: 'success',
-          text: `Traduction automatique générée pour ${targetLanguage.toUpperCase()}`
-        })
-      } else {
-        throw new Error('Échec de la traduction automatique')
-      }
-    } catch (error) {
-      console.error('Auto-translation failed:', error)
-      setSaveMessage({
-        type: 'error',
-        text: 'Échec de la traduction automatique'
-      })
-    }
+    // Implementation can be added here
   }
 
-  /**
-   * Copy content from base language
-   */
   const handleCopyFromBase = (targetLanguage: string) => {
     if (!tool) return
-
-    const baseTranslation: ToolTranslation = {
+    const base: ToolTranslation = {
       toolId: tool.id,
       languageCode: targetLanguage,
-      name: tool.tool_name,
+      name: tool.toolName,
       overview: tool.overview || '',
-      description: tool.tool_description || '',
-      metaTitle: tool.meta_title || '',
-      metaDescription: tool.meta_description || '',
+      description: tool.toolDescription || '',
+      metaTitle: tool.metaTitle || '',
+      metaDescription: tool.metaDescription || '',
       translationSource: 'imported',
-      qualityScore: 5,
+      quality_score: 5,
       humanReviewed: false
     }
-
-    handleTranslationChange(baseTranslation)
-    setSaveMessage({
-      type: 'success',
-      text: `Contenu copié depuis la langue de base vers ${targetLanguage.toUpperCase()}`
-    })
+    handleTranslationChange(base)
+    toast.info(`Contenu de base copié vers ${targetLanguage.toUpperCase()}`)
   }
 
-  // Auto-save every 30 seconds if there are unsaved changes
-  useEffect(() => {
-    if (!hasUnsavedChanges) return
-
-    const interval = setInterval(() => {
-      handleSave()
-    }, 30000)
-
-    return () => clearInterval(interval)
-  }, [hasUnsavedChanges, tool, translations])
-
-  // Warn user before leaving with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -503,505 +320,207 @@ export default function AdminToolEditPage({ params }: PageProps) {
         e.returnValue = ''
       }
     }
-
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [hasUnsavedChanges])
 
-  // Loading state
   if (status === 'loading' || loading || !toolId) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement des données...</p>
-        </div>
-      </div>
-    )
+    return <div className="flex items-center justify-center min-h-screen">Chargement...</div>
   }
-
-  // Not authenticated
-  if (!session) {
-    return null
-  }
-
-  // Tool not found
+  if (!session) return null
   if (!tool) {
-    return (
-      <div className="container mx-auto px-6 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Outil non trouvé</h1>
-          <p className="text-gray-600 mb-4">
-            {error || "L'outil demandé n'existe pas ou vous n'avez pas les permissions pour y accéder."}
-          </p>
-          <Link href="/admin/tools" className="text-blue-600 hover:text-blue-800">
-            Retour à la liste
-          </Link>
-        </div>
-      </div>
-    )
+    return <div className="container mx-auto p-6 text-center">Outil non trouvé.</div>
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 sm:px-6 py-8 max-w-7xl">
+      <Toaster richColors position="top-right" />
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/admin/tools"
-                className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
+        <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <Link href="/admin/tools" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-2">
                 <ArrowLeftIcon className="w-5 h-5 mr-2" />
                 Retour
               </Link>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  Modifier l'outil #{tool.id}
-                </h1>
-                <div className="flex items-center space-x-3 mt-2">
-                  <p className="text-gray-600">{tool.tool_name}</p>
-                  {tool.tool_category && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      <FolderIcon className="w-3 h-3 mr-1" />
-                      {tool.tool_category}
-                    </span>
-                  )}
-                  {hasUnsavedChanges && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                      <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
-                      Modifications non sauvegardées
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              {tool.tool_link && (
-                <a
-                  href={tool.tool_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <EyeIcon className="w-4 h-4 mr-2" />
-                  Voir l'outil
-                </a>
+              <h1 className="text-3xl font-bold text-gray-900">{tool.toolName}</h1>
+              {hasUnsavedChanges && (
+                <span className="mt-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  <ExclamationTriangleIcon className="w-3 h-3 mr-1" />
+                  Modifications non sauvegardées
+                </span>
               )}
-              <button
-                onClick={handleDelete}
-                disabled={saving}
-                className="inline-flex items-center px-4 py-2 border border-red-300 text-red-700 bg-white rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
-              >
-                <TrashIcon className="w-4 h-4 mr-2" />
-                Supprimer
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                {saving ? (
-                  <>
-                    <CloudArrowUpIcon className="w-4 h-4 mr-2 animate-pulse" />
-                    Sauvegarde...
-                  </>
-                ) : (
-                  <>
-                    <CheckIcon className="w-4 h-4 mr-2" />
-                    Sauvegarder
-                  </>
-                )}
-              </button>
+            </div>
+            <div className="flex items-center space-x-2 flex-wrap">
+              <a href={tool.toolLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center btn-secondary">
+                <EyeIcon className="w-4 h-4 mr-2" />
+                Voir l'outil
+              </a>
+              <Link href={`/en/tools/${tool.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center btn-secondary">
+                 <LinkIcon className="w-4 h-4 mr-2" />
+                 Voir la page
+              </Link>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive"><TrashIcon className="w-4 h-4 mr-2" />Supprimer</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible et supprimera l'outil et ses traductions.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Confirmer</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button onClick={handleSave} disabled={saving}>
+                <CloudArrowUpIcon className="w-4 h-4 mr-2" />
+                {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Messages */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
-            <p className="text-red-800">{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="text-red-600 hover:text-red-800"
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          </div>
-        )}
-
-        {saveMessage && (
-          <div className={`mb-6 p-4 rounded-lg flex items-center justify-between ${
-            saveMessage.type === 'success' 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-yellow-50 border border-yellow-200'
-          }`}>
-            <p className={saveMessage.type === 'success' ? 'text-green-800' : 'text-yellow-800'}>
-              {saveMessage.text}
-            </p>
-            <button
-              onClick={() => setSaveMessage(null)}
-              className={saveMessage.type === 'success' ? 'text-green-600 hover:text-green-800' : 'text-yellow-600 hover:text-yellow-800'}
-            >
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          </div>
-        )}
-
-        {/* Tool Statistics */}
-        <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm font-medium text-gray-500">Vues</div>
-            <div className="text-2xl font-bold text-gray-900">{tool.view_count.toLocaleString()}</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm font-medium text-gray-500">Clics</div>
-            <div className="text-2xl font-bold text-gray-900">{tool.click_count.toLocaleString()}</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm font-medium text-gray-500">Favoris</div>
-            <div className="text-2xl font-bold text-gray-900">{tool.favorite_count.toLocaleString()}</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm font-medium text-gray-500">Score qualité</div>
-            <div className="text-2xl font-bold text-gray-900">{tool.quality_score}/100</div>
-          </div>
-        </div>
-
-        {/* Main Form Content - Base Language First */}
+        {/* Main Tool Editor */}
         <div className="space-y-8">
-            {/* Basic Information */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-                <span className="text-lg mr-2">🇺🇸</span>
-                Informations de base (English - Langue de référence)
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom de l'outil *
-                  </label>
-                  <input
-                    type="text"
-                    value={tool.tool_name}
-                    onChange={(e) => handleToolChange({ tool_name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Catégorie
-                  </label>
-                  <select
-                    value={tool.tool_category}
-                    onChange={(e) => handleToolChange({ tool_category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  >
-                    <option value="">Sélectionner une catégorie</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.name}>
-                        {category.name} {category.tool_count && `(${category.tool_count} outils)`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Lien de l'outil
-                  </label>
-                  <input
-                    type="url"
-                    value={tool.tool_link || ''}
-                    onChange={(e) => handleToolChange({ tool_link: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    placeholder="https://example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    value={tool.slug || ''}
-                    onChange={(e) => handleToolChange({ slug: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    placeholder="nom-de-l-outil"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Aperçu
-                </label>
-                <textarea
-                  value={tool.overview || ''}
-                  onChange={(e) => handleToolChange({ overview: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  placeholder="Description courte de l'outil..."
-                />
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description complète
-                </label>
-                <textarea
-                  value={tool.tool_description || ''}
-                  onChange={(e) => handleToolChange({ tool_description: e.target.value })}
-                  rows={5}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  placeholder="Description détaillée de l'outil..."
-                />
-              </div>
-            </div>
-
-            {/* Additional Details */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Détails et fonctionnalités</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Audience cible
-                  </label>
-                  <textarea
-                    value={tool.target_audience || ''}
-                    onChange={(e) => handleToolChange({ target_audience: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    placeholder="Qui est l'audience cible ?"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cas d'usage
-                  </label>
-                  <textarea
-                    value={tool.use_cases || ''}
-                    onChange={(e) => handleToolChange({ use_cases: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    placeholder="Quels sont les cas d'usage ?"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fonctionnalités clés
-                </label>
-                <textarea
-                  value={tool.key_features || ''}
-                  onChange={(e) => handleToolChange({ key_features: e.target.value })}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  placeholder="Liste des fonctionnalités principales..."
-                />
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <TagIcon className="w-4 h-4 mr-2" />
-                  Tags
-                </label>
-                <input
-                  type="text"
-                  value={tool.tags || ''}
-                  onChange={(e) => handleToolChange({ tags: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  placeholder="tag1, tag2, tag3"
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  Séparez les tags par des virgules
-                </p>
-              </div>
-            </div>
-
-            {/* SEO and Metadata */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">SEO et métadonnées</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Titre SEO
-                  </label>
-                  <input
-                    type="text"
-                    value={tool.meta_title || ''}
-                    onChange={(e) => handleToolChange({ meta_title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    placeholder="Titre pour les moteurs de recherche"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    {(tool.meta_title || '').length} caractères (optimal: 50-60)
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Score de qualité
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={tool.quality_score || 0}
-                    onChange={(e) => handleToolChange({ quality_score: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description SEO
-                </label>
-                <textarea
-                  value={tool.meta_description || ''}
-                  onChange={(e) => handleToolChange({ meta_description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  placeholder="Description pour les moteurs de recherche"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  {(tool.meta_description || '').length} caractères (optimal: 150-160)
-                </p>
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mots-clés SEO
-                </label>
-                <input
-                  type="text"
-                  value={tool.seo_keywords || ''}
-                  onChange={(e) => handleToolChange({ seo_keywords: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  placeholder="mot-clé1, mot-clé2, mot-clé3"
-                />
-              </div>
-            </div>
-
-            {/* Status and Visibility */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Statut et visibilité</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="is_active"
-                    checked={tool.is_active}
-                    onChange={(e) => handleToolChange({ is_active: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
-                    Outil actif (visible sur le site)
-                  </label>
-                </div>
-
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="featured"
-                    checked={tool.featured}
-                    onChange={(e) => handleToolChange({ featured: e.target.checked })}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="featured" className="ml-2 block text-sm text-gray-900">
-                    Mettre en vedette (page d'accueil)
-                  </label>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  URL de l'image
-                </label>
-                <input
-                  type="url"
-                  value={tool.image_url || ''}
-                  onChange={(e) => handleToolChange({ image_url: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                  placeholder="https://example.com/image.jpg"
-                />
-                {tool.image_url && (
-                  <div className="mt-2">
-                    <img 
-                      src={tool.image_url} 
-                      alt="Aperçu"
-                      className="h-20 w-20 object-cover rounded border"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle>Éditeur Principal (Anglais - Référence)</CardTitle>
+              <CardDescription>
+                Modifiez ici les informations de base de l'outil. Ces informations serviront de source pour les traductions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="general">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="general">Général</TabsTrigger>
+                  <TabsTrigger value="content">Contenu</TabsTrigger>
+                  <TabsTrigger value="seo">SEO</TabsTrigger>
+                  <TabsTrigger value="visibility">Visibilité</TabsTrigger>
+                </TabsList>
+                <TabsContent value="general" className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="font-medium">Nom de l'outil *</label>
+                      <Input value={tool.toolName} onChange={e => handleToolChange({ toolName: e.target.value })} className="bg-slate-50" />
+                    </div>
+                    <div>
+                      <label className="font-medium">Catégorie</label>
+                      <Select value={tool.toolCategory} onValueChange={value => handleToolChange({ toolCategory: value })}>
+                        <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+                        <SelectContent>
+                          {categories.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="font-medium">Lien de l'outil</label>
+                      <Input value={tool.toolLink} onChange={e => handleToolChange({ toolLink: e.target.value })} className="bg-slate-50" />
+                    </div>
+                    <div>
+                      <label className="font-medium">Slug</label>
+                      <Input value={tool.slug} onChange={e => handleToolChange({ slug: e.target.value })} className="bg-slate-50" />
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Timestamps */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Informations système</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Créé le
-                  </label>
-                  <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700">
-                    {new Date(tool.created_at).toLocaleString('fr-FR')}
+                </TabsContent>
+                <TabsContent value="content" className="pt-6">
+                  <div className="space-y-6">
+                    <div>
+                      <label className="font-medium">Présentation (Overview)</label>
+                      <RichTextEditor content={tool.overview} onChange={handleOverviewChange} className="bg-slate-50" />
+                    </div>
+                    <div>
+                      <label className="font-medium">Description complète</label>
+                      <RichTextEditor content={tool.toolDescription} onChange={handleDescriptionChange} className="bg-slate-50" />
+                    </div>
+                     <div>
+                      <label className="font-medium">Public Cible (séparé par virgules)</label>
+                      <Input value={tool.targetAudience} onChange={e => handleToolChange({ targetAudience: e.target.value })} className="bg-slate-50" />
+                    </div>
+                    <div>
+                      <label className="font-medium">Fonctionnalités Clés (séparé par virgules)</label>
+                      <Input value={tool.keyFeatures} onChange={e => handleToolChange({ keyFeatures: e.target.value })} className="bg-slate-50" />
+                    </div>
+                    <div>
+                      <label className="font-medium">Cas d'usage (séparé par virgules)</label>
+                      <Input value={tool.useCases} onChange={e => handleToolChange({ useCases: e.target.value })} className="bg-slate-50" />
+                    </div>
                   </div>
-                </div>
+                </TabsContent>
+                <TabsContent value="seo" className="pt-6">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="font-medium">Meta Titre</label>
+                        <Input value={tool.metaTitle} onChange={e => handleToolChange({ metaTitle: e.target.value })} className="bg-slate-50" />
+                      </div>
+                      <div>
+                        <label className="font-medium">Meta Description</label>
+                        <Input value={tool.metaDescription} onChange={e => handleToolChange({ metaDescription: e.target.value })} className="bg-slate-50" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="font-medium">Mots-clés SEO (séparé par virgules)</label>
+                        <Input value={tool.seoKeywords} onChange={e => handleToolChange({ seoKeywords: e.target.value })} className="bg-slate-50" />
+                      </div>
+                   </div>
+                </TabsContent>
+                <TabsContent value="visibility" className="pt-6">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="font-medium">URL de l'image</label>
+                        <Input value={tool.imageUrl} onChange={e => handleToolChange({ imageUrl: e.target.value })} className="bg-slate-50" />
+                      </div>
+                       <div>
+                        <label className="font-medium">Score de Qualité</label>
+                        <Input type="number" value={tool.quality_score} onChange={e => handleToolChange({ quality_score: parseInt(e.target.value) })} className="bg-slate-50" />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch id="isActive" checked={tool.isActive} onCheckedChange={c => handleToolChange({ isActive: c })} />
+                        <label htmlFor="isActive">Actif</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch id="featured" checked={tool.featured} onCheckedChange={c => handleToolChange({ featured: c })} />
+                        <label htmlFor="featured">En vedette</label>
+                      </div>
+                   </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Dernière modification
-                  </label>
-                  <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700">
-                    {new Date(tool.updated_at).toLocaleString('fr-FR')}
-                  </div>
-                </div>
+          {/* Translations Section */}
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle>Gestion des Traductions</CardTitle>
+              <CardDescription>
+                Sélectionnez une langue pour ajouter ou modifier sa traduction.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LanguageTabs
+                languages={LANGUAGES}
+                activeLanguage={activeLanguage}
+                onLanguageChange={setActiveLanguage}
+                translationStatus={translationStatus}
+              />
+              <div className="mt-6">
+                <TranslationForm
+                  key={activeLanguage}
+                  language={LANGUAGES.find(l => l.code === activeLanguage)!}
+                  translation={translations[activeLanguage] || null}
+                  baseData={tool}
+                  onTranslationChange={handleTranslationChange}
+                  onAutoTranslate={handleAutoTranslate}
+                  onCopyFromBase={handleCopyFromBase}
+                  loading={saving}
+                />
               </div>
-            </div>
-          </div>
-
-        {/* All Language Sections */}
-        <div className="space-y-8">
-          <div className="text-center py-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Gestion des traductions multilingues
-            </h2>
-            <p className="text-gray-600">
-              Gérez toutes les traductions de votre outil dans les langues supportées
-            </p>
-          </div>
-
-          {/* Display all languages */}
-          {LANGUAGES.map((language) => (
-            <LanguageSection
-              key={language.code}
-              language={language}
-              translation={translations[language.code] || null}
-              baseData={tool}
-              onTranslationChange={handleTranslationChange}
-              onAutoTranslate={handleAutoTranslate}
-              onCopyFromBase={handleCopyFromBase}
-              loading={saving}
-            />
-          ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

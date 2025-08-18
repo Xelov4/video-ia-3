@@ -146,7 +146,7 @@ export class DataExtractionService {
     const useCases: UseCaseData[] = Array.from(useCaseMap.entries())
       .filter(([_, data]) => data.count >= 3) // Minimum 3 occurrences
       .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, limit || 100) // Utiliser limit ou 100 par défaut
+      .slice(0, limit || 100) // Top 100
       .map(([name, data]) => ({
         name,
         slug: this.createSlug(name),

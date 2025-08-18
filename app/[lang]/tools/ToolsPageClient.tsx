@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, Filter, Grid, List, Star, Users, Zap, Calendar, Eye, SlidersHorizontal, Sparkles, TrendingUp, ArrowUpDown, ChevronLeft, ChevronRight, MoreHorizontal, Bot, Heart, Bookmark } from 'lucide-react'
 import { SupportedLocale } from '@/middleware'
-import Image from 'next/image'
+import { SafeImage } from '@/src/components/ui/SafeImage'
 
 import { Button } from '@/src/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card'
@@ -64,7 +64,7 @@ const ToolCard = ({ tool, lang, onClick }: {
       <CardContent className="p-0">
         {/* Image */}
         <div className="relative w-full h-48 bg-gray-100 overflow-hidden rounded-t-lg">
-          <Image 
+          <SafeImage 
             src={tool.image_url || "/images/placeholders/ai-placeholder.jpg"}
             alt={tool.displayName}
             fill
@@ -828,11 +828,9 @@ export default function ToolsPageClient({
                         <CardContent className="p-4">
                           <div className="flex gap-4">
                             <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                              <Image
+                              <SafeImage
                                 src={tool.image_url || "/images/placeholders/ai-placeholder.jpg"}
                                 alt={tool.displayName}
-                                width={64}
-                                height={64}
                                 className="w-full h-full object-cover"
                               />
                             </div>

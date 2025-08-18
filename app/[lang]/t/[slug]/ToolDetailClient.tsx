@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useState, useEffect } from 'react'
 import { ExternalLink, Star, Users, Eye, Calendar, Tag, Heart, Bookmark, Share2, Download, Play, CheckCircle, AlertCircle, Info, TrendingUp, Award, Zap, Globe, Shield, Clock, DollarSign } from 'lucide-react'
 import { SupportedLocale } from '@/middleware'
-import Image from 'next/image'
+import { SafeImage } from '@/src/components/ui/SafeImage'
 
 import { Button } from '@/src/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card'
@@ -104,7 +104,7 @@ const ToolCard = ({ tool, lang, onClick }: {
   >
     <CardContent className="p-0">
       <div className="relative w-full h-32 bg-gray-100 overflow-hidden rounded-t-lg">
-        <Image 
+        <SafeImage 
           src={tool.image_url || "/images/placeholders/ai-placeholder.jpg"}
           alt={tool.displayName}
           fill
@@ -673,7 +673,7 @@ export default function ToolDetailClient({
                   {/* Tool Image */}
                   <div className="md:w-1/3">
                     <div className="relative w-full h-64 bg-gray-100 rounded-xl overflow-hidden">
-                      <Image 
+                      <SafeImage 
                         src={tool.image_url || "/images/placeholders/ai-placeholder.jpg"}
                         alt={tool.displayName}
                         fill

@@ -18,6 +18,18 @@ import {
   generateQualityRubric
 } from './prompts';
 
+function extractJsonFromString(text: string): string | null {
+  const match = text.match(/```json\n([\s\S]*?)\n```/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  // Fallback for responses that might just be the JSON string without markdown
+  if (text.trim().startsWith('{')) {
+    return text;
+  }
+  return null;
+}
+
 // Get API key from environment variable
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -205,7 +217,12 @@ ${generateQualityRubric(preliminaryCategory)}
       MODEL_CONFIGS.analysis
     );
 
-    const analysis = parseAIResponse(response, scrapingData);
+    const jsonResponse = extractJsonFromString(response);
+    if (!jsonResponse) {
+      throw new Error('No valid JSON found in AI response');
+    }
+
+    const analysis = parseAIResponse(jsonResponse, scrapingData);
     
     // Post-process and validate
     const validatedAnalysis = validateAndEnhanceAnalysis(analysis, scrapingData);
@@ -268,7 +285,12 @@ ${pricingContent}
       MODEL_CONFIGS.analysis
     );
 
-    const pricing = JSON.parse(response) as PricingDetails;
+    const jsonResponse = extractJsonFromString(response);
+    if (!jsonResponse) {
+      throw new Error('No valid JSON found in pricing analysis response');
+    }
+
+    const pricing = JSON.parse(jsonResponse) as PricingDetails;
     return validatePricingDetails(pricing);
 
   } catch (error) {
@@ -316,7 +338,13 @@ ${affiliateContent}
       MODEL_CONFIGS.analysis
     );
 
-    return JSON.parse(response) as AffiliateInfo;
+    const jsonResponse = extractJsonFromString(response);
+    if (!jsonResponse) {
+      // If no JSON, assume no affiliate program
+      return { hasAffiliateProgram: false };
+    }
+
+    return JSON.parse(jsonResponse) as AffiliateInfo;
 
   } catch (error) {
     console.error('Enhanced affiliate analysis error:', error);
@@ -325,59 +353,112 @@ ${affiliateContent}
 }
 
 /**
- * Enhanced French translation with SEO optimization
+ * Translates tool content to a specified target language with SEO optimization.
  */
-export async function enhancedFrenchTranslation(analysis: ToolAnalysis): Promise<FrenchTranslation> {
+export async function translateContent(
+  analysis: ToolAnalysis, 
+  targetLanguage: { code: string; name: string }
+): Promise<FrenchTranslation> { // Note: We can reuse FrenchTranslation type if the structure is identical
   try {
     if (!ai) {
-      return getEnhancedFallbackTranslation(analysis);
+      throw new Error('Gemini API key not available');
     }
 
-    const fullPrompt = `${FRENCH_TRANSLATION_PROMPT}
+    const fullPrompt = `
+      Translate the following tool content to ${targetLanguage.name}.
+      Adapt the tone and marketing style to be relevant for a ${targetLanguage.name}-speaking audience.
+      Ensure the translation is natural and SEO-optimized for the target language.
 
-**CONTENT TO TRANSLATE:**
-Tool Name: ${analysis.toolName}
-Primary Function: ${analysis.primaryFunction}
-Key Features: ${analysis.keyFeatures.join(', ')}
-Target Audience: ${analysis.targetAudience.join(', ')}
-Description: ${analysis.description?.substring(0, 2000)}
-Meta Title: ${analysis.metaTitle}
-Meta Description: ${analysis.metaDescription}
-Pricing Summary: ${analysis.pricingSummary}
-Use Cases: ${analysis.useCases?.join(', ') || ''}
+      **CONTENT TO TRANSLATE:**
+      Tool Name: ${analysis.toolName}
+      Primary Function: ${analysis.primaryFunction}
+      Description: ${analysis.description?.substring(0, 2000)}
+      Meta Title: ${analysis.metaTitle}
+      Meta Description: ${analysis.metaDescription}
 
-**FRENCH SEO KEYWORDS TO TARGET:**
-- outils IA
-- intelligence artificielle
-- ${analysis.category.toLowerCase()}
-- automatisation
-- productivité
-
-**EXPECTED JSON STRUCTURE:**
-{
-  "toolName": "${analysis.toolName}",
-  "primaryFunction": "French translation optimized for search",
-  "keyFeatures": ["Fonctionnalité 1", "Fonctionnalité 2", "Fonctionnalité 3", "Fonctionnalité 4", "Fonctionnalité 5"],
-  "targetAudience": ["Public cible 1", "Public cible 2", "Public cible 3"],
-  "description": "800+ word French HTML description with SEO optimization",
-  "metaTitle": "French meta title - Video-IA.net",
-  "metaDescription": "French meta description with French marketing conventions",
-  "pricingSummary": "French pricing summary",
-  "useCases": ["Cas d'usage 1", "Cas d'usage 2", "Cas d'usage 3"],
-  "seoKeywords": ["mot-clé 1", "mot-clé 2", "mot-clé 3"]
-}`;
+      **EXPECTED JSON STRUCTURE:**
+      {
+        "toolName": "Translated tool name",
+        "primaryFunction": "Translated primary function",
+        "description": "Translated HTML description",
+        "metaTitle": "Translated meta title",
+        "metaDescription": "Translated meta description"
+      }
+    `;
 
     const response = await executeWithRetry(
       fullPrompt,
-      'Enhanced French translation',
+      `Translation to ${targetLanguage.name}`,
       MODEL_CONFIGS.translation
     );
 
-    return JSON.parse(response) as FrenchTranslation;
+    const jsonResponse = extractJsonFromString(response);
+    if (!jsonResponse) {
+      throw new Error('No valid JSON found in translation response');
+    }
+
+    return JSON.parse(jsonResponse) as FrenchTranslation;
 
   } catch (error) {
-    console.error('Enhanced French translation error:', error);
-    return getEnhancedFallbackTranslation(analysis);
+    console.error(`Error translating to ${targetLanguage.name}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Enhanced French translation with SEO optimization
+ */
+export async function enhancedFrenchTranslation(analysis: ToolAnalysis): Promise<FrenchTranslation> {
+  return translateContent(analysis, { code: 'fr', name: 'French' });
+}
+
+/**
+ * Generates SEO-optimized meta title and description for a given tool.
+ */
+export async function generateSeo(tool: { toolName: string; primaryFunction: string; keyFeatures: string[] }): Promise<{ metaTitle: string; metaDescription: string }> {
+  try {
+    if (!ai) {
+      throw new Error('Gemini API key not available');
+    }
+
+    const prompt = `
+      Based on the following tool information, generate an SEO-optimized meta title and meta description.
+      Tool Name: ${tool.toolName}
+      Primary Function: ${tool.primaryFunction}
+      Key Features: ${tool.keyFeatures.join(', ')}
+
+      Constraints:
+      - Meta Title: 50-60 characters, include the tool name, and end with "- Video-IA.net".
+      - Meta Description: 150-160 characters, written in an engaging marketing style, including a call-to-action.
+
+      Return the response as a JSON object with the keys "metaTitle" and "metaDescription".
+    `;
+
+    const response = await executeWithRetry(
+      prompt,
+      'SEO Generation',
+      MODEL_CONFIGS.analysis
+    );
+
+    const jsonResponse = extractJsonFromString(response);
+    if (!jsonResponse) {
+      throw new Error('No valid JSON found in SEO generation response');
+    }
+
+    const seoData = JSON.parse(jsonResponse);
+
+    if (!seoData.metaTitle || !seoData.metaDescription) {
+      throw new Error('Invalid JSON structure in SEO response');
+    }
+
+    return {
+      metaTitle: seoData.metaTitle,
+      metaDescription: seoData.metaDescription,
+    };
+
+  } catch (error) {
+    console.error('SEO generation error:', error);
+    throw error; // Re-throw to be handled by the API route
   }
 }
 

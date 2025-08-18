@@ -143,7 +143,7 @@ export const AdvancedFilters = ({
                       <SelectValue placeholder={filter.placeholder} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous</SelectItem>
+                      <SelectItem value="all">Tous</SelectItem>
                       {filter.options?.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
@@ -275,7 +275,7 @@ export const AdvancedFilters = ({
                 <div className="flex items-center space-x-2 flex-wrap">
                   <span className="text-sm font-medium">Filtres actifs:</span>
                   {Object.entries(activeFilters).map(([key, value]) => {
-                    if (!value || value === '') return null
+                    if (!value || value === '' || value === 'all') return null
                     const filter = filters.find(f => f.key === key)
                     const displayValue = filter?.type === 'select' 
                       ? filter.options?.find(opt => opt.value === value)?.label || value

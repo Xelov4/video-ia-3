@@ -4,14 +4,21 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ScraperService } from '@/src/services/scraper';
+import { runFullAnalysis } from '@/src/services/scraper';
 
-const scraperService = new ScraperService();
+function validateUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { url, professional = false } = body;
+    const { url } = body;
 
     if (!url) {
       return NextResponse.json(
@@ -21,21 +28,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate URL format
-    if (!scraperService.validateUrl(url)) {
+    if (!validateUrl(url)) {
       return NextResponse.json(
         { error: 'Invalid URL format' },
         { status: 400 }
       );
     }
 
-    // Choose analysis method based on professional flag
-    const analysis = professional 
-      ? await scraperService.analyzeProfessionalTool(url)
-      : await scraperService.analyzeToolWebsite(url);
+    // Always use the full professional analysis
+    const analysis = await runFullAnalysis(url);
 
     return NextResponse.json({
       ...analysis,
-      processingMode: professional ? 'professional' : 'standard',
+      processingMode: 'professional',
       timestamp: new Date().toISOString(),
       version: '2.0'
     });

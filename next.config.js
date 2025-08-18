@@ -6,11 +6,23 @@ const nextConfig = {
   
   // Configuration images optimisées + domaines multilingues
   images: {
-    domains: [
-      'localhost',
-      'video-ia.net',
-      'images.unsplash.com',
-      'via.placeholder.com',
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'video-ia.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -106,7 +118,7 @@ const nextConfig = {
     return [
       // Redirect individual tool URLs to new short format (but not the tools listing page)
       {
-        source: '/:lang((?!api).+)/tools/:slug([^/]+)',
+        source: '/:lang((?!api|images).+)/tools/:slug([^/]+)',
         destination: '/:lang/t/:slug',
         permanent: true,
       },

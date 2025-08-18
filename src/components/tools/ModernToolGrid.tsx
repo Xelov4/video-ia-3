@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
+import { SafeImage } from '@/src/components/ui/SafeImage'
 import { Star, ExternalLink, Zap, Users, Crown, Bookmark, Heart, Eye, TrendingUp, Clock, Badge as BadgeIcon } from 'lucide-react'
 
 import { Button } from '@/src/components/ui/button'
@@ -38,6 +38,10 @@ interface ModernToolGridProps {
   onLike?: (toolId: number) => void
   bookmarkedTools?: number[]
   likedTools?: number[]
+  hasMore?: boolean
+  onLoadMore?: () => void
+  loadingMore?: boolean
+  totalCount?: number
 }
 
 const PRICING_COLORS = {
@@ -96,7 +100,11 @@ export default function ModernToolGrid({
   onBookmark,
   onLike,
   bookmarkedTools = [],
-  likedTools = []
+  likedTools = [],
+  hasMore = false,
+  onLoadMore,
+  loadingMore = false,
+  totalCount
 }: ModernToolGridProps) {
   if (loading) {
     return <LoadingSkeleton />
@@ -121,18 +129,6 @@ export default function ModernToolGrid({
     return `${basePath}/t/${tool.slug || tool.id}`
   }
 
-  const generatePlaceholderImage = (toolName: string) => {
-    // Use the ai-placeholder.jpg for now
-    return (
-      <Image
-        src="/images/placeholders/ai-placeholder.jpg"
-        alt={toolName}
-        fill
-        className="object-cover group-hover:scale-105 transition-transform duration-300"
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-      />
-    )
-  }
 
   return (
     <div className="space-y-6">
@@ -156,6 +152,7 @@ export default function ModernToolGrid({
           const isBookmarked = bookmarkedTools.includes(tool.id)
           const isLiked = likedTools.includes(tool.id)
           
+          
           return (
             <Card 
               key={tool.id} 
@@ -164,17 +161,13 @@ export default function ModernToolGrid({
             >
               {/* Image Section */}
               <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
-                {tool.imageUrl ? (
-                  <Image
-                    src={tool.imageUrl}
-                    alt={tool.displayName}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                ) : (
-                  generatePlaceholderImage(tool.displayName)
-                )}
+                <SafeImage
+                  src={tool.imageUrl || '/images/placeholder-tool.png'}
+                  alt={tool.displayName}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
                 
                 {/* Badges Overlay */}
                 <div className="absolute top-3 right-3 flex flex-col space-y-1">
@@ -316,11 +309,31 @@ export default function ModernToolGrid({
       </div>
 
       {/* Load More Button */}
-      {tools.length > 0 && (
-        <div className="flex justify-center pt-8">
-          <Button variant="outline" size="lg" className="px-8">
-            Charger plus d'outils
-            <TrendingUp className="h-4 w-4 ml-2" />
+      {tools.length > 0 && hasMore && onLoadMore && (
+        <div className="flex flex-col items-center pt-8 space-y-4">
+          {totalCount && (
+            <p className="text-sm text-muted-foreground">
+              {tools.length} sur {totalCount.toLocaleString()} outils affichés
+            </p>
+          )}
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="px-8"
+            onClick={onLoadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                Chargement...
+              </>
+            ) : (
+              <>
+                Charger plus d'outils
+                <TrendingUp className="h-4 w-4 ml-2" />
+              </>
+            )}
           </Button>
         </div>
       )}

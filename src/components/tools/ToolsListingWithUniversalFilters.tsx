@@ -9,7 +9,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import { SafeImage } from '@/src/components/ui/SafeImage'
 import { Category } from '@prisma/client'
 import { DatabaseTool } from '@/src/lib/database/services/tools'
 import { UniversalSearchFilters } from '@/src/components/common/UniversalSearchFilters'
@@ -209,7 +209,7 @@ export default function ToolsListingWithUniversalFilters({
               {/* Tool Image */}
               <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden">
                 {tool.image_url ? (
-                  <Image
+                  <SafeImage
                     src={tool.image_url}
                     alt={tool.tool_name}
                     fill

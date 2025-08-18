@@ -6,65 +6,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/src/lib/auth/auth-options'
+import { ToolsService } from '@/src/lib/database/services/tools'
 
 interface RouteContext {
-  params: Promise<{ id: string; translationId: string }>
+  params: { 
+    id: string; 
+    translationId: string 
+  }
 }
 
 /**
  * PUT /api/tools/[id]/translations/[translationId]
- * Update an existing translation
+ * Update an existing translation for a tool
  */
 export async function PUT(request: NextRequest, { params }: RouteContext) {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Next.js 15 requires awaiting params
-    const { id, translationId: translationIdParam } = await params
+    const { id, translationId } = await params
     const toolId = parseInt(id)
-    const translationId = parseInt(translationIdParam)
-    
-    if (isNaN(toolId) || isNaN(translationId)) {
+    const transId = parseInt(translationId)
+
+    if (isNaN(toolId) || isNaN(transId)) {
       return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
     }
 
     const body = await request.json()
-    const { 
-      name, 
-      overview, 
-      description, 
-      metaTitle, 
-      metaDescription,
-      translationSource = 'human',
-      qualityScore = 0,
-      humanReviewed = true // Mark as human reviewed when manually updated
+    const {
+      id: bodyId,
+      toolId: bodyToolId,
+      languageCode,
+      createdAt,
+      updatedAt,
+      language, // <-- On extrait et ignore l'objet "language"
+      ...updateData
     } = body
 
-    // Validate required fields
-    if (!name) {
-      return NextResponse.json({ 
-        error: 'Name is required' 
-      }, { status: 400 })
-    }
-
-    // Update translation in database
-    await updateToolTranslation(translationId, {
-      name: name.trim(),
-      overview: overview?.trim() || '',
-      description: description?.trim() || '',
-      metaTitle: metaTitle?.trim() || '',
-      metaDescription: metaDescription?.trim() || '',
-      translationSource,
-      qualityScore: Math.max(0, Math.min(10, parseFloat(qualityScore) || 0)),
-      humanReviewed: Boolean(humanReviewed)
-    })
-
-    // Fetch updated translation
-    const updatedTranslation = await fetchToolTranslation(translationId)
+    const updatedTranslation = await ToolsService.updateToolTranslation(transId, updateData)
 
     return NextResponse.json({
       success: true,
@@ -73,14 +54,13 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     })
 
   } catch (error: any) {
-    console.error('Error updating tool translation:', error)
+    const { translationId } = await params
+    console.error(`Error updating translation ${translationId}:`, error)
     
-    if (error.message?.includes('not found')) {
-      return NextResponse.json({ 
-        error: 'Translation not found' 
-      }, { status: 404 })
+    if (error.code === 'P2025') { // Prisma record not found
+      return NextResponse.json({ error: 'Translation not found' }, { status: 404 })
     }
-
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -18,7 +18,8 @@ import {
   Monitor,
   LogOut,
   ChevronUp,
-  User2
+  BeakerIcon,
+  Bot
 } from 'lucide-react'
 
 import {
@@ -43,20 +44,27 @@ import {
 import { Avatar, AvatarFallback } from "@/src/components/ui/avatar"
 import { Badge } from "@/src/components/ui/badge"
 
-const navigation = [
-  { name: 'Tableau de bord', href: '/admin', icon: Home },
-  { name: 'Outils IA', href: '/admin/tools', icon: Wrench },
-  { name: 'Catégories', href: '/admin/categories', icon: Folder },
-  { name: 'Articles', href: '/admin/articles', icon: FileText },
-  { name: 'Utilisateurs', href: '/admin/users', icon: Users },
-  { name: 'Scraper', href: '/admin/scraper', icon: Monitor },
-  { name: 'Robots.txt', href: '/admin/robots', icon: FileText },
-  { name: 'Paramètres', href: '/admin/settings', icon: Settings },
-]
+interface AdminSidebarProps {
+  currentLang: string
+}
 
-export const AdminSidebar = () => {
+export const AdminSidebar = ({ currentLang }: AdminSidebarProps) => {
   const pathname = usePathname()
   const { data: session } = useSession()
+
+  const contentNavigation = [
+    { name: 'Outils IA', href: '/admin/tools', icon: Wrench },
+    { name: 'Catégories', href: '/admin/categories', icon: Folder },
+    { name: 'Articles', href: '/admin/articles', icon: FileText },
+  ]
+
+  const adminNavigation = [
+    { name: 'Utilisateurs', href: '/admin/users', icon: Users },
+    { name: 'Scraper Legacy', href: '/admin/scraper', icon: Monitor },
+    { name: 'Atelier Scraper', href: '/admin/scraper-details', icon: BeakerIcon },
+    { name: 'Image HTTP', href: '/admin/image-http', icon: Monitor },
+    { name: 'Robots.txt', href: '/admin/robots', icon: Bot },
+  ]
 
   if (!session) {
     return null
@@ -95,8 +103,45 @@ export const AdminSidebar = () => {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigation.map((item) => {
-                const isActive = pathname === item.href
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/admin'} tooltip="Tableau de bord">
+                  <Link href="/admin">
+                    <Home className="size-4" />
+                    <span>Tableau de bord</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Contenu</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {contentNavigation.map((item) => {
+                const isActive = pathname.startsWith(item.href)
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.name}>
+                      <Link href={item.href}>
+                        <item.icon className="size-4" />
+                        <span>{item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Administration</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminNavigation.map((item) => {
+                const isActive = pathname.startsWith(item.href)
                 return (
                   <SidebarMenuItem key={item.name}>
                     <SidebarMenuButton asChild isActive={isActive} tooltip={item.name}>

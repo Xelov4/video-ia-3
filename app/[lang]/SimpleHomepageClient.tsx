@@ -64,6 +64,9 @@ export default function SimpleHomepageClient({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState(stats?.totalTools || 16765)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -96,6 +99,8 @@ export default function SimpleHomepageClient({
         
         setTools(transformedTools)
         setTotalCount(toolsData.pagination?.totalCount || stats?.totalTools || 16765)
+        setCurrentPage(1)
+        setHasMore(transformedTools.length < (toolsData.pagination?.totalCount || stats?.totalTools || 16765))
       }
 
       // Transform categories from props
@@ -128,6 +133,52 @@ export default function SimpleHomepageClient({
     }
   }, [lang, propAudiences, propCategories, stats?.totalTools])
 
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return
+    
+    setLoadingMore(true)
+    try {
+      const nextPage = currentPage + 1
+      const toolsResponse = await fetch(`/api/tools?page=${nextPage}&limit=24&sortBy=featured&sortOrder=desc&lang=${lang}`)
+      
+      if (!toolsResponse.ok) {
+        throw new Error(`HTTP error! status: ${toolsResponse.status}`)
+      }
+
+      const toolsData = await toolsResponse.json()
+      
+      if (toolsData.success && toolsData.data) {
+        // Transform new tools to match the expected format
+        const transformedNewTools = toolsData.data.map((tool: Record<string, unknown>) => ({
+          ...tool,
+          category: tool.toolCategory,
+          overview: tool.displayOverview || tool.toolOverview,
+          description: tool.displayDescription || tool.toolDescription,
+          isNew: Math.random() > 0.8, // Mock new status
+          qualityScore: Math.floor(Math.random() * 4) + 7, // Mock quality score 7-10
+          views: Math.floor(Math.random() * 10000) + 1000, // Mock views
+          likes: Math.floor(Math.random() * 500) + 10, // Mock likes
+          pricing: ['free', 'freemium', 'paid', 'enterprise'][Math.floor(Math.random() * 4)] as Tool['pricing'],
+          tags: ['AI', 'Productivity', 'Creative'].slice(0, Math.floor(Math.random() * 3) + 1)
+        }))
+        
+        // Append new tools to existing ones
+        setTools(prevTools => [...prevTools, ...transformedNewTools])
+        setCurrentPage(nextPage)
+        
+        // Update hasMore status
+        const newTotalDisplayed = tools.length + transformedNewTools.length
+        const totalAvailable = toolsData.pagination?.totalCount || totalCount
+        setHasMore(newTotalDisplayed < totalAvailable)
+      }
+    } catch (error) {
+      console.error('Error loading more tools:', error)
+      // Don't show error to user for load more failures, just silently fail
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
   useEffect(() => {
     fetchData()
   }, [lang, fetchData])
@@ -156,6 +207,9 @@ export default function SimpleHomepageClient({
       audiences={audiences}
       totalCount={totalCount}
       lang={lang}
+      hasMore={hasMore}
+      onLoadMore={loadMore}
+      loadingMore={loadingMore}
     />
   )
 }

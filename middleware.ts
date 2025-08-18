@@ -164,8 +164,9 @@ export const config = {
      * - _next/static (static files) 
      * - _next/image (image optimization)
      * - favicon.ico et autres assets
+     * - images static files
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap|robots|manifest|images|.*\\.[^/]+$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap|robots|manifest|images/.*|.*\\.[^/]+$).*)',
   ]
 }
 

@@ -53,11 +53,11 @@ export function LanguageSection({
       const defaultTranslation: ToolTranslation = {
         toolId: baseData.id,
         languageCode: language.code,
-        name: baseData.tool_name,
+        name: baseData.toolName,
         overview: baseData.overview || '',
-        description: baseData.tool_description || '',
-        metaTitle: baseData.meta_title || '',
-        metaDescription: baseData.meta_description || '',
+        description: baseData.toolDescription || '',
+        metaTitle: baseData.metaTitle || '',
+        metaDescription: baseData.metaDescription || '',
         translationSource: 'auto',
         humanReviewed: false
       }

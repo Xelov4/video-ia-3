@@ -1,203 +1,98 @@
-/**
- * Admin Tools API
- * CRUD operations for tools management
- */
-
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/src/lib/database/client'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/src/lib/auth/auth-options'
+import { z } from 'zod'
 
-// Mock data for rapid development
-const mockTools = Array.from({ length: 156 }, (_, i) => ({
-  id: i + 1,
-  toolName: `AI Tool ${i + 1}`,
-  toolCategory: ['ai-image', 'ai-text', 'ai-video', 'ai-voice', 'ai-analysis'][i % 5],
-  toolLink: `https://example.com/tool-${i + 1}`,
-  imageUrl: i % 3 === 0 ? `https://picsum.photos/400/300?random=${i}` : null,
-  overview: `Advanced AI tool for ${['image generation', 'text processing', 'video creation', 'voice synthesis', 'data analysis'][i % 5]}. Powerful features and easy to use interface.`,
-  featured: i % 8 === 0,
-  isActive: i % 15 !== 14,
-  viewCount: Math.floor(Math.random() * 50000) + 1000,
-  createdAt: new Date(Date.now() - Math.random() * 100000000000).toISOString(),
-  updatedAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-  metaTitle: `${`AI Tool ${i + 1}`} - Advanced AI Solution`,
-  metaDescription: `Discover ${`AI Tool ${i + 1}`}, a powerful AI tool for modern workflows. Try it today!`
-}))
+// Validation schema pour les paramètres de requête
+const querySchema = z.object({
+  page: z.coerce.number().min(1).optional().default(1),
+  pageSize: z.coerce.number().min(1).max(100).optional().default(20),
+  sortBy: z.string().optional().default('updatedAt'),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  search: z.string().optional(),
+  category: z.string().optional(),
+  featured: z.coerce.boolean().optional(),
+  active: z.coerce.boolean().optional(),
+  minViews: z.coerce.number().optional()
+})
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Vérification de l'authentification
+    const session = await getServerSession()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
+    // Récupération et validation des paramètres
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const pageSize = parseInt(searchParams.get('pageSize') || '20')
-    const search = searchParams.get('search') || ''
-    const category = searchParams.get('category') || ''
-    const featured = searchParams.get('featured') === 'true'
-    const active = searchParams.get('active') === 'true'
-    const sortBy = searchParams.get('sortBy') || 'updatedAt'
-    const sortOrder = searchParams.get('sortOrder') || 'desc'
-    const minViews = parseInt(searchParams.get('minViews') || '0')
+    const params = Object.fromEntries(searchParams.entries())
+    const validatedParams = querySchema.parse(params)
 
-    // Filter tools
-    let filteredTools = mockTools.filter(tool => {
-      if (search && !tool.toolName.toLowerCase().includes(search.toLowerCase()) && 
-          !tool.toolCategory.toLowerCase().includes(search.toLowerCase())) {
-        return false
-      }
-      if (category && tool.toolCategory !== category) return false
-      if (featured && !tool.featured) return false
-      if (active && !tool.isActive) return false
-      if (minViews && tool.viewCount < minViews) return false
-      return true
-    })
+    // Construction de la requête Prisma
+    const where = {
+      AND: [
+        // Recherche textuelle
+        validatedParams.search ? {
+          OR: [
+            { toolName: { contains: validatedParams.search, mode: 'insensitive' } },
+            { toolCategory: { contains: validatedParams.search, mode: 'insensitive' } },
+            { overview: { contains: validatedParams.search, mode: 'insensitive' } }
+          ]
+        } : {},
+        // Filtres
+        validatedParams.category ? { toolCategory: validatedParams.category } : {},
+        validatedParams.featured ? { featured: true } : {},
+        validatedParams.active ? { isActive: true } : {},
+        validatedParams.minViews ? { viewCount: { gte: validatedParams.minViews } } : {}
+      ]
+    }
 
-    // Sort tools
-    filteredTools.sort((a, b) => {
-      let aValue, bValue
-      
-      switch (sortBy) {
-        case 'toolName':
-          aValue = a.toolName.toLowerCase()
-          bValue = b.toolName.toLowerCase()
-          break
-        case 'viewCount':
-          aValue = a.viewCount
-          bValue = b.viewCount
-          break
-        case 'createdAt':
-          aValue = new Date(a.createdAt).getTime()
-          bValue = new Date(b.createdAt).getTime()
-          break
-        case 'updatedAt':
-        default:
-          aValue = new Date(a.updatedAt).getTime()
-          bValue = new Date(b.updatedAt).getTime()
-          break
-      }
-
-      if (sortOrder === 'desc') {
-        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0
-      } else {
-        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
-      }
-    })
-
-    // Paginate
-    const totalCount = filteredTools.length
-    const startIndex = (page - 1) * pageSize
-    const endIndex = startIndex + pageSize
-    const paginatedTools = filteredTools.slice(startIndex, endIndex)
+    // Exécution des requêtes
+    const [totalCount, tools] = await Promise.all([
+      prisma.tool.count({ where }),
+      prisma.tool.findMany({
+        where,
+        orderBy: { [validatedParams.sortBy]: validatedParams.sortOrder },
+        skip: (validatedParams.page - 1) * validatedParams.pageSize,
+        take: validatedParams.pageSize,
+        select: {
+          id: true,
+          toolName: true,
+          toolCategory: true,
+          toolLink: true,
+          imageUrl: true,
+          overview: true,
+          featured: true,
+          isActive: true,
+          viewCount: true,
+          createdAt: true,
+          updatedAt: true
+        }
+      })
+    ])
 
     return NextResponse.json({
-      tools: paginatedTools,
-      totalCount,
-      page,
-      pageSize,
-      totalPages: Math.ceil(totalCount / pageSize)
+      tools: tools.map(tool => ({
+        id: tool.id,
+        toolName: tool.toolName,
+        toolCategory: tool.toolCategory,
+        toolLink: tool.toolLink,
+        imageUrl: tool.imageUrl,
+        overview: tool.overview,
+        featured: tool.featured,
+        isActive: tool.isActive,
+        viewCount: tool.viewCount,
+        createdAt: tool.createdAt,
+        updatedAt: tool.updatedAt
+      })),
+      totalCount
     })
 
   } catch (error) {
     console.error('Error fetching tools:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    
-    // Validate required fields
-    const { toolName, toolCategory, toolLink } = body
-    if (!toolName || !toolCategory || !toolLink) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
-
-    // Create new tool
-    const newTool = {
-      id: mockTools.length + 1,
-      toolName,
-      toolCategory,
-      toolLink,
-      imageUrl: body.imageUrl || null,
-      overview: body.overview || '',
-      featured: body.featured || false,
-      isActive: body.isActive !== undefined ? body.isActive : true,
-      viewCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      metaTitle: body.metaTitle || toolName,
-      metaDescription: body.metaDescription || ''
-    }
-
-    mockTools.push(newTool)
-
-    return NextResponse.json(newTool, { status: 201 })
-
-  } catch (error) {
-    console.error('Error creating tool:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const { id, ...updateData } = body
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Tool ID is required' },
-        { status: 400 }
-      )
-    }
-
-    const toolIndex = mockTools.findIndex(tool => tool.id === id)
-    if (toolIndex === -1) {
-      return NextResponse.json(
-        { error: 'Tool not found' },
-        { status: 404 }
-      )
-    }
-
-    // Update tool
-    mockTools[toolIndex] = {
-      ...mockTools[toolIndex],
-      ...updateData,
-      updatedAt: new Date().toISOString()
-    }
-
-    return NextResponse.json(mockTools[toolIndex])
-
-  } catch (error) {
-    console.error('Error updating tool:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Erreur lors de la récupération des outils' },
       { status: 500 }
     )
   }
@@ -205,39 +100,28 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getServerSession()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
-    const id = parseInt(searchParams.get('id') || '0')
-
+    const id = searchParams.get('id')
+    
     if (!id) {
-      return NextResponse.json(
-        { error: 'Tool ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'ID manquant' }, { status: 400 })
     }
 
-    const toolIndex = mockTools.findIndex(tool => tool.id === id)
-    if (toolIndex === -1) {
-      return NextResponse.json(
-        { error: 'Tool not found' },
-        { status: 404 }
-      )
-    }
-
-    // Remove tool
-    mockTools.splice(toolIndex, 1)
+    await prisma.tool.delete({
+      where: { id: parseInt(id) }
+    })
 
     return NextResponse.json({ success: true })
 
   } catch (error) {
     console.error('Error deleting tool:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Erreur lors de la suppression de l\'outil' },
       { status: 500 }
     )
   }

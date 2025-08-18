@@ -16,6 +16,11 @@ import {
   GlobeAltIcon
 } from '@heroicons/react/24/outline'
 import type { Language } from './LanguageTabs'
+import { Button } from '@/src/components/ui/button'
+import { Input } from '@/src/components/ui/input'
+import { Switch } from '@/src/components/ui/switch'
+import { toast } from 'sonner'
+import { RichTextEditor } from './RichTextEditor'
 
 export interface ToolTranslation {
   id?: number
@@ -27,6 +32,7 @@ export interface ToolTranslation {
   metaTitle: string
   metaDescription: string
   translationSource: 'auto' | 'human' | 'imported' | 'ai'
+  quality_score: number
   humanReviewed: boolean
   createdAt?: string
   updatedAt?: string
@@ -34,22 +40,22 @@ export interface ToolTranslation {
 
 export interface BaseToolData {
   id: number
-  tool_name: string
-  tool_category: string
-  tool_link: string
+  toolName: string
+  toolCategory: string
+  toolLink: string
   overview: string
-  tool_description: string
-  target_audience: string
-  key_features: string
-  use_cases: string
+  toolDescription: string
+  targetAudience: string
+  keyFeatures: string
+  useCases: string
   tags: string
-  image_url: string
+  imageUrl: string
   slug: string
-  is_active: boolean
+  isActive: boolean
   featured: boolean
-  meta_title: string
-  meta_description: string
-  seo_keywords: string
+  metaTitle: string
+  metaDescription: string
+  seoKeywords: string
 }
 
 interface TranslationFormProps {
@@ -90,11 +96,11 @@ export function TranslationForm({
       const defaultTranslation: ToolTranslation = {
         toolId: baseData.id,
         languageCode: language.code,
-        name: baseData.tool_name,
+        name: baseData.toolName,
         overview: baseData.overview || '',
-        description: baseData.tool_description || '',
-        metaTitle: baseData.meta_title || '',
-        metaDescription: baseData.meta_description || '',
+        description: baseData.toolDescription || '',
+        metaTitle: baseData.metaTitle || '',
+        metaDescription: baseData.metaDescription || '',
         translationSource: 'auto',
         humanReviewed: false
       }
@@ -334,7 +340,7 @@ export function TranslationForm({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nom de l'outil *
             </label>
-            <input
+            <Input
               type="text"
               value={localTranslation.name}
               onChange={(e) => handleFieldChange('name', e.target.value)}
@@ -356,13 +362,9 @@ export function TranslationForm({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Aperçu
             </label>
-            <textarea
-              value={localTranslation.overview}
-              onChange={(e) => handleFieldChange('overview', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              placeholder="Description courte traduite..."
-              disabled={loading}
+            <RichTextEditor
+              content={localTranslation.overview}
+              onChange={(content) => handleFieldChange('overview', content)}
             />
             <p className="mt-1 text-xs text-gray-500">
               {localTranslation.overview.length} caractères
@@ -376,13 +378,9 @@ export function TranslationForm({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Description complète
             </label>
-            <textarea
-              value={localTranslation.description}
-              onChange={(e) => handleFieldChange('description', e.target.value)}
-              rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              placeholder="Description détaillée traduite..."
-              disabled={loading}
+            <RichTextEditor
+              content={localTranslation.description}
+              onChange={(content) => handleFieldChange('description', content)}
             />
             <p className="mt-1 text-xs text-gray-500">
               {localTranslation.description.length} caractères
@@ -399,7 +397,7 @@ export function TranslationForm({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Titre SEO
               </label>
-              <input
+              <Input
                 type="text"
                 value={localTranslation.metaTitle}
                 onChange={(e) => handleFieldChange('metaTitle', e.target.value)}
@@ -411,7 +409,7 @@ export function TranslationForm({
               />
               <div className="flex justify-between mt-1">
                 <span className={`text-xs ${validationErrors.metaTitle ? 'text-yellow-600' : 'text-gray-500'}`}>
-                  {validationErrors.metaTitle || `${localTranslation.metaTitle.length} caractères (optimal: <60)`}
+                  {validationErrors.metaTitle || `${(localTranslation.metaTitle || '').length} caractères (optimal: <60)`}
                 </span>
               </div>
             </div>
@@ -432,7 +430,7 @@ export function TranslationForm({
               />
               <div className="flex justify-between mt-1">
                 <span className={`text-xs ${validationErrors.metaDescription ? 'text-yellow-600' : 'text-gray-500'}`}>
-                  {validationErrors.metaDescription || `${localTranslation.metaDescription.length} caractères (optimal: 120-160)`}
+                  {validationErrors.metaDescription || `${(localTranslation.metaDescription || '').length} caractères (optimal: <160)`}
                 </span>
               </div>
             </div>
@@ -463,11 +461,9 @@ export function TranslationForm({
 
             <div>
               <label className="flex items-center">
-                <input
-                  type="checkbox"
+                <Switch
                   checked={localTranslation.humanReviewed}
-                  onChange={(e) => handleFieldChange('humanReviewed', e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  onCheckedChange={(checked) => handleFieldChange('humanReviewed', checked)}
                   disabled={loading}
                 />
                 <span className="ml-2 text-sm text-gray-700">
