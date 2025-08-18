@@ -166,7 +166,7 @@ model Tag {
 // ================================================================ //
 
 /// *
-/// * Tool Translation Model - GARDÉ tel quel
+/// * Tool Translation Model - ÉTENDU avec champs complets
 model ToolTranslation {
   id                Int       @id @default(autoincrement())
   toolId            Int       @map("tool_id")
@@ -176,6 +176,9 @@ model ToolTranslation {
   description       String?   @db.Text
   metaTitle         String?   @map("meta_title") @db.VarChar(255)
   metaDescription   String?   @map("meta_description") @db.Text
+  keyFeatures       String?   @map("key_features") @db.Text
+  useCases          String?   @map("use_cases") @db.Text
+  targetAudience    String?   @map("target_audience") @db.Text
   translationSource String?   @default("auto") @map("translation_source") @db.VarChar(20)
   quality_score     Decimal?  @default(0.00) @db.Decimal(4, 2)
   humanReviewed     Boolean?  @default(false) @map("human_reviewed")

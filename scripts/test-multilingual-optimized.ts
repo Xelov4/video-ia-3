@@ -101,9 +101,9 @@ async function testMultilingualSystemOptimized() {
      * Cette ligne exécute tout le processus:
      * - Phase 1: 11 étapes génération contenu anglais
      * - Phase 2: 6 langues × 7 champs de traduction
-     * - Mode test: true (pas de sauvegarde DB)
+     * - Mode production: false (sauvegarde DB activée)
      */
-    const result = await ToolContentUpdaterServiceOptimized.updateToolContentWithTranslations(toolId, true)
+    const result = await ToolContentUpdaterServiceOptimized.updateToolContentWithTranslations(toolId, false)
     
     const endTime = Date.now()
     const duration = (endTime - startTime) / 1000

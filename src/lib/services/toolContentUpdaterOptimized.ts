@@ -365,63 +365,6 @@ export class ToolContentUpdaterServiceOptimized {
     }
   }
 
-  /**
-   * Valide les liens extraits avec Gemini AI
-   */
-  private static async validateLinksWithGemini(links: any, tool: Tool, linkType: 'social' | 'useful'): Promise<any> {
-    try {
-      if (!this.ai || !links || Object.keys(links).length === 0) {
-        return links
-      }
-
-      const linksText = Object.entries(links)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n')
-
-      const prompt = `You are a link validation expert. I need you to validate if the following ${linkType} links are actually related to the tool "${tool.toolName}" (URL: ${tool.toolLink}).
-
-Tool to validate: ${tool.toolName}
-Tool URL: ${tool.toolLink}
-Tool Category: ${tool.toolCategory || 'Unknown'}
-
-${linkType === 'social' ? 'Social media' : 'Useful'} links found:
-${linksText}
-
-IMPORTANT: 
-- Remove any generic links (like "github.com/github", "fonts.googleapis.com", "docs.github.com" for general GitHub docs)
-- Keep only links that are SPECIFICALLY related to "${tool.toolName}"
-- For social links, they must be the actual social profiles of this tool/company
-- For useful links, they must be specific documentation, affiliates, or contact info for this tool
-
-Respond ONLY with a JSON object containing the validated links. Remove any invalid/generic links completely.
-Example format:
-{
-  "socialLinkedin": "linkedin.com/company/specific-tool-company",
-  "docsLink": "https://specific-tool-docs.com/api"
-}
-
-If no links are valid, return an empty object: {}`
-
-      const validatedResponse = await this.callGeminiWithFallback(prompt)
-      
-      try {
-        // Extraire le JSON de la réponse
-        const jsonMatch = validatedResponse.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          const validatedLinks = JSON.parse(jsonMatch[0])
-          console.log(`🤖 Gemini validation: ${Object.keys(links).length} -> ${Object.keys(validatedLinks).length} links`)
-          return validatedLinks
-        }
-      } catch (parseError) {
-        console.log('⚠️ Erreur parsing validation Gemini, conservation des liens originaux')
-      }
-
-      return links
-    } catch (error: any) {
-      console.log(`⚠️ Erreur validation Gemini (${linkType}): ${error.message}`)
-      return links
-    }
-  }
 
   /**
    * Étape 3 : Extraction des liens des réseaux sociaux avec validation
@@ -490,11 +433,12 @@ If no links are valid, return an empty object: {}`
       }
     }
 
-    // Validation avec Gemini AI
-    console.log(`🤖 Validation Gemini des ${Object.keys(socialLinks).length} liens sociaux...`)
-    const validatedSocialLinks = await this.validateLinksWithGemini(socialLinks, tool, 'social')
+    console.log(`✅ Liens sociaux extraits via regex: ${Object.keys(socialLinks).length} trouvés`)
+    for (const [platform, link] of Object.entries(socialLinks)) {
+      console.log(`   ${platform}: ${link}`)
+    }
 
-    return validatedSocialLinks
+    return socialLinks
   }
 
   /**
@@ -579,7 +523,7 @@ If no links are valid, return an empty object: {}`
   }
 
   /**
-   * Étape 4 : Extraction des liens utiles
+   * Étape 4 : Extraction des liens utiles avec logique regex optimisée
    */
   static async extractUsefulLinks(crawledPages: CrawledContent[], tool: Tool): Promise<{
     mailAddress?: string
@@ -587,80 +531,134 @@ If no links are valid, return an empty object: {}`
     affiliateLink?: string
     changelogLink?: string
   }> {
+    console.log('🔍 Extraction liens utiles avec logique regex optimisée...')
     const usefulLinks: any = {}
 
+    // Patterns améliorés avec validation intégrée
     const patterns = {
       mailAddress: [
-        /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi,
-        /mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi
+        /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/gi,
+        /mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi,
+        /contact[:\s]*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi
       ],
       docsLink: [
-        /href=["']([^"']*(?:docs|documentation|api|guide)[^"']*)["']/gi,
-        /(?:https?:\/\/[^\s"'<>]*(?:docs|documentation|api|guide)[^\s"'<>]*)/gi
+        /href=["']([^"']*(?:docs|documentation|api|guide|manual|help)[^"']*)["']/gi,
+        /https?:\/\/[^\s"'<>]*(?:docs|documentation|api|guide|manual|help)[^\s"'<>]*/gi,
+        /\b(?:docs|documentation|api|guide)\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/gi
       ],
       affiliateLink: [
-        /href=["']([^"']*(?:affiliate|ref=|utm_|partner)[^"']*)["']/gi,
-        /(?:https?:\/\/[^\s"'<>]*(?:affiliate|ref=|utm_|partner)[^\s"'<>]*)/gi
+        /href=["']([^"']*(?:affiliate|ref=|utm_|partner|referral)[^"']*)["']/gi,
+        /https?:\/\/[^\s"'<>]*(?:affiliate|ref=|utm_|partner|referral)[^\s"'<>]*/gi
       ],
       changelogLink: [
-        /href=["']([^"']*(?:changelog|release|updates|news)[^"']*)["']/gi,
-        /(?:https?:\/\/[^\s"'<>]*(?:changelog|release|updates|news)[^\s"'<>]*)/gi
+        /href=["']([^"']*(?:changelog|release|updates|news|version|whats-new)[^"']*)["']/gi,
+        /https?:\/\/[^\s"'<>]*(?:changelog|release|updates|news|version|whats-new)[^\s"'<>]*/gi,
+        /\b(?:changelog|releases)\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/gi
       ]
+    }
+
+    // Extraction avec scoring et validation
+    const linkScores: { [key: string]: { [link: string]: number } } = {
+      mailAddress: {},
+      docsLink: {},
+      affiliateLink: {},
+      changelogLink: {}
     }
 
     for (const page of crawledPages) {
       const combinedContent = `${page.content} ${page.html}`
 
-      // Email
-      if (!usefulLinks.mailAddress) {
-        for (const pattern of patterns.mailAddress) {
-          const matches = combinedContent.match(pattern)
-          if (matches && matches.length > 0) {
-            usefulLinks.mailAddress = matches[0].replace('mailto:', '')
-            break
-          }
-        }
-      }
+      // Extraire tous les liens avec scoring
+      for (const [linkType, linkPatterns] of Object.entries(patterns)) {
+        for (const pattern of linkPatterns) {
+          const matches = combinedContent.matchAll(pattern)
+          
+          for (const match of matches) {
+            let extractedLink = match[1] || match[0]
+            
+            // Nettoyer le lien
+            extractedLink = extractedLink
+              .replace(/^href=["']/, '')
+              .replace(/["'].*$/, '')
+              .replace(/^mailto:/, '')
+              .trim()
 
-      // Documentation
-      if (!usefulLinks.docsLink) {
-        for (const pattern of patterns.docsLink) {
-          const matches = combinedContent.match(pattern)
-          if (matches && matches.length > 0) {
-            usefulLinks.docsLink = matches[0].replace(/href=["']/, '').replace(/["'].*/, '')
-            break
-          }
-        }
-      }
-
-      // Liens d'affiliation
-      if (!usefulLinks.affiliateLink) {
-        for (const pattern of patterns.affiliateLink) {
-          const matches = combinedContent.match(pattern)
-          if (matches && matches.length > 0) {
-            usefulLinks.affiliateLink = matches[0].replace(/href=["']/, '').replace(/["'].*/, '')
-            break
-          }
-        }
-      }
-
-      // Changelog
-      if (!usefulLinks.changelogLink) {
-        for (const pattern of patterns.changelogLink) {
-          const matches = combinedContent.match(pattern)
-          if (matches && matches.length > 0) {
-            usefulLinks.changelogLink = matches[0].replace(/href=["']/, '').replace(/["'].*/, '')
-            break
+            // Filtrer les liens valides
+            if (this.isValidUsefulLink(extractedLink, linkType, tool)) {
+              if (!linkScores[linkType][extractedLink]) {
+                linkScores[linkType][extractedLink] = 0
+              }
+              linkScores[linkType][extractedLink]++
+            }
           }
         }
       }
     }
 
-    // Validation avec Gemini AI
-    console.log(`🤖 Validation Gemini des ${Object.keys(usefulLinks).length} liens utiles...`)
-    const validatedUsefulLinks = await this.validateLinksWithGemini(usefulLinks, tool, 'useful')
+    // Sélectionner le meilleur lien pour chaque type
+    for (const [linkType, links] of Object.entries(linkScores)) {
+      if (Object.keys(links).length > 0) {
+        // Prendre le lien avec le score le plus élevé
+        const bestLink = Object.entries(links)
+          .sort(([,a], [,b]) => b - a)[0][0]
+        
+        usefulLinks[linkType] = bestLink
+      }
+    }
 
-    return validatedUsefulLinks
+    console.log(`✅ Liens utiles extraits via regex: ${Object.keys(usefulLinks).length} types trouvés`)
+    for (const [type, link] of Object.entries(usefulLinks)) {
+      console.log(`   ${type}: ${link}`)
+    }
+
+    return usefulLinks
+  }
+
+  /**
+   * Valide qu'un lien utile est pertinent pour l'outil
+   */
+  private static isValidUsefulLink(link: string, linkType: string, tool: Tool): boolean {
+    if (!link || link.length < 5) return false
+
+    // Exclusions génériques
+    const genericExclusions = [
+      'mailto:',
+      'javascript:',
+      '#',
+      'example.com',
+      'test.com',
+      'localhost'
+    ]
+
+    if (genericExclusions.some(exclusion => link.includes(exclusion))) {
+      return false
+    }
+
+    // Validation spécifique par type
+    switch (linkType) {
+      case 'mailAddress':
+        return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(link) &&
+               !link.includes('noreply') &&
+               !link.includes('example')
+
+      case 'docsLink':
+        return link.startsWith('http') &&
+               (link.includes('docs') || link.includes('documentation') || 
+                link.includes('api') || link.includes('guide'))
+
+      case 'affiliateLink':
+        return link.startsWith('http') &&
+               (link.includes('affiliate') || link.includes('ref=') || 
+                link.includes('utm_') || link.includes('partner'))
+
+      case 'changelogLink':
+        return link.startsWith('http') &&
+               (link.includes('changelog') || link.includes('release') || 
+                link.includes('updates') || link.includes('news'))
+
+      default:
+        return true
+    }
   }
 
   /**
@@ -1035,74 +1033,93 @@ DESCRIPTION: [max 160 chars with CTA]`
   }
 
   /**
-   * Étape 9 : Génération du pricing model avec IA Gemini
+   * Étape 9 : Détection du pricing model avec logique regex optimisée
    */
   static async generateToolPricingModel(tool: Tool, crawledPages: CrawledContent[]): Promise<string> {
     try {
-      if (!this.ai) {
-        console.log('⚠️ Gemini API non disponible, utilisation du fallback')
-        return this.generateFallbackPricingModel(tool)
+      console.log('🔍 Détection pricing model avec analyse regex...')
+
+      // Combiner tout le contenu crawlé
+      const allContent = crawledPages.map(page => 
+        `${page.title} ${page.content}`
+      ).join(' ').toLowerCase()
+
+      // Patterns de détection par modèle de pricing
+      const pricingPatterns = {
+        'FREE': [
+          /\b(completely\s+free|always\s+free|100%\s+free|forever\s+free)\b/,
+          /\b(no\s+cost|no\s+charge|no\s+payment)\b/,
+          /\b(free\s+forever|free\s+to\s+use)\b/
+        ],
+        'FREEMIUM': [
+          /\b(free\s+plan|free\s+tier|free\s+version)\b/,
+          /\b(upgrade\s+to\s+pro|premium\s+features)\b/,
+          /\b(basic\s+free|free\s+with\s+limits)\b/,
+          /\b(freemium|free\s+and\s+paid)\b/
+        ],
+        'SUBSCRIPTION': [
+          /\b(monthly|yearly|annual)\s+(subscription|plan|billing)\b/,
+          /\b\$\d+\/(month|year|mo|yr)\b/,
+          /\b(subscribe|subscription|recurring)\b/,
+          /\b(billed\s+(monthly|annually))\b/
+        ],
+        'ONE_TIME_PAYMENT': [
+          /\b(one[- ]?time\s+(payment|purchase|fee))\b/,
+          /\b(buy\s+once|single\s+payment|lifetime\s+access)\b/,
+          /\b(permanent\s+license|one[- ]?off\s+payment)\b/
+        ],
+        'USAGE_BASED': [
+          /\b(pay\s+per\s+use|per\s+api\s+call|credit[s]?\s+based)\b/,
+          /\b(usage\s+based|pay\s+as\s+you\s+go)\b/,
+          /\b(tokens?|credits?|api\s+calls?)\s+pricing\b/
+        ],
+        'CONTACT_FOR_PRICING': [
+          /\b(contact\s+(us|sales)|custom\s+pricing)\b/,
+          /\b(enterprise\s+pricing|quote|get\s+in\s+touch)\b/,
+          /\b(talk\s+to\s+sales|request\s+demo)\b/
+        ]
       }
 
-      // Préparer le contenu pour l'IA
-      const crawledContent = crawledPages.slice(0, 5).map(page => 
-        `${page.title}: ${page.content.substring(0, 1200)}...`
-      ).join('\n\n')
-
-      // Prompt pour détecter le modèle de tarification
-      const prompt = `You are a pricing analysis expert. Based on the crawled content below, determine the pricing model for ${tool.toolName}.
-
-Tool: ${tool.toolName}
-Category: ${tool.toolCategory || 'AI Tool'}
-URL: ${tool.toolLink}
-
-Content from crawled pages:
-${crawledContent}
-
-IMPORTANT: You must choose EXACTLY ONE pricing model from these options:
-- FREE: The tool is completely free to use
-- FREEMIUM: Free version with premium features available
-- SUBSCRIPTION: Monthly/yearly subscription required
-- ONE_TIME_PAYMENT: One-time purchase required
-- USAGE_BASED: Pay per use/API calls/credits
-- CONTACT_FOR_PRICING: Enterprise/custom pricing
-
-Analyze the content for:
-- Pricing pages, subscription plans
-- Free trial mentions, free version limits
-- Payment models, billing information
-- Enterprise/contact sales mentions
-
-Respond with ONLY the pricing model name (e.g., "FREEMIUM").
-
-Pricing Model:`
-
-      // Appel Gemini
-      const pricingResponse = await this.callGeminiWithFallback(prompt)
+      // Calculer le score pour chaque modèle
+      const scores: { [key: string]: number } = {}
       
-      // Nettoyer la réponse et valider
-      let cleanPricing = pricingResponse.replace(/^Pricing Model:?\s*/i, '').trim().toUpperCase()
-      
-      const validModels = ['FREE', 'FREEMIUM', 'SUBSCRIPTION', 'ONE_TIME_PAYMENT', 'USAGE_BASED', 'CONTACT_FOR_PRICING']
-      if (!validModels.includes(cleanPricing)) {
-        // Essayer de détecter le modèle dans la réponse
-        for (const model of validModels) {
-          if (pricingResponse.toUpperCase().includes(model)) {
-            cleanPricing = model
-            break
+      for (const [model, patterns] of Object.entries(pricingPatterns)) {
+        scores[model] = 0
+        for (const pattern of patterns) {
+          const matches = allContent.match(pattern)
+          if (matches) {
+            scores[model] += matches.length
           }
         }
-        // Si aucun modèle détecté, utiliser FREEMIUM par défaut
-        if (!validModels.includes(cleanPricing)) {
-          cleanPricing = 'FREEMIUM'
+      }
+
+      // Trouver le modèle avec le score le plus élevé
+      let detectedModel = 'FREEMIUM' // Default fallback
+      let maxScore = 0
+      
+      for (const [model, score] of Object.entries(scores)) {
+        if (score > maxScore) {
+          maxScore = score
+          detectedModel = model
         }
       }
 
-      console.log(`✅ Pricing model détecté: ${cleanPricing}`)
-      return cleanPricing
+      // Si aucun pattern détecté, utiliser une logique secondaire
+      if (maxScore === 0) {
+        if (allContent.includes('free') && allContent.includes('pro')) {
+          detectedModel = 'FREEMIUM'
+        } else if (allContent.includes('free')) {
+          detectedModel = 'FREE'
+        } else if (allContent.includes('$') || allContent.includes('price')) {
+          detectedModel = 'SUBSCRIPTION'
+        }
+      }
+
+      console.log(`✅ Pricing model détecté via regex: ${detectedModel} (score: ${maxScore})`)
+      return detectedModel
 
     } catch (error: any) {
-      console.error('❌ Erreur génération pricing model Gemini:', error.message)
+      console.error('❌ Erreur détection pricing model:', error.message)
       return this.generateFallbackPricingModel(tool)
     }
   }
@@ -1432,8 +1449,8 @@ Target Audience:`
       const tool = await prisma.tool.findUnique({ where: { id: toolId } })
       if (!tool) throw new Error(`Tool ${toolId} not found`)
 
-      // Langues à traduire (toutes sauf anglais qui est déjà fait)
-      const languagesToTranslate = ['fr', 'it', 'es', 'de', 'nl', 'pt']
+      // Langues à traduire (incluant anglais pour cohérence)
+      const languagesToTranslate = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt']
       const translations: any = {}
 
       console.log(`🌐 Génération des traductions pour ${languagesToTranslate.length} langues...`)
@@ -1442,11 +1459,28 @@ Target Audience:`
         console.log(`\n🔄 Traduction vers ${langCode.toUpperCase()}...`)
         
         try {
-          const translation = await this.generateSingleLanguageTranslation(
-            tool,
-            generatedContent,
-            langCode
-          )
+          let translation: any
+          
+          if (langCode === 'en') {
+            // Pour l'anglais, copie directe depuis le contenu généré (pas d'API)
+            console.log(`📋 Copie directe du contenu anglais depuis la table Tool`)
+            translation = {
+              overview: generatedContent.overview,
+              description: generatedContent.description,
+              metaTitle: generatedContent.metaTitle,
+              metaDescription: generatedContent.metaDescription,
+              keyFeatures: generatedContent.keyFeatures,
+              useCases: generatedContent.useCases,
+              targetAudience: generatedContent.targetAudience
+            }
+          } else {
+            // Pour les autres langues, génération via IA
+            translation = await this.generateSingleLanguageTranslation(
+              tool,
+              generatedContent,
+              langCode
+            )
+          }
           
           translations[langCode] = translation
           console.log(`✅ Traduction ${langCode.toUpperCase()} terminée`)
@@ -1587,7 +1621,7 @@ Target Audience:`
     content: any,
     targetLang: string
   ): Promise<any> {
-    const languageNames = {
+    const languageNames: { [key: string]: string } = {
       'fr': 'French (Français)',
       'it': 'Italian (Italiano)', 
       'es': 'Spanish (Español)',
@@ -2120,8 +2154,11 @@ Return the JSON now:`
           description: translation.description,
           metaTitle: translation.metaTitle,
           metaDescription: translation.metaDescription,
-          translationSource: 'ai_generated',
-          quality_score: 8.5, // Score par défaut pour traductions IA
+          keyFeatures: translation.keyFeatures,
+          useCases: translation.useCases,
+          targetAudience: translation.targetAudience,
+          translationSource: languageCode === 'en' ? 'imported' : 'ai_generated',
+          quality_score: languageCode === 'en' ? 9.5 : 8.5,
           updatedAt: new Date()
         },
         create: {
@@ -2132,8 +2169,11 @@ Return the JSON now:`
           description: translation.description,
           metaTitle: translation.metaTitle,
           metaDescription: translation.metaDescription,
-          translationSource: 'ai_generated',
-          quality_score: 8.5
+          keyFeatures: translation.keyFeatures,
+          useCases: translation.useCases,
+          targetAudience: translation.targetAudience,
+          translationSource: languageCode === 'en' ? 'imported' : 'ai_generated',
+          quality_score: languageCode === 'en' ? 9.5 : 8.5
         }
       })
     } catch (error: any) {
