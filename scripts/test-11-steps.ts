@@ -357,3 +357,6 @@ async function testComplete11Steps() {
 }
 
 testComplete11Steps().catch(console.error)
+
+// Export pour utilisation dans d'autres scripts
+export { testComplete11Steps }

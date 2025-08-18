@@ -1,0 +1,121 @@
+{
+  "timestamp": "2025-08-18T10:18:53.756Z",
+  "testType": "tool_content_updater_test",
+  "toolsTested": [
+    {
+      "id": 1,
+      "name": "CassetteAI",
+      "url": "https://cassetteai.com/",
+      "category": "Music"
+    },
+    {
+      "id": 2,
+      "name": "SteosVoice",
+      "url": "https://cybervoice.io/",
+      "category": "Audio generation"
+    },
+    {
+      "id": 4,
+      "name": "Unmixr",
+      "url": "https://unmixr.com/",
+      "category": "Text-to-speech"
+    }
+  ],
+  "results": {
+    "singleTest": {
+      "toolId": 1,
+      "toolName": "Test Tool 1",
+      "status": "success",
+      "step": "completed",
+      "httpStatusCode": 200,
+      "isActive": true,
+      "socialLinks": {
+        "socialGithub": "https://github.com/example/tool",
+        "socialX": "https://x.com/example",
+        "socialLinkedin": "https://linkedin.com/company/example"
+      },
+      "usefulLinks": {
+        "docsLink": "https://example.com/docs",
+        "mailAddress": "contact@example.com",
+        "changelogLink": "https://example.com/changelog"
+      },
+      "generatedContent": "## What's Test Tool 1?\n\nTest Tool 1 est un outil IA révolutionnaire qui transforme la façon dont nous abordons les tâches automatisées. Cet outil se distingue par sa capacité à traiter des données complexes tout en maintenant une interface utilisateur simple et intuitive.\n\n## Principales fonctionnalités\n\nL'un des atouts majeurs de Test Tool 1 réside dans ses fonctionnalités d'automatisation avancées. L'outil propose une intégration seamless avec les workflows existants et permet aux utilisateurs de gagner jusqu'à 70% de temps sur leurs tâches récurrentes.\n\n## Pourquoi choisir Test Tool 1?\n\nCe qui rend Test Tool 1 particulièrement attractif, c'est sa courbe d'apprentissage minimale combinée à des résultats professionnels. Les utilisateurs peuvent commencer à être productifs dès les premiers jours d'utilisation.\n\n## Points d'attention\n\nCependant, comme tout outil, Test Tool 1 présente certaines limitations. Pour des cas d'usage très spécifiques ou des intégrations complexes, il peut nécessiter du développement custom supplémentaire.\n\n## Verdict final\n\nEn conclusion, Test Tool 1 représente un excellent investissement pour les équipes cherchant à optimiser leur productivité. Ses avantages l'emportent largement sur ses limitations, en faisant un choix judicieux pour la plupart des organisations.",
+      "processedPages": 15,
+      "errors": []
+    },
+    "batchTest": [
+      {
+        "toolId": 1,
+        "toolName": "Test Tool 1",
+        "status": "success",
+        "step": "completed",
+        "httpStatusCode": 200,
+        "isActive": true,
+        "socialLinks": {
+          "socialGithub": "https://github.com/example/tool",
+          "socialX": "https://x.com/example",
+          "socialLinkedin": "https://linkedin.com/company/example"
+        },
+        "usefulLinks": {
+          "docsLink": "https://example.com/docs",
+          "mailAddress": "contact@example.com",
+          "changelogLink": "https://example.com/changelog"
+        },
+        "generatedContent": "## What's Test Tool 1?\n\nTest Tool 1 est un outil IA révolutionnaire qui transforme la façon dont nous abordons les tâches automatisées. Cet outil se distingue par sa capacité à traiter des données complexes tout en maintenant une interface utilisateur simple et intuitive.\n\n## Principales fonctionnalités\n\nL'un des atouts majeurs de Test Tool 1 réside dans ses fonctionnalités d'automatisation avancées. L'outil propose une intégration seamless avec les workflows existants et permet aux utilisateurs de gagner jusqu'à 70% de temps sur leurs tâches récurrentes.\n\n## Pourquoi choisir Test Tool 1?\n\nCe qui rend Test Tool 1 particulièrement attractif, c'est sa courbe d'apprentissage minimale combinée à des résultats professionnels. Les utilisateurs peuvent commencer à être productifs dès les premiers jours d'utilisation.\n\n## Points d'attention\n\nCependant, comme tout outil, Test Tool 1 présente certaines limitations. Pour des cas d'usage très spécifiques ou des intégrations complexes, il peut nécessiter du développement custom supplémentaire.\n\n## Verdict final\n\nEn conclusion, Test Tool 1 représente un excellent investissement pour les équipes cherchant à optimiser leur productivité. Ses avantages l'emportent largement sur ses limitations, en faisant un choix judicieux pour la plupart des organisations.",
+        "processedPages": 15,
+        "errors": []
+      },
+      {
+        "toolId": 2,
+        "toolName": "Test Tool 2",
+        "status": "success",
+        "step": "completed",
+        "httpStatusCode": 200,
+        "isActive": true,
+        "socialLinks": {
+          "socialGithub": "https://github.com/example/tool",
+          "socialX": "https://x.com/example",
+          "socialLinkedin": "https://linkedin.com/company/example"
+        },
+        "usefulLinks": {
+          "docsLink": "https://example.com/docs",
+          "mailAddress": "contact@example.com",
+          "changelogLink": "https://example.com/changelog"
+        },
+        "generatedContent": "## What's Test Tool 2?\n\nTest Tool 2 est un outil IA révolutionnaire qui transforme la façon dont nous abordons les tâches automatisées. Cet outil se distingue par sa capacité à traiter des données complexes tout en maintenant une interface utilisateur simple et intuitive.\n\n## Principales fonctionnalités\n\nL'un des atouts majeurs de Test Tool 2 réside dans ses fonctionnalités d'automatisation avancées. L'outil propose une intégration seamless avec les workflows existants et permet aux utilisateurs de gagner jusqu'à 70% de temps sur leurs tâches récurrentes.\n\n## Pourquoi choisir Test Tool 2?\n\nCe qui rend Test Tool 2 particulièrement attractif, c'est sa courbe d'apprentissage minimale combinée à des résultats professionnels. Les utilisateurs peuvent commencer à être productifs dès les premiers jours d'utilisation.\n\n## Points d'attention\n\nCependant, comme tout outil, Test Tool 2 présente certaines limitations. Pour des cas d'usage très spécifiques ou des intégrations complexes, il peut nécessiter du développement custom supplémentaire.\n\n## Verdict final\n\nEn conclusion, Test Tool 2 représente un excellent investissement pour les équipes cherchant à optimiser leur productivité. Ses avantages l'emportent largement sur ses limitations, en faisant un choix judicieux pour la plupart des organisations.",
+        "processedPages": 15,
+        "errors": []
+      },
+      {
+        "toolId": 4,
+        "toolName": "Test Tool 4",
+        "status": "success",
+        "step": "completed",
+        "httpStatusCode": 200,
+        "isActive": true,
+        "socialLinks": {
+          "socialGithub": "https://github.com/example/tool",
+          "socialX": "https://x.com/example",
+          "socialLinkedin": "https://linkedin.com/company/example"
+        },
+        "usefulLinks": {
+          "docsLink": "https://example.com/docs",
+          "mailAddress": "contact@example.com",
+          "changelogLink": "https://example.com/changelog"
+        },
+        "generatedContent": "## What's Test Tool 4?\n\nTest Tool 4 est un outil IA révolutionnaire qui transforme la façon dont nous abordons les tâches automatisées. Cet outil se distingue par sa capacité à traiter des données complexes tout en maintenant une interface utilisateur simple et intuitive.\n\n## Principales fonctionnalités\n\nL'un des atouts majeurs de Test Tool 4 réside dans ses fonctionnalités d'automatisation avancées. L'outil propose une intégration seamless avec les workflows existants et permet aux utilisateurs de gagner jusqu'à 70% de temps sur leurs tâches récurrentes.\n\n## Pourquoi choisir Test Tool 4?\n\nCe qui rend Test Tool 4 particulièrement attractif, c'est sa courbe d'apprentissage minimale combinée à des résultats professionnels. Les utilisateurs peuvent commencer à être productifs dès les premiers jours d'utilisation.\n\n## Points d'attention\n\nCependant, comme tout outil, Test Tool 4 présente certaines limitations. Pour des cas d'usage très spécifiques ou des intégrations complexes, il peut nécessiter du développement custom supplémentaire.\n\n## Verdict final\n\nEn conclusion, Test Tool 4 représente un excellent investissement pour les équipes cherchant à optimiser leur productivité. Ses avantages l'emportent largement sur ses limitations, en faisant un choix judicieux pour la plupart des organisations.",
+        "processedPages": 15,
+        "errors": []
+      }
+    ]
+  },
+  "summary": {
+    "totalToolsTested": 3,
+    "successfulUpdates": 3,
+    "failedUpdates": 0,
+    "inactiveTools": 0,
+    "averageProcessedPages": 15,
+    "totalSocialLinksFound": 9,
+    "totalUsefulLinksFound": 9
+  }
+}

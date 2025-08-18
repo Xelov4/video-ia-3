@@ -1,0 +1,125 @@
+{
+  "timestamp": "2025-08-18T10:25:13.027Z",
+  "testType": "complete_real_tool_test",
+  "toolInfo": {
+    "id": 6893,
+    "name": "QueryGPT",
+    "url": "https://github.com/tsensei/QueryGPT",
+    "originallyActive": true
+  },
+  "performance": {
+    "durationSeconds": 39.74,
+    "startTime": "2025-08-18T10:24:33.290Z",
+    "endTime": "2025-08-18T10:25:13.026Z",
+    "efficient": true
+  },
+  "stepByStepResults": {
+    "step1_httpCheck": {
+      "name": "Test HTTP Status & URL Validation",
+      "completed": true,
+      "success": true,
+      "data": {
+        "httpStatusCode": 200,
+        "isActive": true,
+        "urlAccessible": true
+      }
+    },
+    "step2_crawling": {
+      "name": "Website Crawling (Max 50 pages)",
+      "completed": true,
+      "success": true,
+      "data": {
+        "pagesProcessed": 30,
+        "efficiency": "60.0%",
+        "tempFolderCreated": true
+      }
+    },
+    "step3_socialExtraction": {
+      "name": "Social Media Links Extraction",
+      "completed": true,
+      "success": true,
+      "data": {
+        "linksFound": 2,
+        "socialLinks": {
+          "socialGithub": "github.com/github",
+          "socialInstagram": "instagram.com/_tsensei_"
+        },
+        "platformsSupported": [
+          "LinkedIn",
+          "Facebook",
+          "X/Twitter",
+          "GitHub",
+          "Discord",
+          "Instagram",
+          "TikTok"
+        ]
+      }
+    },
+    "step4_usefulLinks": {
+      "name": "Useful Links Extraction",
+      "completed": true,
+      "success": true,
+      "data": {
+        "linksFound": 3,
+        "usefulLinks": {
+          "docsLink": "https://docs.github.com",
+          "affiliateLink": "https://partner.github.com",
+          "changelogLink": "/tsensei/QueryGPT/releases"
+        },
+        "typesSupported": [
+          "Email Contact",
+          "Documentation",
+          "Affiliate Links",
+          "Changelog/Updates"
+        ]
+      }
+    },
+    "step5_contentGeneration": {
+      "name": "AI Content Generation",
+      "completed": true,
+      "success": true,
+      "data": {
+        "contentLength": 1564,
+        "wordCount": 198,
+        "sectionsCount": 5,
+        "hasRequiredTitle": true,
+        "meetsMinimumLength": false
+      }
+    }
+  },
+  "fullResults": {
+    "toolId": 6893,
+    "toolName": "QueryGPT",
+    "status": "success",
+    "step": "completed",
+    "errors": [],
+    "httpStatusCode": 200,
+    "isActive": true,
+    "processedPages": 30,
+    "socialLinks": {
+      "socialGithub": "github.com/github",
+      "socialInstagram": "instagram.com/_tsensei_"
+    },
+    "usefulLinks": {
+      "docsLink": "https://docs.github.com",
+      "affiliateLink": "https://partner.github.com",
+      "changelogLink": "/tsensei/QueryGPT/releases"
+    },
+    "generatedContent": "## What's QueryGPT?\n\nQueryGPT est un outil IA innovant qui transforme la façon dont nous abordons developer tools. Cet outil se distingue par sa capacité à automatiser des processus complexes tout en maintenant une interface utilisateur intuitive et accessible.\n\n## Principales fonctionnalités\n\nL'un des atouts majeurs de QueryGPT réside dans ses fonctionnalités avancées qui permettent aux utilisateurs de gagner un temps considérable. L'outil propose une gamme complète d'options personnalisables qui s'adaptent aux besoins spécifiques de chaque utilisateur, qu'il soit débutant ou expert.\n\n## Pourquoi choisir QueryGPT?\n\nCe qui rend QueryGPT particulièrement attrayant, c'est sa capacité à simplifier des tâches qui prendraient normalement des heures de travail manuel. Les utilisateurs apprécient particulièrement sa facilité d'intégration avec d'autres outils existants et sa courbe d'apprentissage relativement douce.\n\n## Points d'attention\n\nCependant, comme tout outil, QueryGPT présente certaines limitations qu'il convient de mentionner. L'outil peut parfois manquer de flexibilité pour des cas d'usage très spécifiques, et ses fonctionnalités avancées nécessitent parfois une période d'adaptation pour être pleinement maîtrisées.\n\n## Verdict final\n\nEn conclusion, QueryGPT représente un excellent choix pour quiconque cherche à optimiser son workflow dans le domaine de developer tools. Malgré quelques limitations mineures, ses avantages l'emportent largement sur ses inconvénients, en faisant un investissement judicieux pour améliorer sa productivité."
+  },
+  "summary": {
+    "overallSuccess": true,
+    "stepsCompleted": 5,
+    "stepsSuccessful": 5,
+    "totalSteps": 5,
+    "hasErrors": false,
+    "processingTime": "39.74s",
+    "dataQuality": {
+      "urlWorking": true,
+      "contentRich": true,
+      "socialPresence": true,
+      "documentationAvailable": "https://docs.github.com",
+      "qualityContent": true
+    }
+  }
+}
