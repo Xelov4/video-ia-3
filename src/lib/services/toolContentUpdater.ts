@@ -5,7 +5,7 @@
  * 
  * ⚡ VERSION OPTIMISÉE avec CORRECTIONS CRITIQUES INTÉGRÉES:
  * ✅ Gemini 2.5 Pro en priorité absolue (meilleure qualité IA)
- * ✅ Rate limiting 15s entre requêtes (respect limite 5 req/minute)  
+ * ✅ Rate limiting 90s entre requêtes (respect strict limite API)  
  * ✅ Prompts Étapes 4 & 9 améliorés (clarté et précision)
  * ✅ Détection d'échec NL/IT/ES corrigée (Promise.allSettled)
  * ✅ Traductions partielles acceptées (résilience maximale)
@@ -119,8 +119,8 @@ export class ToolContentUpdaterService {
   private static readonly CRAWL_DELAY = 1000 // Délai entre les requêtes en ms
 
   // Configuration Gemini API - OPTIMISATION RATE LIMITING
-  // ⚡ OPTIMISATION CRITIQUE: Gemini 2.5 Pro en priorité + rate limiting 15s
-  // Respecte la limite de 5 requêtes/minute (1 requête toutes les 15 secondes)
+  // ⚡ OPTIMISATION CRITIQUE: Gemini 2.5 Pro en priorité + rate limiting 90s
+  // Respecte la limite de 5 requêtes/minute (1 requête toutes les 90 secondes)
   private static readonly GEMINI_API_KEY = process.env.GEMINI_API_KEY
   private static readonly GEMINI_MODELS = [
     'gemini-2.5-pro',      // 🏆 PRIORITÉ 1: Gemini 2.5 Pro (meilleure qualité)
@@ -129,7 +129,7 @@ export class ToolContentUpdaterService {
     'gemini-1.5-pro-002',   // Fallback 3: Pro ancien
     'gemini-1.5-flash'      // Fallback 4: Flash rapide
   ]
-  private static readonly RATE_LIMIT_DELAY_MS = 15000 // 15 secondes entre requêtes
+  private static readonly RATE_LIMIT_DELAY_MS = 90000 // 90 secondes entre requêtes
   private static lastGeminiCallTime = 0 // Timestamp dernier appel pour rate limiting
   private static readonly ai = this.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: this.GEMINI_API_KEY }) : null
 
@@ -764,29 +764,25 @@ Write the article now in markdown format with H2 titles:`
   }
 
   /**
-   * 🤖 APPEL GEMINI AVEC FALLBACK + RATE LIMITING OPTIMISÉ
+   * Appel Gemini avec système de fallback entre modèles
+   * ⚡ NOUVEAU: Rate limiting strict de 90s entre chaque appel
    * 
-   * OPTIMISATIONS CRITIQUES INTÉGRÉES:
-   * ✅ Gemini 2.5 Pro en priorité absolue (meilleure qualité)
-   * ✅ Rate limiting 15 secondes entre requêtes (5 req/minute max)
-   * ✅ Système fallback sur 5 modèles si échec
-   * ✅ Gestion intelligente des erreurs API
+   * 🕐 SYSTÈME DE RATE LIMITING SIMPLIFIÉ:
+   * 1. Rate limiting: 90 secondes entre chaque appel
+   * 2. Fallback: 5 modèles Gemini testés en ordre de priorité
+   * 3. Gestion rate limit: Attente supplémentaire si détecté
    * 
-   * LOGIQUE DE RATE LIMITING:
-   * - Calcule temps écoulé depuis dernier appel
-   * - Si < 15s, attend le temps restant
-   * - Garantit respect limite 5 requêtes/minute
-   * 
-   * ORDRE DE PRIORITÉ MODÈLES:
-   * 1. gemini-2.5-pro (qualité maximale)
-   * 2-5. Fallbacks progressifs si échec
+   * 🎯 OBJECTIF: Respecter strictement les limites API Gemini
+   * - Éviter le blocage temporaire du compte
+   * - Maintenir la stabilité des performances
+   * - Garantir la fiabilité du service
    */
   private static async callGeminiWithFallback(prompt: string): Promise<string> {
     if (!this.ai) {
       throw new Error('Gemini API non disponible')
     }
 
-    // 🕐 RATE LIMITING: Respecter 15 secondes entre requêtes
+    // 🕐 RATE LIMITING: Respecter 90 secondes entre requêtes
     const now = Date.now()
     const timeSinceLastCall = now - this.lastGeminiCallTime
     

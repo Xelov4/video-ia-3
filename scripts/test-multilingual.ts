@@ -77,6 +77,7 @@ async function testMultilingualSystem() {
     console.log(`🌐 Langues cibles: Français, Italien, Espagnol, Allemand, Néerlandais, Portugais`)
     console.log(`📊 Attendu: 11 étapes anglais + 42 traductions = 53 contenus générés`)
     console.log(`⏱️  Objectif performance: <300 secondes (5 minutes)`)
+    console.log(`🕐 NOUVEAU: Rate limiting strict de 90s entre chaque appel Gemini`)
     console.log(`\n${'='.repeat(100)}\n`)
     
     const startTime = Date.now()
@@ -98,6 +99,8 @@ async function testMultilingualSystem() {
     
     console.log(`\n⏱️ DURÉE TOTALE: ${duration.toFixed(2)}s (objectif: ${performanceTarget}s)`)
     console.log(`🎯 Performance: ${duration <= performanceTarget ? '✅ EXCELLENTE' : '⚠️ À OPTIMISER'}`)
+    console.log(`🕐 SYSTÈME DÉLAI: Rate limiting strict de 90s entre chaque appel Gemini`)
+    console.log(`📊 Temps de délai: ${16 * 90}s sur ${duration.toFixed(0)}s total (${((16 * 90) / duration * 100).toFixed(1)}%)`)
     console.log(`\n${'='.repeat(120)}`)
     console.log('📊 ANALYSE COMPLÈTE DU SYSTÈME MULTILANGUE - CŒUR RÉACTEUR')
     console.log(`${'='.repeat(120)}`)
@@ -174,7 +177,7 @@ async function testMultilingualSystem() {
         'pt': 'Portugais 🇵🇹'
       }
       
-      const languageScores = []
+      const languageScores: number[] = []
       
       languages.forEach(lang => {
         const translation = result.phase2_translations.translations[lang]
@@ -278,7 +281,12 @@ async function testMultilingualSystem() {
         totalDurationSeconds: parseFloat(duration.toFixed(2)),
         startTime: new Date(startTime).toISOString(),
         endTime: new Date(endTime).toISOString(),
-        efficient: duration < 300 // 5 minutes max
+        efficient: duration < 300, // 5 minutes max
+        delaySystem: {
+          rateLimitDelay: 90, // secondes entre appels
+          totalDelayTime: 16 * 90, // 16 calls × 90s
+          delayPercentage: ((16 * 90) / duration * 100).toFixed(1) + '%'
+        }
       },
       phase1_english: {
         status: result.phase1_english?.status || 'failed',

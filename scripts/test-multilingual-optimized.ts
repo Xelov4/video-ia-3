@@ -4,6 +4,7 @@
  * ================================================================
  * 
  * 🚀 RÉVOLUTION: 53 → 17 appels API Gemini (-68% d'économie)
+ * 🆕 NOUVEAU: Hiérarchie Gemini 2.5 Pro → 1.5 Flash-8B (8 modèles)
  * 
  * Ce script teste la VERSION OPTIMISÉE du système de génération 
  * de contenu multilangue de Video-IA.net avec économie massive d'API.
@@ -12,6 +13,7 @@
  * - AVANT: 11 (anglais) + 42 (6 langues × 7 champs) = 53 appels API
  * - APRÈS: 11 (anglais) + 6 (6 langues × 1 prompt unifié) = 17 appels API
  * - ÉCONOMIE: 36 appels (-68%) = Réduction coûts et temps majeure
+ * - 🆕 HIÉRARCHIE: 8 modèles Gemini avec recommencement complet à chaque appel
  * 
  * 🎯 OBJECTIFS DU TEST:
  * 1. Valider les 11 étapes de génération anglaise (inchangé)
@@ -48,6 +50,7 @@
  * v3.0: 11 étapes + screenshot + pricing
  * v4.0: 11 étapes + 6 langues = 53 appels (ANCIEN)
  * v5.0: 11 étapes + 6 langues = 17 appels (RÉVOLUTION)
+ * v5.1: 🆕 Hiérarchie Gemini 2.5 Pro → 1.5 Flash-8B + recommencement complet
  * 
  * 💰 IMPACT ÉCONOMIQUE:
  * Cette optimisation divise par 3 les coûts API Gemini
@@ -84,6 +87,9 @@ async function testMultilingualSystemOptimized() {
     console.log(`🚀 OPTIMISATION: 11 étapes anglais + 6 prompts JSON = 17 appels API`)
     console.log(`💰 ÉCONOMIE: 36 appels économisés vs version précédente (53 → 17)`)
     console.log(`⏱️  Objectif performance: <120 secondes (60% plus rapide)`)
+    console.log(`🕐 NOUVEAU: Rate limiting strict de 90s entre chaque appel Gemini`)
+    console.log(`🆕 NOUVEAU: Hiérarchie Gemini 2.5 Pro → 1.5 Flash-8B (8 modèles)`)
+    console.log(`🔄 NOUVEAU: Recommencement complet de la hiérarchie à chaque appel`)
     console.log(`\n${'='.repeat(100)}\n`)
     
     const startTime = Date.now()
@@ -105,6 +111,8 @@ async function testMultilingualSystemOptimized() {
     
     console.log(`\n⏱️ DURÉE TOTALE: ${duration.toFixed(2)}s (objectif: ${performanceTarget}s)`)
     console.log(`🎯 Performance: ${duration <= performanceTarget ? '✅ EXCELLENTE' : '⚠️ À OPTIMISER'}`)
+    console.log(`🕐 SYSTÈME DÉLAI: Rate limiting strict de 90s entre chaque appel Gemini`)
+    console.log(`📊 Temps de délai: ${16 * 90}s sur ${duration.toFixed(0)}s total (${((16 * 90) / duration * 100).toFixed(1)}%)`)
     console.log(`\n${'='.repeat(120)}`)
     console.log('⚡ ANALYSE COMPLÈTE DU SYSTÈME MULTILANGUE OPTIMISÉ')
     console.log(`${'='.repeat(120)}`)
@@ -182,7 +190,7 @@ async function testMultilingualSystemOptimized() {
         'pt': 'Portugais 🇵🇹'
       }
       
-      const languageScores = []
+      const languageScores: number[] = []
       
       languages.forEach(lang => {
         const translation = result.phase2_translations.translations[lang]
@@ -288,7 +296,12 @@ async function testMultilingualSystemOptimized() {
         totalDurationSeconds: parseFloat(duration.toFixed(2)),
         startTime: new Date(startTime).toISOString(),
         endTime: new Date(endTime).toISOString(),
-        efficient: duration < 300 // 5 minutes max
+        efficient: duration < 300, // 5 minutes max
+        delaySystem: {
+          rateLimitDelay: 90, // secondes entre appels
+          totalDelayTime: 16 * 90, // 16 calls × 90s
+          delayPercentage: ((16 * 90) / duration * 100).toFixed(1) + '%'
+        }
       },
       phase1_english: {
         status: result.phase1_english?.status || 'failed',

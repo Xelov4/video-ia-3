@@ -1,7 +1,11 @@
 /**
- * Tool Content Updater Service - VERSION OPTIMISÉE
+ * Tool Content Updater Service - VERSION OPTIMISÉE 2025
  * 
  * ⚡ OPTIMISATION MAJEURE: 53 → 17 appels API Gemini (-68% d'appels)
+ * 🆕 NOUVELLE HIÉRARCHIE: Gemini 2.5 Pro → 1.5 Flash-8B (8 modèles)
+ * 🔄 SYSTÈME RÉVOLUTIONNAIRE: Recommencement complet de la hiérarchie à chaque appel
+ * ✅ Rate limiting 90s entre requêtes (respect strict limite API)
+ * ✅ Traductions JSON unifiées (1 prompt par langue au lieu de 7)
  * 
  * Service pour mettre à jour automatiquement le contenu des outils IA :
  * - Test HTTP status
@@ -16,7 +20,18 @@
  * - APRÈS: 11 (anglais) + 6 (6 langues × 1 prompt unifié) = 17 appels
  * - ÉCONOMIE: 36 appels (-68%)
  * 
+ * 🧠 HIÉRARCHIE GEMINI 2025:
+ * 1. Gemini 2.5 Pro (Premium) → 2. Gemini 2.5 Flash → 3. Gemini 2.5 Flash-Lite
+ * 4. Gemini 2.0 Flash → 5. Gemini 2.0 Flash-Lite → 6. Gemini 1.5 Flash
+ * 7. Gemini 1.5 Pro → 8. Gemini 1.5 Flash-8B (dernier recours)
+ * 
+ * 🔄 SYSTÈME DE RECOMMENCEMENT:
+ * - Chaque appel recommence TOUTE la hiérarchie depuis le modèle premium
+ * - Maximum 3 tentatives complètes de la hiérarchie
+ * - Résilience maximale avec 8 niveaux de fallback
+ * 
  * @author Video-IA.net Development Team
+ * @version 5.1 - Hiérarchie Gemini 2.5 + Recommencement complet
  */
 
 import { prisma } from '../database/client'
@@ -76,15 +91,20 @@ export class ToolContentUpdaterServiceOptimized {
   private static readonly REQUEST_TIMEOUT = 10000
   private static readonly CRAWL_DELAY = 1000 // Délai entre les requêtes en ms
 
-  // Configuration Gemini API (même que le système existant)
+  // Configuration Gemini API - NOUVELLE HIÉRARCHIE 2025
   private static readonly GEMINI_API_KEY = process.env.GEMINI_API_KEY
   private static readonly GEMINI_MODELS = [
-    'gemini-2.0-flash-exp',
-    'gemini-2.0-flash', 
-    'gemini-1.5-pro-002',
-    'gemini-1.5-pro',
-    'gemini-1.5-flash'
+    'gemini-2.5-pro',        // 1er choix - Modèle le plus récent et performant
+    'gemini-2.5-flash',      // 2ème choix - Flash 2.5 optimisé
+    'gemini-2.5-flash-lite', // 3ème choix - Flash-Lite 2.5 léger
+    'gemini-2.0-flash',      // 4ème choix - Flash 2.0 stable
+    'gemini-2.0-flash-lite', // 5ème choix - Flash-Lite 2.0 léger
+    'gemini-1.5-flash',      // 6ème choix - Flash 1.5 éprouvé
+    'gemini-1.5-pro',        // 7ème choix - Pro 1.5 stable
+    'gemini-1.5-flash-8b'   // 8ème choix - Flash 8B ultra-léger (dernier recours)
   ]
+  private static readonly RATE_LIMIT_DELAY_MS = 90000 // 90 secondes entre requêtes
+  private static lastGeminiCallTime = 0 // Timestamp dernier appel pour rate limiting
   private static readonly ai = this.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: this.GEMINI_API_KEY }) : null
 
   /**
@@ -688,46 +708,103 @@ Write the article now in markdown format with H2 titles:`
 
   /**
    * Appel Gemini avec système de fallback entre modèles
+   * ⚡ NOUVEAU: Rate limiting strict de 90s entre chaque appel
+   * 🆕 NOUVEAU: Recommence TOUTE la hiérarchie pour chaque appel
+   * 
+   * 🕐 SYSTÈME DE RATE LIMITING SIMPLIFIÉ:
+   * 1. Rate limiting: 90 secondes entre chaque appel
+   * 2. Fallback: 8 modèles Gemini testés en ordre de priorité
+   * 3. Gestion rate limit: Attente supplémentaire si détecté
+   * 4. NOUVEAU: Chaque appel recommence depuis le modèle premium
+   * 
+   * 🎯 OBJECTIF: Respecter strictement les limites API Gemini
+   * - Éviter le blocage temporaire du compte
+   * - Maintenir la stabilité des performances
+   * - Garantir la fiabilité du service
+   * - Maximiser les chances de succès avec le meilleur modèle disponible
    */
   private static async callGeminiWithFallback(prompt: string): Promise<string> {
     if (!this.ai) {
       throw new Error('Gemini API non disponible')
     }
 
+    // 🕐 RATE LIMITING: Respecter 90 secondes entre requêtes
+    const now = Date.now()
+    const timeSinceLastCall = now - this.lastGeminiCallTime
+    
+    if (timeSinceLastCall < this.RATE_LIMIT_DELAY_MS) {
+      const waitTime = this.RATE_LIMIT_DELAY_MS - timeSinceLastCall
+      console.log(`⏱️  Rate limiting: Attente ${(waitTime/1000).toFixed(1)}s avant requête Gemini...`)
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+    }
+    
+    this.lastGeminiCallTime = Date.now()
+
     let lastError: Error | null = null
+    let attemptCount = 0
+    const maxAttempts = 3 // Maximum 3 tentatives complètes de la hiérarchie
 
-    // Essayer chaque modèle
-    for (const modelName of this.GEMINI_MODELS) {
-      try {
-        console.log(`🔄 Tentative avec modèle: ${modelName}`)
+    // 🔄 BOUCLE DE TENTATIVES COMPLÈTES DE LA HIÉRARCHIE
+    while (attemptCount < maxAttempts) {
+      attemptCount++
+      console.log(`\n🔄 TENTATIVE COMPLÈTE ${attemptCount}/${maxAttempts} - Recommencement de toute la hiérarchie`)
+      console.log(`📋 Ordre des modèles: ${this.GEMINI_MODELS.join(' → ')}`)
+
+      // Essayer chaque modèle de la hiérarchie (depuis le début)
+      for (let i = 0; i < this.GEMINI_MODELS.length; i++) {
+        const modelName = this.GEMINI_MODELS[i]
+        const modelPosition = i + 1
         
-        const genModel = this.ai.models.generateContent({
-          model: modelName,
-          contents: prompt
-        })
+        try {
+          console.log(`  🔄 [${modelPosition}/${this.GEMINI_MODELS.length}] Test avec ${modelName}...`)
+          
+          const genModel = this.ai.models.generateContent({
+            model: modelName,
+            contents: prompt
+          })
 
-        const result = await genModel
-        const text = result.text
+          const result = await genModel
+          const text = result.text
 
-        if (!text || text.length < 200) {
-          throw new Error('Réponse trop courte ou vide')
+          if (!text || text.length < 200) {
+            throw new Error('Réponse trop courte ou vide')
+          }
+
+          console.log(`  ✅ SUCCÈS avec ${modelName} (${text.length} caractères)`)
+          console.log(`  🏆 Modèle gagnant: ${modelName} (position ${modelPosition}/${this.GEMINI_MODELS.length})`)
+          console.log(`  📊 Tentative complète: ${attemptCount}/${maxAttempts}`)
+          return text
+
+        } catch (error: any) {
+          lastError = error
+          console.log(`  ❌ Échec avec ${modelName}: ${error.message}`)
+          
+          // Gestion spéciale des rate limits
+          if (error.message.includes('overloaded') || error.message.includes('rate limit')) {
+            console.log(`  ⏳ Rate limit détecté, attente supplémentaire 5s...`)
+            await new Promise(resolve => setTimeout(resolve, 5000))
+          }
+          
+          // Si c'est le dernier modèle de la hiérarchie, on va recommencer
+          if (i === this.GEMINI_MODELS.length - 1) {
+            console.log(`  🔄 Fin de la hiérarchie atteinte, passage à la tentative suivante...`)
+          }
         }
-
-        console.log(`✅ Contenu généré avec succès par ${modelName} (${text.length} caractères)`)
-        return text
-
-      } catch (error: any) {
-        lastError = error
-        console.log(`❌ Échec avec ${modelName}: ${error.message}`)
-        
-        // Attendre avant d'essayer le modèle suivant
-        if (error.message.includes('overloaded') || error.message.includes('rate limit')) {
-          await new Promise(resolve => setTimeout(resolve, 2000))
-        }
+      }
+      
+      // Si on arrive ici, toute la hiérarchie a échoué
+      console.log(`\n⚠️  TENTATIVE ${attemptCount}/${maxAttempts} ÉCHOUÉE - Toute la hiérarchie a échoué`)
+      
+      if (attemptCount < maxAttempts) {
+        console.log(`🔄 Recommencement de toute la hiérarchie dans 10 secondes...`)
+        await new Promise(resolve => setTimeout(resolve, 10000))
       }
     }
 
-    throw lastError || new Error('Tous les modèles Gemini ont échoué')
+    // 🚨 TOUTES LES TENTATIVES ONT ÉCHOUÉ
+    console.log(`\n❌ ÉCHEC DÉFINITIF: ${maxAttempts} tentatives complètes de la hiérarchie ont échoué`)
+    console.log(`📋 Hiérarchie testée: ${this.GEMINI_MODELS.join(' → ')}`)
+    throw lastError || new Error(`Tous les modèles Gemini ont échoué après ${maxAttempts} tentatives complètes`)
   }
 
   /**
@@ -1612,10 +1689,12 @@ Return the JSON now:`
      * La réponse devrait être un JSON valide avec les 7 champs.
      * On applique un parsing robuste avec fallback en cas d'erreur.
      */
-    let parsedTranslation
+    let parsedTranslation: any
     try {
-      // Nettoyer la réponse (supprimer préfixes potentiels)
+      // 🧹 NETTOYAGE ROBUSTE DE LA RÉPONSE
       let cleanJson = jsonResponse.trim()
+      
+      console.log(`🔍 Réponse brute reçue (${cleanJson.length} chars):`, cleanJson.substring(0, 200) + '...')
       
       // Supprimer les préfixes courants que Gemini peut ajouter
       const prefixes = [
@@ -1629,29 +1708,72 @@ Return the JSON now:`
       
       for (const prefix of prefixes) {
         if (cleanJson.startsWith(prefix)) {
+          const beforeClean = cleanJson
           cleanJson = cleanJson.substring(prefix.length).trim()
+          console.log(`🧹 Préfixe supprimé: "${prefix}" → ${beforeClean.length} → ${cleanJson.length} chars`)
         }
         if (cleanJson.endsWith('```')) {
+          const beforeClean = cleanJson
           cleanJson = cleanJson.substring(0, cleanJson.length - 3).trim()
+          console.log(`🧹 Suffixe supprimé: "''' → ${beforeClean.length} → ${cleanJson.length} chars`)
         }
       }
       
+      console.log(`🔍 JSON nettoyé (${cleanJson.length} chars):`, cleanJson.substring(0, 200) + '...')
+      
+      // 🚨 VALIDATION FINALE AVANT PARSING
+      if (!cleanJson || cleanJson.length < 10) {
+        throw new Error('JSON trop court après nettoyage')
+      }
+      
+      if (!cleanJson.startsWith('{') || !cleanJson.includes('}')) {
+        throw new Error('Format JSON invalide - doit commencer par { et contenir }')
+      }
+      
+      // 🔍 PARSING JSON AVEC VALIDATION
       parsedTranslation = JSON.parse(cleanJson)
+      
+      // ✅ VALIDATION DE LA STRUCTURE PARSÉE
+      const requiredFields = ['overview', 'description', 'metaTitle', 'metaDescription', 'keyFeatures', 'useCases', 'targetAudience']
+      const missingFields = requiredFields.filter(field => !parsedTranslation[field])
+      
+      if (missingFields.length > 0) {
+        console.log(`⚠️  Champs manquants dans le JSON: ${missingFields.join(', ')}`)
+        // Remplir les champs manquants avec des valeurs par défaut
+        missingFields.forEach(field => {
+          parsedTranslation[field] = `Translation error for ${tool.toolName} - field: ${field}`
+        })
+      }
+      
       console.log(`✅ JSON parsé avec succès pour ${langName.toUpperCase()}`)
+      console.log(`📊 Champs détectés: ${Object.keys(parsedTranslation).join(', ')}`)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error(`❌ Erreur parsing JSON pour ${langName}:`, error.message)
-      console.log(`📄 Réponse brute:`, jsonResponse.substring(0, 500) + '...')
+      console.log(`📄 Réponse brute complète:`, jsonResponse)
+      console.log(`🔍 Tentative de nettoyage échouée`)
       
-      // Fallback: retourner une structure vide mais valide
-      parsedTranslation = {
-        overview: `Translation error for ${tool.toolName}. Please contact support.`,
-        description: `Translation error for ${tool.toolName}. Please contact support.`,
-        metaTitle: `${tool.toolName} - Video-IA.net`,
-        metaDescription: `Translation error for ${tool.toolName}.`,
-        keyFeatures: `• Translation error for ${tool.toolName}`,
-        useCases: `• ${tool.toolName} translation error`,
-        targetAudience: `Translation error for ${tool.toolName}. Please contact support.`
+      // 🛠️ FALLBACK INTELLIGENT - Essayer d'extraire des informations partielles
+      console.log(`🔄 Tentative d'extraction partielle...`)
+      
+      try {
+        // Essayer de trouver des patterns dans la réponse brute
+        const extractedData = this.extractPartialTranslation(jsonResponse, tool.toolName, langName)
+        parsedTranslation = extractedData
+        console.log(`✅ Extraction partielle réussie pour ${langName.toUpperCase()}`)
+      } catch (extractError: any) {
+        console.log(`❌ Extraction partielle échouée: ${extractError.message}`)
+        
+        // 🚨 FALLBACK FINAL - Structure d'erreur
+        parsedTranslation = {
+          overview: `Translation error for ${tool.toolName}. Please contact support.`,
+          description: `Translation error for ${tool.toolName}. Please contact support.`,
+          metaTitle: `${tool.toolName} - Video-IA.net`,
+          metaDescription: `Translation error for ${tool.toolName}.`,
+          keyFeatures: `• Translation error for ${tool.toolName}`,
+          useCases: `• ${tool.toolName} translation error`,
+          targetAudience: `Translation error for ${tool.toolName}. Please contact support.`
+        }
       }
     }
 
@@ -1673,6 +1795,111 @@ Return the JSON now:`
 
     console.log(`🎉 Traduction ${langName.toUpperCase()} terminée avec 1 seul appel API`)
     return validatedTranslation
+  }
+
+  /**
+   * 🛠️ EXTRACTION PARTIELLE DE TRADUCTION - FALLBACK INTELLIGENT
+   * 
+   * Cette fonction tente d'extraire des informations partielles d'une réponse
+   * Gemini malformée pour éviter une perte complète de contenu.
+   * 
+   * 🎯 RÔLE:
+   * - Analyser la réponse brute pour trouver des patterns de traduction
+   * - Extraire les champs disponibles même si le JSON est cassé
+   * - Fournir une structure partielle plutôt qu'une erreur complète
+   * 
+   * 📥 PARAMÈTRES:
+   * @param rawResponse - Réponse brute de Gemini (potentiellement malformée)
+   * @param toolName - Nom de l'outil pour les messages d'erreur
+   * @param langName - Nom de la langue pour le contexte
+   * 
+   * 📤 RETOUR:
+   * Objet avec les champs extraits ou des valeurs par défaut
+   */
+  private static extractPartialTranslation(rawResponse: any, toolName: string, langName: string): any {
+    try {
+      // Convertir en string si ce n'est pas déjà le cas
+      const responseStr = typeof rawResponse === 'string' ? rawResponse : String(rawResponse)
+      
+      console.log(`🔍 Tentative d'extraction partielle pour ${langName.toUpperCase()}`)
+      console.log(`📄 Réponse brute: ${responseStr.substring(0, 300)}...`)
+      
+      const extractedData: any = {}
+      
+      // 🔍 PATTERNS DE RECHERCHE POUR CHAQUE CHAMP
+      const patterns = {
+        overview: [
+          /overview["\s]*:["\s]*([^"]+)/i,
+          /overview["\s]*:["\s]*([^}]+?)(?=,|})/i
+        ],
+        description: [
+          /description["\s]*:["\s]*([^"]+)/i,
+          /description["\s]*:["\s]*([^}]+?)(?=,|})/i
+        ],
+        metaTitle: [
+          /metaTitle["\s]*:["\s]*([^"]+)/i,
+          /metaTitle["\s]*:["\s]*([^}]+?)(?=,|})/i
+        ],
+        metaDescription: [
+          /metaDescription["\s]*:["\s]*([^"]+)/i,
+          /metaDescription["\s]*:["\s]*([^}]+?)(?=,|})/i
+        ],
+        keyFeatures: [
+          /keyFeatures["\s]*:["\s]*([^"]+)/i,
+          /keyFeatures["\s]*:["\s]*([^}]+?)(?=,|})/i
+        ],
+        useCases: [
+          /useCases["\s]*:["\s]*([^"]+)/i,
+          /useCases["\s]*:["\s]*([^}]+?)(?=,|})/i
+        ],
+        targetAudience: [
+          /targetAudience["\s]*:["\s]*([^"]+)/i,
+          /targetAudience["\s]*:["\s]*([^}]+?)(?=,|})/i
+        ]
+      }
+      
+      // 🔍 EXTRACTION AVEC PATTERNS
+      for (const [field, fieldPatterns] of Object.entries(patterns)) {
+        let extracted = false
+        
+        for (const pattern of fieldPatterns) {
+          const match = responseStr.match(pattern)
+          if (match && match[1]) {
+            let value = match[1].trim()
+            
+            // Nettoyer la valeur extraite
+            value = value.replace(/^["\s]+/, '').replace(/["\s]+$/, '')
+            
+            if (value && value.length > 5) {
+              extractedData[field] = value
+              extracted = true
+              console.log(`✅ ${field} extrait: "${value.substring(0, 50)}..."`)
+              break
+            }
+          }
+        }
+        
+        if (!extracted) {
+          // Valeur par défaut si extraction échouée
+          extractedData[field] = `Extraction failed for ${field} - ${toolName}`
+          console.log(`❌ ${field}: extraction échouée, valeur par défaut utilisée`)
+        }
+      }
+      
+      // 🚨 VALIDATION FINALE
+      const extractedFields = Object.keys(extractedData).length
+      console.log(`📊 Extraction partielle: ${extractedFields}/7 champs extraits`)
+      
+      if (extractedFields === 0) {
+        throw new Error('Aucun champ extrait de la réponse brute')
+      }
+      
+      return extractedData
+      
+    } catch (error: any) {
+      console.log(`❌ Extraction partielle échouée: ${error.message}`)
+      throw error
+    }
   }
 
   /**
@@ -1742,21 +1969,43 @@ Return the JSON now:`
    * en contenu propre, validé et conforme aux contraintes techniques
    * de Video-IA.net et des standards SEO.
    */
-  private static cleanTranslationResponse(response: string, fieldType: string): string {
+  private static cleanTranslationResponse(response: any, fieldType: string): string {
+    // 🛡️ VALIDATION ROBUSTE DU TYPE DE RÉPONSE
     if (!response) return ''
     
-    // Supprimer les préfixes courants de réponse
-    let cleaned = response
+    // 🔄 CONVERSION FORCÉE EN STRING
+    let responseString: string
+    
+    if (typeof response === 'string') {
+      responseString = response
+    } else if (typeof response === 'number') {
+      responseString = response.toString()
+    } else if (typeof response === 'boolean') {
+      responseString = response.toString()
+    } else if (response && typeof response === 'object') {
+      // Si c'est un objet, essayer de le convertir en JSON
+      try {
+        responseString = JSON.stringify(response)
+      } catch {
+        responseString = String(response)
+      }
+    } else {
+      // Fallback pour tout autre type
+      responseString = String(response)
+    }
+    
+    // 🧹 NETTOYAGE DES PRÉFIXES COURANTS
+    let cleaned = responseString
       .replace(/^(French|Italian|Spanish|German|Dutch|Portuguese)?\s*(translation|traduction)?:?\s*/i, '')
       .replace(/^(Traduction|Translation)\s*(en\s*)?(français|french|italiano|italian|español|spanish|deutsch|german|nederlands|dutch|português|portuguese)?:?\s*/i, '')
       .trim()
 
-    // Supprimer les guillemets en début/fin
+    // 🗑️ SUPPRESSION DES GUILLEMETS EN DÉBUT/FIN
     if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
       cleaned = cleaned.slice(1, -1)
     }
 
-    // Validation spécifique par type
+    // 🔍 VALIDATION SPÉCIFIQUE PAR TYPE DE CHAMP
     switch (fieldType) {
       case 'metaTitle':
         // Vérifier que ça finit par "- Video-IA.net"
