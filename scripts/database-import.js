@@ -9,7 +9,7 @@ const dbConfig = {
   database: process.env.DB_NAME || 'video_ia_net',
   user: process.env.DB_USER || 'video_ia_user',
   password: process.env.DB_PASSWORD || 'video123',
-  ssl: false
+  ssl: false,
 };
 
 class DatabaseImporter {
@@ -20,13 +20,13 @@ class DatabaseImporter {
       skipExisting: true,
       validateData: true,
       batchSize: 100,
-      ...importConfig
+      ...importConfig,
     };
     this.stats = {
       imported: 0,
       skipped: 0,
       errors: 0,
-      tables: {}
+      tables: {},
     };
   }
 
@@ -45,12 +45,12 @@ class DatabaseImporter {
       console.log(`📂 Chargement du fichier d'import: ${filePath}`);
       const fileContent = await fs.readFile(filePath, 'utf8');
       this.importData = JSON.parse(fileContent);
-      
+
       console.log(`📊 Données chargées:`);
       console.log(`   - Version: ${this.importData.metadata?.version || 'N/A'}`);
       console.log(`   - Tables: ${Object.keys(this.importData.data || {}).length}`);
       console.log(`   - Date: ${this.importData.metadata?.exportDate || 'N/A'}`);
-      
+
       return this.importData;
     } catch (error) {
       console.error('❌ Erreur lors du chargement du fichier:', error.message);
@@ -60,17 +60,19 @@ class DatabaseImporter {
 
   validateDataStructure(tableName, records, structure) {
     if (!this.config.validateData) return true;
-    
+
     console.log(`🔍 Validation de la structure pour: ${tableName}`);
-    
+
     for (const record of records) {
       for (const column of structure) {
         if (!column.nullable && !(column.column in record)) {
-          throw new Error(`Colonne requise manquante: ${column.column} dans ${tableName}`);
+          throw new Error(
+            `Colonne requise manquante: ${column.column} dans ${tableName}`
+          );
         }
       }
     }
-    
+
     return true;
   }
 
@@ -89,10 +91,10 @@ class DatabaseImporter {
 
     const placeholders = primaryKeys.map((_, index) => `$${index + 1}`).join(',');
     const query = `SELECT ${primaryKey} FROM ${tableName} WHERE ${primaryKey} IN (${placeholders})`;
-    
+
     const result = await this.client.query(query, primaryKeys);
     const existingIds = new Set(result.rows.map(row => row[primaryKey]));
-    
+
     const existing = records.filter(record => existingIds.has(record[primaryKey]));
     const newRecords = records.filter(record => !existingIds.has(record[primaryKey]));
 
@@ -103,19 +105,21 @@ class DatabaseImporter {
     if (records.length === 0) return 0;
 
     // Convertir les noms de colonnes camelCase vers snake_case
-    const convertColumnName = (camelCase) => {
+    const convertColumnName = camelCase => {
       return camelCase.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     };
 
     const columns = Object.keys(records[0]);
     const dbColumns = columns.map(col => convertColumnName(col));
-    
-    const placeholders = records.map((_, recordIndex) => {
-      const rowPlaceholders = columns.map((_, colIndex) => 
-        `$${recordIndex * columns.length + colIndex + 1}`
-      ).join(', ');
-      return `(${rowPlaceholders})`;
-    }).join(', ');
+
+    const placeholders = records
+      .map((_, recordIndex) => {
+        const rowPlaceholders = columns
+          .map((_, colIndex) => `$${recordIndex * columns.length + colIndex + 1}`)
+          .join(', ');
+        return `(${rowPlaceholders})`;
+      })
+      .join(', ');
 
     const query = `
       INSERT INTO ${tableName} (${dbColumns.join(', ')})
@@ -124,7 +128,7 @@ class DatabaseImporter {
     `;
 
     const values = records.flatMap(record => columns.map(col => record[col]));
-    
+
     const result = await this.client.query(query, values);
     return result.rowCount;
   }
@@ -133,28 +137,30 @@ class DatabaseImporter {
     if (records.length === 0) return 0;
 
     // Convertir les noms de colonnes camelCase vers snake_case
-    const convertColumnName = (camelCase) => {
+    const convertColumnName = camelCase => {
       return camelCase.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     };
 
     let updatedCount = 0;
-    
+
     for (const record of records) {
       const columns = Object.keys(record).filter(col => col !== primaryKey);
       const dbColumns = columns.map(col => convertColumnName(col));
-      const setClause = dbColumns.map((col, index) => `${col} = $${index + 2}`).join(', ');
-      
+      const setClause = dbColumns
+        .map((col, index) => `${col} = $${index + 2}`)
+        .join(', ');
+
       const query = `
         UPDATE ${tableName} 
         SET ${setClause}
         WHERE ${convertColumnName(primaryKey)} = $1
       `;
-      
+
       const values = [record[primaryKey], ...columns.map(col => record[col])];
       const result = await this.client.query(query, values);
       updatedCount += result.rowCount;
     }
-    
+
     return updatedCount;
   }
 
@@ -162,19 +168,21 @@ class DatabaseImporter {
     if (records.length === 0) return 0;
 
     // Convertir les noms de colonnes camelCase vers snake_case
-    const convertColumnName = (camelCase) => {
+    const convertColumnName = camelCase => {
       return camelCase.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     };
 
     const columns = Object.keys(records[0]);
     const dbColumns = columns.map(col => convertColumnName(col));
-    
-    const placeholders = records.map((_, recordIndex) => {
-      const rowPlaceholders = columns.map((_, colIndex) => 
-        `$${recordIndex * columns.length + colIndex + 1}`
-      ).join(', ');
-      return `(${rowPlaceholders})`;
-    }).join(', ');
+
+    const placeholders = records
+      .map((_, recordIndex) => {
+        const rowPlaceholders = columns
+          .map((_, colIndex) => `$${recordIndex * columns.length + colIndex + 1}`)
+          .join(', ');
+        return `(${rowPlaceholders})`;
+      })
+      .join(', ');
 
     const updateClause = dbColumns
       .filter(col => col !== convertColumnName(primaryKey))
@@ -188,7 +196,7 @@ class DatabaseImporter {
     `;
 
     const values = records.flatMap(record => columns.map(col => record[col]));
-    
+
     const result = await this.client.query(query, values);
     return result.rowCount;
   }
@@ -196,16 +204,16 @@ class DatabaseImporter {
   async replaceTableData(tableName, records) {
     // Supprimer toutes les données existantes
     await this.client.query(`DELETE FROM ${tableName}`);
-    
+
     // Insérer les nouvelles données
     return await this.insertRecords(tableName, records);
   }
 
   async importTableData(tableName, tableData) {
     console.log(`\n📊 Import de la table: ${tableName}`);
-    
+
     const { records, structure } = tableData;
-    
+
     if (!records || records.length === 0) {
       console.log(`   ⚠️  Aucune donnée à importer pour: ${tableName}`);
       return;
@@ -215,9 +223,14 @@ class DatabaseImporter {
     this.validateDataStructure(tableName, records, structure);
 
     // Vérifier les enregistrements existants
-    const { existing, new: newRecords } = await this.checkExistingRecords(tableName, records);
+    const { existing, new: newRecords } = await this.checkExistingRecords(
+      tableName,
+      records
+    );
 
-    console.log(`   📈 Enregistrements: ${records.length} total, ${existing.length} existants, ${newRecords.length} nouveaux`);
+    console.log(
+      `   📈 Enregistrements: ${records.length} total, ${existing.length} existants, ${newRecords.length} nouveaux`
+    );
 
     let importedCount = 0;
     let skippedCount = existing.length;
@@ -229,23 +242,23 @@ class DatabaseImporter {
           importedCount = await this.insertRecords(tableName, newRecords);
         }
         break;
-        
+
       case 'update':
         if (existing.length > 0) {
           importedCount = await this.updateRecords(tableName, existing);
         }
         break;
-        
+
       case 'upsert':
         importedCount = await this.upsertRecords(tableName, records);
         skippedCount = 0;
         break;
-        
+
       case 'replace':
         importedCount = await this.replaceTableData(tableName, records);
         skippedCount = 0;
         break;
-        
+
       default:
         throw new Error(`Mode d'import non supporté: ${this.config.mode}`);
     }
@@ -255,19 +268,23 @@ class DatabaseImporter {
       total: records.length,
       imported: importedCount,
       skipped: skippedCount,
-      errors: 0
+      errors: 0,
     };
 
-    console.log(`   ✅ Import terminé: ${importedCount} importés, ${skippedCount} ignorés`);
+    console.log(
+      `   ✅ Import terminé: ${importedCount} importés, ${skippedCount} ignorés`
+    );
   }
 
   async importAllData() {
     try {
-      console.log('🚀 Début de l\'import de la base de données...');
-      console.log(`🔧 Mode: ${this.config.mode}, Taille de lot: ${this.config.batchSize}`);
-      
+      console.log("🚀 Début de l'import de la base de données...");
+      console.log(
+        `🔧 Mode: ${this.config.mode}, Taille de lot: ${this.config.batchSize}`
+      );
+
       const tables = Object.keys(this.importData.data);
-      
+
       for (const tableName of tables) {
         try {
           await this.importTableData(tableName, this.importData.data[tableName]);
@@ -278,32 +295,40 @@ class DatabaseImporter {
             total: 0,
             imported: 0,
             skipped: 0,
-            errors: 1
+            errors: 1,
           };
         }
       }
-      
+
       console.log('\n✅ Import terminé !');
-      
     } catch (error) {
-      console.error('❌ Erreur lors de l\'import:', error.message);
+      console.error("❌ Erreur lors de l'import:", error.message);
       throw error;
     }
   }
 
   getImportStats() {
-    const totalImported = Object.values(this.stats.tables).reduce((sum, table) => sum + table.imported, 0);
-    const totalSkipped = Object.values(this.stats.tables).reduce((sum, table) => sum + table.skipped, 0);
-    const totalErrors = Object.values(this.stats.tables).reduce((sum, table) => sum + table.errors, 0);
+    const totalImported = Object.values(this.stats.tables).reduce(
+      (sum, table) => sum + table.imported,
+      0
+    );
+    const totalSkipped = Object.values(this.stats.tables).reduce(
+      (sum, table) => sum + table.skipped,
+      0
+    );
+    const totalErrors = Object.values(this.stats.tables).reduce(
+      (sum, table) => sum + table.errors,
+      0
+    );
 
     return {
       summary: {
         totalImported,
         totalSkipped,
         totalErrors,
-        tablesProcessed: Object.keys(this.stats.tables).length
+        tablesProcessed: Object.keys(this.stats.tables).length,
       },
-      details: this.stats.tables
+      details: this.stats.tables,
     };
   }
 
@@ -320,7 +345,7 @@ class DatabaseImporter {
 async function main() {
   const args = process.argv.slice(2);
   const importFile = args[0];
-  
+
   if (!importFile) {
     console.error('❌ Usage: node database-import.js <fichier-export.json> [mode]');
     console.error('   Modes disponibles: insert, update, upsert, replace');
@@ -329,26 +354,27 @@ async function main() {
 
   const mode = args[1] || 'insert';
   const importer = new DatabaseImporter({ mode });
-  
+
   try {
     await importer.connect();
     await importer.loadImportFile(importFile);
     await importer.importAllData();
-    
+
     const stats = importer.getImportStats();
-    
-    console.log('\n📊 Résumé de l\'import:');
+
+    console.log("\n📊 Résumé de l'import:");
     console.log('========================');
     console.log(`Total importé: ${stats.summary.totalImported}`);
     console.log(`Total ignoré: ${stats.summary.totalSkipped}`);
     console.log(`Erreurs: ${stats.summary.totalErrors}`);
     console.log(`Tables traitées: ${stats.summary.tablesProcessed}`);
-    
+
     console.log('\n📋 Détails par table:');
     for (const [tableName, tableStats] of Object.entries(stats.details)) {
-      console.log(`  ${tableName}: ${tableStats.imported}/${tableStats.total} importés`);
+      console.log(
+        `  ${tableName}: ${tableStats.imported}/${tableStats.total} importés`
+      );
     }
-    
   } catch (error) {
     console.error('❌ Erreur:', error.message);
     process.exit(1);
@@ -362,4 +388,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = DatabaseImporter; 
+module.exports = DatabaseImporter;

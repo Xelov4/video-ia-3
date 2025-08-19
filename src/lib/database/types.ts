@@ -215,7 +215,7 @@ export interface ScrapingResultDB {
   has_paid_plans: boolean;
   has_enterprise: boolean;
   has_affiliate_program: boolean;
-  
+
   // Métadonnées originales
   metadata: {
     original_title?: string;
@@ -227,36 +227,42 @@ export interface ScrapingResultDB {
     raw_pricing_text?: string[];
     raw_features_text?: string[];
   };
-  
+
   // Traductions par langue
-  translations: Record<LanguageCode, {
-    tool_name: string;
-    primary_function?: string;
-    description?: string;
-    meta_title?: string;
-    meta_description?: string;
-    pricing_summary?: string;
-    features: string[];
-    target_audiences: string[];
-    tags: string[];
-    recommended_actions: string[];
-  }>;
-  
+  translations: Record<
+    LanguageCode,
+    {
+      tool_name: string;
+      primary_function?: string;
+      description?: string;
+      meta_title?: string;
+      meta_description?: string;
+      pricing_summary?: string;
+      features: string[];
+      target_audiences: string[];
+      tags: string[];
+      recommended_actions: string[];
+    }
+  >;
+
   // Liens sociaux
   social_links: Record<string, string>;
-  
+
   // Informations de contact
   contact_info: Record<ContactType, string>;
-  
+
   // Plans de tarification par langue
-  pricing_plans: Record<LanguageCode, Array<{
-    plan_name: string;
-    plan_price?: string;
-    billing_cycle?: BillingCycle;
-    features: string[];
-    plan_order: number;
-  }>>;
-  
+  pricing_plans: Record<
+    LanguageCode,
+    Array<{
+      plan_name: string;
+      plan_price?: string;
+      billing_cycle?: BillingCycle;
+      features: string[];
+      plan_order: number;
+    }>
+  >;
+
   // Informations d'affiliation
   affiliate_info: {
     affiliate_program_url?: string;
@@ -295,24 +301,66 @@ export interface GetAIToolsResponse {
 }
 
 // Constantes pour les mappings
-export const LANGUAGE_MAPPINGS: Record<LanguageCode, { name: string; native_name: string }> = {
-  'de': { name: 'German', native_name: 'Deutsch' },
-  'nl': { name: 'Dutch', native_name: 'Nederlands' },
-  'it': { name: 'Italian', native_name: 'Italiano' },
-  'en': { name: 'English', native_name: 'English' },
-  'pt': { name: 'Portuguese', native_name: 'Português' },
-  'fr': { name: 'French', native_name: 'Français' },
-  'es': { name: 'Spanish', native_name: 'Español' }
+export const LANGUAGE_MAPPINGS: Record<
+  LanguageCode,
+  { name: string; native_name: string }
+> = {
+  de: { name: 'German', native_name: 'Deutsch' },
+  nl: { name: 'Dutch', native_name: 'Nederlands' },
+  it: { name: 'Italian', native_name: 'Italiano' },
+  en: { name: 'English', native_name: 'English' },
+  pt: { name: 'Portuguese', native_name: 'Português' },
+  fr: { name: 'French', native_name: 'Français' },
+  es: { name: 'Spanish', native_name: 'Español' },
 };
 
 export const SOCIAL_PLATFORMS = [
-  'linkedin', 'twitter', 'facebook', 'instagram', 'github', 'youtube', 'tiktok',
-  'discord', 'telegram', 'reddit', 'xing', 'snapchat', 'pinterest', 'vimeo',
-  'twitch', 'dailymotion', 'gitlab', 'bitbucket', 'stackoverflow', 'devpost',
-  'crunchbase', 'angellist', 'producthunt', 'slack', 'whatsapp', 'medium',
-  'substack', 'behance', 'dribbble', 'weibo', 'wechat', 'qq', 'vk',
-  'odnoklassniki', 'mastodon', 'bluesky', 'threads', 'tumblr', 'flickr',
-  'deviantart', 'artstation', 'soundcloud', 'spotify', 'apple', 'google', 'microsoft'
+  'linkedin',
+  'twitter',
+  'facebook',
+  'instagram',
+  'github',
+  'youtube',
+  'tiktok',
+  'discord',
+  'telegram',
+  'reddit',
+  'xing',
+  'snapchat',
+  'pinterest',
+  'vimeo',
+  'twitch',
+  'dailymotion',
+  'gitlab',
+  'bitbucket',
+  'stackoverflow',
+  'devpost',
+  'crunchbase',
+  'angellist',
+  'producthunt',
+  'slack',
+  'whatsapp',
+  'medium',
+  'substack',
+  'behance',
+  'dribbble',
+  'weibo',
+  'wechat',
+  'qq',
+  'vk',
+  'odnoklassniki',
+  'mastodon',
+  'bluesky',
+  'threads',
+  'tumblr',
+  'flickr',
+  'deviantart',
+  'artstation',
+  'soundcloud',
+  'spotify',
+  'apple',
+  'google',
+  'microsoft',
 ] as const;
 
-export type SocialPlatform = typeof SOCIAL_PLATFORMS[number];
+export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];

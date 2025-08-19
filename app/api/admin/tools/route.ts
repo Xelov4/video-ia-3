@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/src/lib/database/client'
-import { getServerSession } from 'next-auth'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/src/lib/database/client';
+import { getServerSession } from 'next-auth';
+import { z } from 'zod';
 
 // Validation schema pour les paramètres de requête
 const querySchema = z.object({
@@ -13,40 +13,49 @@ const querySchema = z.object({
   category: z.string().optional(),
   featured: z.coerce.boolean().optional(),
   active: z.coerce.boolean().optional(),
-  minViews: z.coerce.number().optional()
-})
+  minViews: z.coerce.number().optional(),
+});
 
 export async function GET(request: NextRequest) {
   try {
     // Vérification de l'authentification
-    const session = await getServerSession()
+    const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     // Récupération et validation des paramètres
-    const { searchParams } = new URL(request.url)
-    const params = Object.fromEntries(searchParams.entries())
-    const validatedParams = querySchema.parse(params)
+    const { searchParams } = new URL(request.url);
+    const params = Object.fromEntries(searchParams.entries());
+    const validatedParams = querySchema.parse(params);
 
     // Construction de la requête Prisma
     const where = {
       AND: [
         // Recherche textuelle
-        validatedParams.search ? {
-          OR: [
-            { toolName: { contains: validatedParams.search, mode: 'insensitive' } },
-            { toolCategory: { contains: validatedParams.search, mode: 'insensitive' } },
-            { overview: { contains: validatedParams.search, mode: 'insensitive' } }
-          ]
-        } : {},
+        validatedParams.search
+          ? {
+              OR: [
+                { toolName: { contains: validatedParams.search, mode: 'insensitive' } },
+                {
+                  toolCategory: {
+                    contains: validatedParams.search,
+                    mode: 'insensitive',
+                  },
+                },
+                { overview: { contains: validatedParams.search, mode: 'insensitive' } },
+              ],
+            }
+          : {},
         // Filtres
         validatedParams.category ? { toolCategory: validatedParams.category } : {},
         validatedParams.featured ? { featured: true } : {},
         validatedParams.active ? { isActive: true } : {},
-        validatedParams.minViews ? { viewCount: { gte: validatedParams.minViews } } : {}
-      ]
-    }
+        validatedParams.minViews
+          ? { viewCount: { gte: validatedParams.minViews } }
+          : {},
+      ],
+    };
 
     // Exécution des requêtes
     const [totalCount, tools] = await Promise.all([
@@ -67,10 +76,10 @@ export async function GET(request: NextRequest) {
           isActive: true,
           viewCount: true,
           createdAt: true,
-          updatedAt: true
-        }
-      })
-    ])
+          updatedAt: true,
+        },
+      }),
+    ]);
 
     return NextResponse.json({
       tools: tools.map(tool => ({
@@ -84,45 +93,43 @@ export async function GET(request: NextRequest) {
         isActive: tool.isActive,
         viewCount: tool.viewCount,
         createdAt: tool.createdAt,
-        updatedAt: tool.updatedAt
+        updatedAt: tool.updatedAt,
       })),
-      totalCount
-    })
-
+      totalCount,
+    });
   } catch (error) {
-    console.error('Error fetching tools:', error)
+    console.error('Error fetching tools:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des outils' },
       { status: 500 }
-    )
+    );
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url)
-    const id = searchParams.get('id')
-    
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
     if (!id) {
-      return NextResponse.json({ error: 'ID manquant' }, { status: 400 })
+      return NextResponse.json({ error: 'ID manquant' }, { status: 400 });
     }
 
     await prisma.tool.delete({
-      where: { id: parseInt(id) }
-    })
+      where: { id: parseInt(id) },
+    });
 
-    return NextResponse.json({ success: true })
-
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting tool:', error)
+    console.error('Error deleting tool:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la suppression de l\'outil' },
+      { error: "Erreur lors de la suppression de l'outil" },
       { status: 500 }
-    )
+    );
   }
 }

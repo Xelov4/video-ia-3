@@ -1,182 +1,182 @@
 /**
  * Système de Traductions Statiques UI - Video-IA.net
- * 
+ *
  * Contient toutes les traductions pour l'interface utilisateur :
  * - Messages système (loading, erreurs, succès)
  * - Navigation et labels
  * - Formulaires et interactions
  * - Tooltips et aides contextuelles
- * 
+ *
  * @author Video-IA.net Development Team
  */
 
-import { SupportedLocale } from '@/middleware'
+import { SupportedLocale } from '@/middleware';
 
 // Types pour les traductions
 export interface UITranslations {
   // Navigation
   nav: {
-    home: string
-    tools: string
-    categories: string
-    about: string
-    search_placeholder: string
-    menu: string
-    close: string
-    back: string
-    next: string
-    previous: string
-  }
+    home: string;
+    tools: string;
+    categories: string;
+    about: string;
+    search_placeholder: string;
+    menu: string;
+    close: string;
+    back: string;
+    next: string;
+    previous: string;
+  };
 
   // Actions communes
   actions: {
-    search: string
-    filter: string
-    sort: string
-    reset: string
-    apply: string
-    cancel: string
-    save: string
-    edit: string
-    delete: string
-    view: string
-    share: string
-    copy: string
-    download: string
-    loading: string
-    load_more: string
-  }
+    search: string;
+    filter: string;
+    sort: string;
+    reset: string;
+    apply: string;
+    cancel: string;
+    save: string;
+    edit: string;
+    delete: string;
+    view: string;
+    share: string;
+    copy: string;
+    download: string;
+    loading: string;
+    load_more: string;
+  };
 
   // Messages système
   messages: {
-    loading: string
-    loading_tools: string
-    loading_categories: string
-    no_results: string
-    no_tools_found: string
-    no_categories_found: string
-    error_generic: string
-    error_network: string
-    error_not_found: string
-    success_generic: string
-    success_saved: string
-    success_copied: string
-    try_again: string
-  }
+    loading: string;
+    loading_tools: string;
+    loading_categories: string;
+    no_results: string;
+    no_tools_found: string;
+    no_categories_found: string;
+    error_generic: string;
+    error_network: string;
+    error_not_found: string;
+    success_generic: string;
+    success_saved: string;
+    success_copied: string;
+    try_again: string;
+  };
 
   // Formulaires
   forms: {
-    required: string
-    invalid_email: string
-    invalid_url: string
-    min_length: string
-    max_length: string
-    search_hint: string
-    email_placeholder: string
-    name_placeholder: string
-    message_placeholder: string
-    submit: string
-    submitting: string
-  }
+    required: string;
+    invalid_email: string;
+    invalid_url: string;
+    min_length: string;
+    max_length: string;
+    search_hint: string;
+    email_placeholder: string;
+    name_placeholder: string;
+    message_placeholder: string;
+    submit: string;
+    submitting: string;
+  };
 
   // Filtres et tri
   filters: {
-    all_categories: string
-    featured_only: string
-    sort_by: string
-    sort_name: string
-    sort_date: string
-    sort_popularity: string
-    sort_rating: string
-    clear_filters: string
-    show_results: string
-  }
+    all_categories: string;
+    featured_only: string;
+    sort_by: string;
+    sort_name: string;
+    sort_date: string;
+    sort_popularity: string;
+    sort_rating: string;
+    clear_filters: string;
+    show_results: string;
+  };
 
   // Outils et catégories
   tools: {
-    tool: string
-    tools: string
-    ai_tool: string
-    ai_tools: string
-    featured_tools: string
-    popular_tools: string
-    new_tools: string
-    category: string
-    categories: string
-    view_count: string
-    rating: string
-    visit_tool: string
-    official_website: string
-    tool_details: string
-    similar_tools: string
-    tools_count: string
-  }
+    tool: string;
+    tools: string;
+    ai_tool: string;
+    ai_tools: string;
+    featured_tools: string;
+    popular_tools: string;
+    new_tools: string;
+    category: string;
+    categories: string;
+    view_count: string;
+    rating: string;
+    visit_tool: string;
+    official_website: string;
+    tool_details: string;
+    similar_tools: string;
+    tools_count: string;
+  };
 
   // Dates et temps
   time: {
-    just_now: string
-    minutes_ago: string
-    hours_ago: string
-    days_ago: string
-    weeks_ago: string
-    months_ago: string
-    years_ago: string
-    created_at: string
-    updated_at: string
-  }
+    just_now: string;
+    minutes_ago: string;
+    hours_ago: string;
+    days_ago: string;
+    weeks_ago: string;
+    months_ago: string;
+    years_ago: string;
+    created_at: string;
+    updated_at: string;
+  };
 
   // Pagination
   pagination: {
-    page: string
-    of: string
-    results: string
-    showing: string
-    to: string
-    first_page: string
-    last_page: string
-    items_per_page: string
-  }
+    page: string;
+    of: string;
+    results: string;
+    showing: string;
+    to: string;
+    first_page: string;
+    last_page: string;
+    items_per_page: string;
+  };
 
   // Footer
   footer: {
-    description: string
-    quick_links: string
-    categories: string
-    resources: string
-    connect: string
-    legal: string
-    privacy_policy: string
-    terms_of_service: string
-    contact_us: string
-    all_rights_reserved: string
-  }
+    description: string;
+    quick_links: string;
+    categories: string;
+    resources: string;
+    connect: string;
+    legal: string;
+    privacy_policy: string;
+    terms_of_service: string;
+    contact_us: string;
+    all_rights_reserved: string;
+  };
 
   // Language switcher
   language: {
-    choose_language: string
-    current_language: string
-    language_saved: string
-    auto_detect: string
-  }
+    choose_language: string;
+    current_language: string;
+    language_saved: string;
+    auto_detect: string;
+  };
 
   // SEO et métadonnées
   seo: {
-    meta_description_suffix: string
-    page_not_found: string
-    go_home: string
-    share_on: string
-  }
+    meta_description_suffix: string;
+    page_not_found: string;
+    go_home: string;
+    share_on: string;
+  };
 
   // Breadcrumb navigation
   breadcrumb: {
-    home: string
-    tools: string
-    categories: string
-    tool_detail: string
-    category_tools: string
-    search_results: string
-    page: string
-  }
+    home: string;
+    tools: string;
+    categories: string;
+    tool_detail: string;
+    category_tools: string;
+    search_results: string;
+    page: string;
+  };
 }
 
 // Traductions par langue
@@ -192,7 +192,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       close: 'Close',
       back: 'Back',
       next: 'Next',
-      previous: 'Previous'
+      previous: 'Previous',
     },
     actions: {
       search: 'Search',
@@ -209,7 +209,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       copy: 'Copy',
       download: 'Download',
       loading: 'Loading...',
-      load_more: 'Load More'
+      load_more: 'Load More',
     },
     messages: {
       loading: 'Loading...',
@@ -224,7 +224,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       success_generic: 'Operation completed successfully',
       success_saved: 'Changes saved successfully',
       success_copied: 'Copied to clipboard',
-      try_again: 'Try again'
+      try_again: 'Try again',
     },
     forms: {
       required: 'This field is required',
@@ -237,7 +237,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       name_placeholder: 'Enter your full name',
       message_placeholder: 'Enter your message',
       submit: 'Submit',
-      submitting: 'Submitting...'
+      submitting: 'Submitting...',
     },
     filters: {
       all_categories: 'All Categories',
@@ -248,7 +248,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       sort_popularity: 'Popularity',
       sort_rating: 'Rating',
       clear_filters: 'Clear Filters',
-      show_results: 'Show Results'
+      show_results: 'Show Results',
     },
     tools: {
       tool: 'Tool',
@@ -266,7 +266,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       official_website: 'Official Website',
       tool_details: 'Tool Details',
       similar_tools: 'Similar Tools',
-      tools_count: '{count} tools'
+      tools_count: '{count} tools',
     },
     time: {
       just_now: 'Just now',
@@ -277,7 +277,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       months_ago: '{count} months ago',
       years_ago: '{count} years ago',
       created_at: 'Created at',
-      updated_at: 'Updated at'
+      updated_at: 'Updated at',
     },
     pagination: {
       page: 'Page',
@@ -287,10 +287,11 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       to: 'to',
       first_page: 'First page',
       last_page: 'Last page',
-      items_per_page: 'Items per page'
+      items_per_page: 'Items per page',
     },
     footer: {
-      description: 'Discover the best AI tools for video creation, editing, and automation. Your comprehensive directory for AI-powered solutions.',
+      description:
+        'Discover the best AI tools for video creation, editing, and automation. Your comprehensive directory for AI-powered solutions.',
       quick_links: 'Quick Links',
       categories: 'Categories',
       resources: 'Resources',
@@ -299,19 +300,19 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       privacy_policy: 'Privacy Policy',
       terms_of_service: 'Terms of Service',
       contact_us: 'Contact Us',
-      all_rights_reserved: 'All rights reserved'
+      all_rights_reserved: 'All rights reserved',
     },
     language: {
       choose_language: 'Choose Language',
       current_language: 'Current Language',
       language_saved: 'Language preference saved',
-      auto_detect: 'Auto-detect'
+      auto_detect: 'Auto-detect',
     },
     seo: {
       meta_description_suffix: 'Best AI tools directory',
       page_not_found: 'Page not found',
       go_home: 'Go Home',
-      share_on: 'Share on'
+      share_on: 'Share on',
     },
     breadcrumb: {
       home: 'Home',
@@ -320,8 +321,8 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       tool_detail: 'Tool Details',
       category_tools: 'Category Tools',
       search_results: 'Search Results',
-      page: 'Page'
-    }
+      page: 'Page',
+    },
   },
 
   fr: {
@@ -335,7 +336,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       close: 'Fermer',
       back: 'Retour',
       next: 'Suivant',
-      previous: 'Précédent'
+      previous: 'Précédent',
     },
     actions: {
       search: 'Rechercher',
@@ -352,7 +353,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       copy: 'Copier',
       download: 'Télécharger',
       loading: 'Chargement...',
-      load_more: 'Charger plus'
+      load_more: 'Charger plus',
     },
     messages: {
       loading: 'Chargement...',
@@ -361,13 +362,13 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       no_results: 'Aucun résultat trouvé',
       no_tools_found: 'Aucun outil IA trouvé',
       no_categories_found: 'Aucune catégorie trouvée',
-      error_generic: 'Une erreur s\'est produite',
+      error_generic: "Une erreur s'est produite",
       error_network: 'Erreur réseau. Vérifiez votre connexion.',
       error_not_found: 'Page non trouvée',
       success_generic: 'Opération réussie',
       success_saved: 'Modifications enregistrées',
       success_copied: 'Copié dans le presse-papiers',
-      try_again: 'Réessayer'
+      try_again: 'Réessayer',
     },
     forms: {
       required: 'Ce champ est obligatoire',
@@ -380,18 +381,18 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       name_placeholder: 'Saisissez votre nom complet',
       message_placeholder: 'Saisissez votre message',
       submit: 'Envoyer',
-      submitting: 'Envoi en cours...'
+      submitting: 'Envoi en cours...',
     },
     filters: {
       all_categories: 'Toutes les catégories',
       featured_only: 'Mis en avant uniquement',
       sort_by: 'Trier par',
       sort_name: 'Nom',
-      sort_date: 'Date d\'ajout',
+      sort_date: "Date d'ajout",
       sort_popularity: 'Popularité',
       sort_rating: 'Note',
       clear_filters: 'Effacer les filtres',
-      show_results: 'Afficher les résultats'
+      show_results: 'Afficher les résultats',
     },
     tools: {
       tool: 'Outil',
@@ -405,14 +406,14 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       categories: 'Catégories',
       view_count: 'Vues',
       rating: 'Note',
-      visit_tool: 'Visiter l\'outil',
+      visit_tool: "Visiter l'outil",
       official_website: 'Site officiel',
-      tool_details: 'Détails de l\'outil',
+      tool_details: "Détails de l'outil",
       similar_tools: 'Outils similaires',
-      tools_count: '{count} outils'
+      tools_count: '{count} outils',
     },
     time: {
-      just_now: 'À l\'instant',
+      just_now: "À l'instant",
       minutes_ago: 'il y a {count} minutes',
       hours_ago: 'il y a {count} heures',
       days_ago: 'il y a {count} jours',
@@ -420,7 +421,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       months_ago: 'il y a {count} mois',
       years_ago: 'il y a {count} ans',
       created_at: 'Créé le',
-      updated_at: 'Modifié le'
+      updated_at: 'Modifié le',
     },
     pagination: {
       page: 'Page',
@@ -430,41 +431,42 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       to: 'à',
       first_page: 'Première page',
       last_page: 'Dernière page',
-      items_per_page: 'Éléments par page'
+      items_per_page: 'Éléments par page',
     },
     footer: {
-      description: 'Découvrez les meilleurs outils IA pour la création vidéo, l\'édition et l\'automatisation. Votre répertoire complet de solutions IA.',
+      description:
+        "Découvrez les meilleurs outils IA pour la création vidéo, l'édition et l'automatisation. Votre répertoire complet de solutions IA.",
       quick_links: 'Liens rapides',
       categories: 'Catégories',
       resources: 'Ressources',
       connect: 'Connexion',
       legal: 'Légal',
       privacy_policy: 'Politique de confidentialité',
-      terms_of_service: 'Conditions d\'utilisation',
+      terms_of_service: "Conditions d'utilisation",
       contact_us: 'Nous contacter',
-      all_rights_reserved: 'Tous droits réservés'
+      all_rights_reserved: 'Tous droits réservés',
     },
     language: {
       choose_language: 'Choisir la langue',
       current_language: 'Langue actuelle',
       language_saved: 'Préférence de langue sauvegardée',
-      auto_detect: 'Détection automatique'
+      auto_detect: 'Détection automatique',
     },
     seo: {
-      meta_description_suffix: 'Meilleur répertoire d\'outils IA',
+      meta_description_suffix: "Meilleur répertoire d'outils IA",
       page_not_found: 'Page non trouvée',
-      go_home: 'Retour à l\'accueil',
-      share_on: 'Partager sur'
+      go_home: "Retour à l'accueil",
+      share_on: 'Partager sur',
     },
     breadcrumb: {
       home: 'Accueil',
       tools: 'Outils IA',
       categories: 'Catégories',
-      tool_detail: 'Détails de l\'outil',
+      tool_detail: "Détails de l'outil",
       category_tools: 'Outils de catégorie',
       search_results: 'Résultats de recherche',
-      page: 'Page'
-    }
+      page: 'Page',
+    },
   },
 
   es: {
@@ -478,7 +480,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       close: 'Cerrar',
       back: 'Atrás',
       next: 'Siguiente',
-      previous: 'Anterior'
+      previous: 'Anterior',
     },
     actions: {
       search: 'Buscar',
@@ -495,7 +497,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       copy: 'Copiar',
       download: 'Descargar',
       loading: 'Cargando...',
-      load_more: 'Cargar más'
+      load_more: 'Cargar más',
     },
     messages: {
       loading: 'Cargando...',
@@ -510,7 +512,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       success_generic: 'Operación completada exitosamente',
       success_saved: 'Cambios guardados exitosamente',
       success_copied: 'Copiado al portapapeles',
-      try_again: 'Intentar de nuevo'
+      try_again: 'Intentar de nuevo',
     },
     forms: {
       required: 'Este campo es obligatorio',
@@ -523,7 +525,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       name_placeholder: 'Ingresa tu nombre completo',
       message_placeholder: 'Ingresa tu mensaje',
       submit: 'Enviar',
-      submitting: 'Enviando...'
+      submitting: 'Enviando...',
     },
     filters: {
       all_categories: 'Todas las categorías',
@@ -534,7 +536,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       sort_popularity: 'Popularidad',
       sort_rating: 'Calificación',
       clear_filters: 'Limpiar filtros',
-      show_results: 'Mostrar resultados'
+      show_results: 'Mostrar resultados',
     },
     tools: {
       tool: 'Herramienta',
@@ -552,7 +554,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       official_website: 'Sitio oficial',
       tool_details: 'Detalles de la herramienta',
       similar_tools: 'Herramientas similares',
-      tools_count: '{count} herramientas'
+      tools_count: '{count} herramientas',
     },
     time: {
       just_now: 'Justo ahora',
@@ -563,7 +565,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       months_ago: 'hace {count} meses',
       years_ago: 'hace {count} años',
       created_at: 'Creado en',
-      updated_at: 'Actualizado en'
+      updated_at: 'Actualizado en',
     },
     pagination: {
       page: 'Página',
@@ -573,10 +575,11 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       to: 'a',
       first_page: 'Primera página',
       last_page: 'Última página',
-      items_per_page: 'Elementos por página'
+      items_per_page: 'Elementos por página',
     },
     footer: {
-      description: 'Descubre las mejores herramientas IA para creación de videos, edición y automatización. Tu directorio completo de soluciones IA.',
+      description:
+        'Descubre las mejores herramientas IA para creación de videos, edición y automatización. Tu directorio completo de soluciones IA.',
       quick_links: 'Enlaces rápidos',
       categories: 'Categorías',
       resources: 'Recursos',
@@ -585,19 +588,19 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       privacy_policy: 'Política de privacidad',
       terms_of_service: 'Términos de servicio',
       contact_us: 'Contáctanos',
-      all_rights_reserved: 'Todos los derechos reservados'
+      all_rights_reserved: 'Todos los derechos reservados',
     },
     language: {
       choose_language: 'Elegir idioma',
       current_language: 'Idioma actual',
       language_saved: 'Preferencia de idioma guardada',
-      auto_detect: 'Detectar automáticamente'
+      auto_detect: 'Detectar automáticamente',
     },
     seo: {
       meta_description_suffix: 'Mejor directorio de herramientas IA',
       page_not_found: 'Página no encontrada',
       go_home: 'Ir al inicio',
-      share_on: 'Compartir en'
+      share_on: 'Compartir en',
     },
     breadcrumb: {
       home: 'Inicio',
@@ -606,8 +609,8 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       tool_detail: 'Detalles de la herramienta',
       category_tools: 'Herramientas de categoría',
       search_results: 'Resultados de búsqueda',
-      page: 'Página'
-    }
+      page: 'Página',
+    },
   },
 
   // Traductions italiennes, allemandes, néerlandaises et portugaises simplifiées pour l'espace
@@ -622,7 +625,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       close: 'Chiudi',
       back: 'Indietro',
       next: 'Avanti',
-      previous: 'Precedente'
+      previous: 'Precedente',
     },
     actions: {
       search: 'Cerca',
@@ -639,7 +642,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       copy: 'Copia',
       download: 'Scarica',
       loading: 'Caricamento...',
-      load_more: 'Carica altro'
+      load_more: 'Carica altro',
     },
     messages: {
       loading: 'Caricamento...',
@@ -654,7 +657,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       success_generic: 'Operazione completata con successo',
       success_saved: 'Modifiche salvate con successo',
       success_copied: 'Copiato negli appunti',
-      try_again: 'Riprova'
+      try_again: 'Riprova',
     },
     forms: {
       required: 'Questo campo è obbligatorio',
@@ -667,7 +670,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       name_placeholder: 'Inserisci il tuo nome completo',
       message_placeholder: 'Inserisci il tuo messaggio',
       submit: 'Invia',
-      submitting: 'Invio in corso...'
+      submitting: 'Invio in corso...',
     },
     filters: {
       all_categories: 'Tutte le categorie',
@@ -678,7 +681,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       sort_popularity: 'Popolarità',
       sort_rating: 'Valutazione',
       clear_filters: 'Cancella filtri',
-      show_results: 'Mostra risultati'
+      show_results: 'Mostra risultati',
     },
     tools: {
       tool: 'Strumento',
@@ -696,7 +699,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       official_website: 'Sito ufficiale',
       tool_details: 'Dettagli strumento',
       similar_tools: 'Strumenti simili',
-      tools_count: '{count} strumenti'
+      tools_count: '{count} strumenti',
     },
     time: {
       just_now: 'Proprio ora',
@@ -707,7 +710,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       months_ago: '{count} mesi fa',
       years_ago: '{count} anni fa',
       created_at: 'Creato il',
-      updated_at: 'Aggiornato il'
+      updated_at: 'Aggiornato il',
     },
     pagination: {
       page: 'Pagina',
@@ -717,10 +720,11 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       to: 'a',
       first_page: 'Prima pagina',
       last_page: 'Ultima pagina',
-      items_per_page: 'Elementi per pagina'
+      items_per_page: 'Elementi per pagina',
     },
     footer: {
-      description: 'Scopri i migliori strumenti IA per creazione video, editing e automazione. La tua directory completa di soluzioni IA.',
+      description:
+        'Scopri i migliori strumenti IA per creazione video, editing e automazione. La tua directory completa di soluzioni IA.',
       quick_links: 'Link veloci',
       categories: 'Categorie',
       resources: 'Risorse',
@@ -729,19 +733,19 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       privacy_policy: 'Privacy Policy',
       terms_of_service: 'Termini di Servizio',
       contact_us: 'Contattaci',
-      all_rights_reserved: 'Tutti i diritti riservati'
+      all_rights_reserved: 'Tutti i diritti riservati',
     },
     language: {
       choose_language: 'Scegli lingua',
       current_language: 'Lingua attuale',
       language_saved: 'Preferenza lingua salvata',
-      auto_detect: 'Rileva automaticamente'
+      auto_detect: 'Rileva automaticamente',
     },
     seo: {
       meta_description_suffix: 'Miglior directory strumenti IA',
       page_not_found: 'Pagina non trovata',
       go_home: 'Vai alla home',
-      share_on: 'Condividi su'
+      share_on: 'Condividi su',
     },
     breadcrumb: {
       home: 'Home',
@@ -750,8 +754,8 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       tool_detail: 'Dettagli strumento',
       category_tools: 'Strumenti di categoria',
       search_results: 'Risultati ricerca',
-      page: 'Pagina'
-    }
+      page: 'Pagina',
+    },
   },
 
   de: {
@@ -765,7 +769,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       close: 'Schließen',
       back: 'Zurück',
       next: 'Weiter',
-      previous: 'Vorherige'
+      previous: 'Vorherige',
     },
     actions: {
       search: 'Suchen',
@@ -782,7 +786,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       copy: 'Kopieren',
       download: 'Herunterladen',
       loading: 'Laden...',
-      load_more: 'Mehr laden'
+      load_more: 'Mehr laden',
     },
     messages: {
       loading: 'Laden...',
@@ -797,7 +801,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       success_generic: 'Vorgang erfolgreich abgeschlossen',
       success_saved: 'Änderungen erfolgreich gespeichert',
       success_copied: 'In die Zwischenablage kopiert',
-      try_again: 'Erneut versuchen'
+      try_again: 'Erneut versuchen',
     },
     forms: {
       required: 'Dieses Feld ist erforderlich',
@@ -810,7 +814,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       name_placeholder: 'Vollständigen Namen eingeben',
       message_placeholder: 'Nachricht eingeben',
       submit: 'Senden',
-      submitting: 'Wird gesendet...'
+      submitting: 'Wird gesendet...',
     },
     filters: {
       all_categories: 'Alle Kategorien',
@@ -821,7 +825,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       sort_popularity: 'Beliebtheit',
       sort_rating: 'Bewertung',
       clear_filters: 'Filter löschen',
-      show_results: 'Ergebnisse anzeigen'
+      show_results: 'Ergebnisse anzeigen',
     },
     tools: {
       tool: 'Tool',
@@ -839,7 +843,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       official_website: 'Offizielle Website',
       tool_details: 'Tool-Details',
       similar_tools: 'Ähnliche Tools',
-      tools_count: '{count} Tools'
+      tools_count: '{count} Tools',
     },
     time: {
       just_now: 'Gerade eben',
@@ -850,7 +854,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       months_ago: 'vor {count} Monaten',
       years_ago: 'vor {count} Jahren',
       created_at: 'Erstellt am',
-      updated_at: 'Aktualisiert am'
+      updated_at: 'Aktualisiert am',
     },
     pagination: {
       page: 'Seite',
@@ -860,10 +864,11 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       to: 'bis',
       first_page: 'Erste Seite',
       last_page: 'Letzte Seite',
-      items_per_page: 'Einträge pro Seite'
+      items_per_page: 'Einträge pro Seite',
     },
     footer: {
-      description: 'Entdecken Sie die besten KI-Tools für Videoerstellung, Bearbeitung und Automatisierung. Ihr umfassendes Verzeichnis für KI-Lösungen.',
+      description:
+        'Entdecken Sie die besten KI-Tools für Videoerstellung, Bearbeitung und Automatisierung. Ihr umfassendes Verzeichnis für KI-Lösungen.',
       quick_links: 'Schnelllinks',
       categories: 'Kategorien',
       resources: 'Ressourcen',
@@ -872,19 +877,19 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       privacy_policy: 'Datenschutzrichtlinie',
       terms_of_service: 'Nutzungsbedingungen',
       contact_us: 'Kontaktieren Sie uns',
-      all_rights_reserved: 'Alle Rechte vorbehalten'
+      all_rights_reserved: 'Alle Rechte vorbehalten',
     },
     language: {
       choose_language: 'Sprache wählen',
       current_language: 'Aktuelle Sprache',
       language_saved: 'Sprachpräferenz gespeichert',
-      auto_detect: 'Automatisch erkennen'
+      auto_detect: 'Automatisch erkennen',
     },
     seo: {
       meta_description_suffix: 'Bestes KI-Tools-Verzeichnis',
       page_not_found: 'Seite nicht gefunden',
       go_home: 'Zur Startseite',
-      share_on: 'Teilen auf'
+      share_on: 'Teilen auf',
     },
     breadcrumb: {
       home: 'Startseite',
@@ -893,8 +898,8 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       tool_detail: 'Tool-Details',
       category_tools: 'Kategorie-Tools',
       search_results: 'Suchergebnisse',
-      page: 'Seite'
-    }
+      page: 'Seite',
+    },
   },
 
   nl: {
@@ -908,7 +913,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       close: 'Sluiten',
       back: 'Terug',
       next: 'Volgende',
-      previous: 'Vorige'
+      previous: 'Vorige',
     },
     actions: {
       search: 'Zoeken',
@@ -925,7 +930,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       copy: 'Kopiëren',
       download: 'Downloaden',
       loading: 'Laden...',
-      load_more: 'Meer laden'
+      load_more: 'Meer laden',
     },
     messages: {
       loading: 'Laden...',
@@ -940,7 +945,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       success_generic: 'Bewerking succesvol voltooid',
       success_saved: 'Wijzigingen succesvol opgeslagen',
       success_copied: 'Gekopieerd naar klembord',
-      try_again: 'Probeer opnieuw'
+      try_again: 'Probeer opnieuw',
     },
     forms: {
       required: 'Dit veld is verplicht',
@@ -953,7 +958,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       name_placeholder: 'Voer je volledige naam in',
       message_placeholder: 'Voer je bericht in',
       submit: 'Versturen',
-      submitting: 'Versturen...'
+      submitting: 'Versturen...',
     },
     filters: {
       all_categories: 'Alle categorieën',
@@ -964,7 +969,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       sort_popularity: 'Populariteit',
       sort_rating: 'Beoordeling',
       clear_filters: 'Filters wissen',
-      show_results: 'Resultaten tonen'
+      show_results: 'Resultaten tonen',
     },
     tools: {
       tool: 'Tool',
@@ -982,7 +987,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       official_website: 'Officiële website',
       tool_details: 'Tool details',
       similar_tools: 'Vergelijkbare tools',
-      tools_count: '{count} tools'
+      tools_count: '{count} tools',
     },
     time: {
       just_now: 'Zojuist',
@@ -993,7 +998,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       months_ago: '{count} maanden geleden',
       years_ago: '{count} jaar geleden',
       created_at: 'Gemaakt op',
-      updated_at: 'Bijgewerkt op'
+      updated_at: 'Bijgewerkt op',
     },
     pagination: {
       page: 'Pagina',
@@ -1003,10 +1008,11 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       to: 'tot',
       first_page: 'Eerste pagina',
       last_page: 'Laatste pagina',
-      items_per_page: 'Items per pagina'
+      items_per_page: 'Items per pagina',
     },
     footer: {
-      description: 'Ontdek de beste AI tools voor videocreatie, editing en automatisering. Je complete directory voor AI-oplossingen.',
+      description:
+        'Ontdek de beste AI tools voor videocreatie, editing en automatisering. Je complete directory voor AI-oplossingen.',
       quick_links: 'Snelle links',
       categories: 'Categorieën',
       resources: 'Bronnen',
@@ -1015,19 +1021,19 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       privacy_policy: 'Privacybeleid',
       terms_of_service: 'Servicevoorwaarden',
       contact_us: 'Contact',
-      all_rights_reserved: 'Alle rechten voorbehouden'
+      all_rights_reserved: 'Alle rechten voorbehouden',
     },
     language: {
       choose_language: 'Kies taal',
       current_language: 'Huidige taal',
       language_saved: 'Taalvoorkeur opgeslagen',
-      auto_detect: 'Automatisch detecteren'
+      auto_detect: 'Automatisch detecteren',
     },
     seo: {
       meta_description_suffix: 'Beste AI tools directory',
       page_not_found: 'Pagina niet gevonden',
       go_home: 'Ga naar home',
-      share_on: 'Delen op'
+      share_on: 'Delen op',
     },
     breadcrumb: {
       home: 'Home',
@@ -1036,8 +1042,8 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       tool_detail: 'Tool details',
       category_tools: 'Categorie tools',
       search_results: 'Zoekresultaten',
-      page: 'Pagina'
-    }
+      page: 'Pagina',
+    },
   },
 
   pt: {
@@ -1051,7 +1057,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       close: 'Fechar',
       back: 'Voltar',
       next: 'Próximo',
-      previous: 'Anterior'
+      previous: 'Anterior',
     },
     actions: {
       search: 'Pesquisar',
@@ -1068,7 +1074,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       copy: 'Copiar',
       download: 'Baixar',
       loading: 'Carregando...',
-      load_more: 'Carregar mais'
+      load_more: 'Carregar mais',
     },
     messages: {
       loading: 'Carregando...',
@@ -1083,7 +1089,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       success_generic: 'Operação concluída com sucesso',
       success_saved: 'Alterações salvas com sucesso',
       success_copied: 'Copiado para área de transferência',
-      try_again: 'Tentar novamente'
+      try_again: 'Tentar novamente',
     },
     forms: {
       required: 'Este campo é obrigatório',
@@ -1096,7 +1102,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       name_placeholder: 'Digite seu nome completo',
       message_placeholder: 'Digite sua mensagem',
       submit: 'Enviar',
-      submitting: 'Enviando...'
+      submitting: 'Enviando...',
     },
     filters: {
       all_categories: 'Todas as categorias',
@@ -1107,7 +1113,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       sort_popularity: 'Popularidade',
       sort_rating: 'Avaliação',
       clear_filters: 'Limpar filtros',
-      show_results: 'Mostrar resultados'
+      show_results: 'Mostrar resultados',
     },
     tools: {
       tool: 'Ferramenta',
@@ -1125,7 +1131,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       official_website: 'Site oficial',
       tool_details: 'Detalhes da ferramenta',
       similar_tools: 'Ferramentas similares',
-      tools_count: '{count} ferramentas'
+      tools_count: '{count} ferramentas',
     },
     time: {
       just_now: 'Agora mesmo',
@@ -1136,7 +1142,7 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       months_ago: '{count} meses atrás',
       years_ago: '{count} anos atrás',
       created_at: 'Criado em',
-      updated_at: 'Atualizado em'
+      updated_at: 'Atualizado em',
     },
     pagination: {
       page: 'Página',
@@ -1146,10 +1152,11 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       to: 'a',
       first_page: 'Primeira página',
       last_page: 'Última página',
-      items_per_page: 'Itens por página'
+      items_per_page: 'Itens por página',
     },
     footer: {
-      description: 'Descubra as melhores ferramentas IA para criação de vídeos, edição e automação. Seu diretório completo de soluções IA.',
+      description:
+        'Descubra as melhores ferramentas IA para criação de vídeos, edição e automação. Seu diretório completo de soluções IA.',
       quick_links: 'Links rápidos',
       categories: 'Categorias',
       resources: 'Recursos',
@@ -1158,19 +1165,19 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       privacy_policy: 'Política de Privacidade',
       terms_of_service: 'Termos de Serviço',
       contact_us: 'Entre em contato',
-      all_rights_reserved: 'Todos os direitos reservados'
+      all_rights_reserved: 'Todos os direitos reservados',
     },
     language: {
       choose_language: 'Escolher idioma',
       current_language: 'Idioma atual',
       language_saved: 'Preferência de idioma salva',
-      auto_detect: 'Detectar automaticamente'
+      auto_detect: 'Detectar automaticamente',
     },
     seo: {
       meta_description_suffix: 'Melhor diretório de ferramentas IA',
       page_not_found: 'Página não encontrada',
       go_home: 'Ir para início',
-      share_on: 'Compartilhar no'
+      share_on: 'Compartilhar no',
     },
     breadcrumb: {
       home: 'Início',
@@ -1179,53 +1186,56 @@ export const translations: Record<SupportedLocale, UITranslations> = {
       tool_detail: 'Detalhes da ferramenta',
       category_tools: 'Ferramentas da categoria',
       search_results: 'Resultados da pesquisa',
-      page: 'Página'
-    }
-  }
-}
+      page: 'Página',
+    },
+  },
+};
 
 /**
  * Hook pour utiliser les traductions
  */
 export function useTranslations(language: SupportedLocale = 'en'): UITranslations {
-  return translations[language] || translations.en
+  return translations[language] || translations.en;
 }
 
 /**
  * Fonction utilitaire pour interpoler les variables dans les traductions
  */
-export function interpolate(text: string, variables: Record<string, string | number>): string {
+export function interpolate(
+  text: string,
+  variables: Record<string, string | number>
+): string {
   return text.replace(/\{(\w+)\}/g, (match, key) => {
-    return variables[key]?.toString() || match
-  })
+    return variables[key]?.toString() || match;
+  });
 }
 
 /**
  * Fonction pour obtenir une traduction avec fallback
  */
 export function t(
-  language: SupportedLocale, 
-  key: string, 
+  language: SupportedLocale,
+  key: string,
   variables: Record<string, string | number> = {}
 ): string {
-  const keys = key.split('.')
-  let value: any = translations[language] || translations.en
-  
+  const keys = key.split('.');
+  let value: any = translations[language] || translations.en;
+
   for (const k of keys) {
-    value = value?.[k]
+    value = value?.[k];
   }
-  
+
   if (typeof value !== 'string') {
     // Fallback vers l'anglais si traduction manquante
-    value = translations.en
+    value = translations.en;
     for (const k of keys) {
-      value = value?.[k]
+      value = value?.[k];
     }
   }
-  
+
   if (typeof value === 'string') {
-    return interpolate(value, variables)
+    return interpolate(value, variables);
   }
-  
-  return key // Retourner la clé si aucune traduction trouvée
+
+  return key; // Retourner la clé si aucune traduction trouvée
 }

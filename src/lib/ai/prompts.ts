@@ -219,7 +219,10 @@ Provide specific recommendations for:
 /**
  * Generate dynamic prompt based on tool category and specific requirements
  */
-export function generateCategorySpecificPrompt(category: string, toolData: any): string {
+export function generateCategorySpecificPrompt(
+  category: string,
+  toolData: any
+): string {
   const categoryPrompts = {
     'Image Generation': `
 **SPECIALIZED ANALYSIS FOR IMAGE GENERATION TOOLS:**
@@ -256,7 +259,7 @@ export function generateCategorySpecificPrompt(category: string, toolData: any):
 - Check for editing features: trim, merge, effects, transitions
 - Note rendering speed and queue systems
 - Assess commercial licensing and usage rights
-`
+`,
   };
 
   return categoryPrompts[category as keyof typeof categoryPrompts] || '';

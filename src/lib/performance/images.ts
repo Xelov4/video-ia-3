@@ -1,103 +1,103 @@
 /**
  * Système d'Optimisation d'Images Avancé - Video-IA.net
- * 
+ *
  * Optimisation d'images multilingue et multi-format :
  * - WebP/AVIF avec fallbacks intelligents
  * - Responsive images par device
  * - Lazy loading avec intersection observer
  * - Compression et redimensionnement automatique
- * 
+ *
  * @author Video-IA.net Development Team
  */
 
-'use client'
+'use client';
 
-import { SupportedLocale } from '@/middleware'
+import { SupportedLocale } from '@/middleware';
 
 // Types pour l'optimisation d'images
 export interface ImageConfig {
-  src: string
-  alt: string
-  width?: number
-  height?: number
-  quality?: number
-  priority?: boolean
-  sizes?: string
-  placeholder?: 'blur' | 'empty'
-  blurDataURL?: string
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  quality?: number;
+  priority?: boolean;
+  sizes?: string;
+  placeholder?: 'blur' | 'empty';
+  blurDataURL?: string;
 }
 
 export interface OptimizedImage extends ImageConfig {
-  webp?: string
-  avif?: string
-  fallback: string
-  responsive: ResponsiveImage[]
-  metadata: ImageMetadata
+  webp?: string;
+  avif?: string;
+  fallback: string;
+  responsive: ResponsiveImage[];
+  metadata: ImageMetadata;
 }
 
 export interface ResponsiveImage {
-  src: string
-  width: number
-  height: number
-  format: 'webp' | 'avif' | 'jpg' | 'png'
-  descriptor: string // e.g., "1x", "2x", "768w"
+  src: string;
+  width: number;
+  height: number;
+  format: 'webp' | 'avif' | 'jpg' | 'png';
+  descriptor: string; // e.g., "1x", "2x", "768w"
 }
 
 export interface ImageMetadata {
-  originalSize: number
-  optimizedSize: number
-  compressionRatio: number
-  format: string
-  dimensions: { width: number; height: number }
-  hasTransparency: boolean
-  colorProfile: string
-  generatedAt: Date
+  originalSize: number;
+  optimizedSize: number;
+  compressionRatio: number;
+  format: string;
+  dimensions: { width: number; height: number };
+  hasTransparency: boolean;
+  colorProfile: string;
+  generatedAt: Date;
 }
 
 export interface LazyLoadingConfig {
-  rootMargin: string
-  threshold: number
-  placeholderType: 'blur' | 'skeleton' | 'gradient'
-  fadeInDuration: number
-  retryAttempts: number
+  rootMargin: string;
+  threshold: number;
+  placeholderType: 'blur' | 'skeleton' | 'gradient';
+  fadeInDuration: number;
+  retryAttempts: number;
 }
 
 /**
  * Gestionnaire d'optimisation d'images
  */
 export class ImageOptimizer {
-  private supportedFormats: string[]
-  private deviceSizes: number[]
-  private imageSizes: number[]
-  private lazyLoadingConfig: LazyLoadingConfig
+  private supportedFormats: string[];
+  private deviceSizes: number[];
+  private imageSizes: number[];
+  private lazyLoadingConfig: LazyLoadingConfig;
 
   constructor() {
-    this.supportedFormats = ['image/avif', 'image/webp', 'image/jpeg', 'image/png']
-    this.deviceSizes = [640, 750, 828, 1080, 1200, 1920, 2048, 3840]
-    this.imageSizes = [16, 32, 48, 64, 96, 128, 256, 384]
-    
+    this.supportedFormats = ['image/avif', 'image/webp', 'image/jpeg', 'image/png'];
+    this.deviceSizes = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
+    this.imageSizes = [16, 32, 48, 64, 96, 128, 256, 384];
+
     this.lazyLoadingConfig = {
       rootMargin: '50px',
       threshold: 0.1,
       placeholderType: 'blur',
       fadeInDuration: 300,
-      retryAttempts: 3
-    }
+      retryAttempts: 3,
+    };
   }
 
   /**
    * Optimiser une image avec formats multiples
    */
   optimizeImage(config: ImageConfig): OptimizedImage {
-    const { src, alt, width, height, quality = 75, sizes, priority = false } = config
+    const { src, alt, width, height, quality = 75, sizes, priority = false } = config;
 
     // Générer les URLs optimisées
     const baseParams = new URLSearchParams({
       w: width?.toString() || 'auto',
       h: height?.toString() || 'auto',
       q: quality.toString(),
-      f: 'auto'
-    })
+      f: 'auto',
+    });
 
     const optimized: OptimizedImage = {
       ...config,
@@ -105,30 +105,30 @@ export class ImageOptimizer {
       webp: this.generateOptimizedUrl(src, { format: 'webp', quality }),
       avif: this.generateOptimizedUrl(src, { format: 'avif', quality }),
       responsive: this.generateResponsiveImages(src, { width, height, quality }),
-      metadata: this.generateMetadata(src, { width, height, quality })
-    }
+      metadata: this.generateMetadata(src, { width, height, quality }),
+    };
 
-    return optimized
+    return optimized;
   }
 
   /**
    * Générer images responsive
    */
   private generateResponsiveImages(
-    src: string, 
+    src: string,
     options: { width?: number; height?: number; quality?: number }
   ): ResponsiveImage[] {
-    const { width, height, quality = 75 } = options
-    const images: ResponsiveImage[] = []
+    const { width, height, quality = 75 } = options;
+    const images: ResponsiveImage[] = [];
 
     // Générer pour différentes tailles d'écran
-    const relevantSizes = this.deviceSizes.filter(size => 
-      !width || size <= width * 2 // Éviter les images trop grandes
-    )
+    const relevantSizes = this.deviceSizes.filter(
+      size => !width || size <= width * 2 // Éviter les images trop grandes
+    );
 
     relevantSizes.forEach(deviceWidth => {
-      const aspectRatio = width && height ? height / width : 1
-      const targetHeight = Math.round(deviceWidth * aspectRatio)
+      const aspectRatio = width && height ? height / width : 1;
+      const targetHeight = Math.round(deviceWidth * aspectRatio);
 
       // Format AVIF (meilleure compression)
       images.push({
@@ -136,13 +136,13 @@ export class ImageOptimizer {
           format: 'avif',
           width: deviceWidth,
           height: targetHeight,
-          quality
+          quality,
         }),
         width: deviceWidth,
         height: targetHeight,
         format: 'avif',
-        descriptor: `${deviceWidth}w`
-      })
+        descriptor: `${deviceWidth}w`,
+      });
 
       // Format WebP (fallback)
       images.push({
@@ -150,13 +150,13 @@ export class ImageOptimizer {
           format: 'webp',
           width: deviceWidth,
           height: targetHeight,
-          quality
+          quality,
         }),
         width: deviceWidth,
         height: targetHeight,
         format: 'webp',
-        descriptor: `${deviceWidth}w`
-      })
+        descriptor: `${deviceWidth}w`,
+      });
 
       // Format JPEG (fallback ultime)
       images.push({
@@ -164,14 +164,14 @@ export class ImageOptimizer {
           format: 'jpg',
           width: deviceWidth,
           height: targetHeight,
-          quality
+          quality,
         }),
         width: deviceWidth,
         height: targetHeight,
         format: 'jpg',
-        descriptor: `${deviceWidth}w`
-      })
-    })
+        descriptor: `${deviceWidth}w`,
+      });
+    });
 
     // Retina versions (2x)
     if (width && height && width <= 1920) {
@@ -180,73 +180,73 @@ export class ImageOptimizer {
           format: 'webp',
           width: width * 2,
           height: height * 2,
-          quality: Math.max(60, quality - 15) // Réduire qualité pour 2x
+          quality: Math.max(60, quality - 15), // Réduire qualité pour 2x
         }),
         width: width * 2,
         height: height * 2,
         format: 'webp',
-        descriptor: '2x'
-      })
+        descriptor: '2x',
+      });
     }
 
-    return images
+    return images;
   }
 
   /**
    * Générer URL d'image optimisée
    */
   private generateOptimizedUrl(
-    src: string, 
+    src: string,
     params: {
-      format?: 'avif' | 'webp' | 'jpg' | 'png'
-      width?: number
-      height?: number
-      quality?: number
+      format?: 'avif' | 'webp' | 'jpg' | 'png';
+      width?: number;
+      height?: number;
+      quality?: number;
     }
   ): string {
-    const { format, width, height, quality = 75 } = params
-    
+    const { format, width, height, quality = 75 } = params;
+
     // Si c'est déjà une URL externe, utiliser un proxy d'optimisation
     if (src.startsWith('http')) {
-      return this.generateProxyUrl(src, params)
+      return this.generateProxyUrl(src, params);
     }
 
     // Utiliser Next.js Image Optimization API
-    const urlParams = new URLSearchParams()
-    if (width) urlParams.append('w', width.toString())
-    if (height) urlParams.append('h', height.toString())
-    if (quality) urlParams.append('q', quality.toString())
-    if (format) urlParams.append('f', format)
+    const urlParams = new URLSearchParams();
+    if (width) urlParams.append('w', width.toString());
+    if (height) urlParams.append('h', height.toString());
+    if (quality) urlParams.append('q', quality.toString());
+    if (format) urlParams.append('f', format);
 
-    return `/_next/image?url=${encodeURIComponent(src)}&${urlParams.toString()}`
+    return `/_next/image?url=${encodeURIComponent(src)}&${urlParams.toString()}`;
   }
 
   /**
    * Générer URL de proxy pour images externes
    */
   private generateProxyUrl(src: string, params: any): string {
-    const urlParams = new URLSearchParams()
+    const urlParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
-        urlParams.append(key, value.toString())
+        urlParams.append(key, value.toString());
       }
-    })
+    });
 
-    return `/api/image-proxy?url=${encodeURIComponent(src)}&${urlParams.toString()}`
+    return `/api/image-proxy?url=${encodeURIComponent(src)}&${urlParams.toString()}`;
   }
 
   /**
    * Générer métadonnées d'image
    */
   private generateMetadata(
-    src: string, 
+    src: string,
     options: { width?: number; height?: number; quality?: number }
   ): ImageMetadata {
     // Simulation des métadonnées (en production, analyser la vraie image)
-    const { width = 800, height = 600, quality = 75 } = options
-    const estimatedOriginalSize = width * height * 3 // RGB
-    const compressionRatio = (100 - quality) / 100
-    const optimizedSize = estimatedOriginalSize * (1 - compressionRatio * 0.8)
+    const { width = 800, height = 600, quality = 75 } = options;
+    const estimatedOriginalSize = width * height * 3; // RGB
+    const compressionRatio = (100 - quality) / 100;
+    const optimizedSize = estimatedOriginalSize * (1 - compressionRatio * 0.8);
 
     return {
       originalSize: estimatedOriginalSize,
@@ -256,8 +256,8 @@ export class ImageOptimizer {
       dimensions: { width, height },
       hasTransparency: src.includes('.png') || src.includes('.gif'),
       colorProfile: 'sRGB',
-      generatedAt: new Date()
-    }
+      generatedAt: new Date(),
+    };
   }
 
   /**
@@ -441,7 +441,7 @@ function generateOptimizedUrl(src: string, params: any): string {
   // Logique d'optimisation URL (identique à la classe principale)
   return '/_next/image?url=' + encodeURIComponent(src) + '&' + new URLSearchParams(params).toString()
 }
-    `.trim()
+    `.trim();
   }
 
   /**
@@ -530,7 +530,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Image optimization failed', { status: 500 })
   }
 }
-    `.trim()
+    `.trim();
   }
 
   /**
@@ -545,24 +545,20 @@ export async function GET(request: NextRequest) {
         minimumCacheTTL: 31536000, // 1 year
         dangerouslyAllowSVG: true,
         contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-        domains: [
-          'images.unsplash.com',
-          'cdn.example.com',
-          'assets.video-ia.net'
-        ],
+        domains: ['images.unsplash.com', 'cdn.example.com', 'assets.video-ia.net'],
         remotePatterns: [
           {
             protocol: 'https',
-            hostname: '**.video-ia.net'
+            hostname: '**.video-ia.net',
           },
           {
-            protocol: 'https', 
-            hostname: 'images.unsplash.com'
-          }
+            protocol: 'https',
+            hostname: 'images.unsplash.com',
+          },
         ],
-        loader: 'default'
-      }
-    }
+        loader: 'default',
+      },
+    };
   }
 
   /**
@@ -570,18 +566,18 @@ export async function GET(request: NextRequest) {
    */
   analyzeImagePerformance(): {
     summary: {
-      totalImages: number
-      averageSize: number
-      formatDistribution: Record<string, number>
-      lazyLoadedPercentage: number
-    }
+      totalImages: number;
+      averageSize: number;
+      formatDistribution: Record<string, number>;
+      lazyLoadedPercentage: number;
+    };
     issues: Array<{
-      type: 'size' | 'format' | 'loading' | 'accessibility'
-      severity: 'error' | 'warning' | 'info'
-      message: string
-      recommendation: string
-    }>
-    recommendations: string[]
+      type: 'size' | 'format' | 'loading' | 'accessibility';
+      severity: 'error' | 'warning' | 'info';
+      message: string;
+      recommendation: string;
+    }>;
+    recommendations: string[];
   } {
     // Simulation d'analyse (en production, analyser les vraies images)
     return {
@@ -589,65 +585,63 @@ export async function GET(request: NextRequest) {
         totalImages: 150,
         averageSize: 85, // KB
         formatDistribution: {
-          'avif': 45,
-          'webp': 75,
-          'jpg': 25,
-          'png': 5
+          avif: 45,
+          webp: 75,
+          jpg: 25,
+          png: 5,
         },
-        lazyLoadedPercentage: 85
+        lazyLoadedPercentage: 85,
       },
       issues: [
         {
           type: 'size',
           severity: 'warning',
           message: '12 images are larger than 200KB',
-          recommendation: 'Increase compression or reduce dimensions'
+          recommendation: 'Increase compression or reduce dimensions',
         },
         {
           type: 'accessibility',
           severity: 'error',
           message: '3 images missing alt text',
-          recommendation: 'Add descriptive alt text for screen readers'
-        }
+          recommendation: 'Add descriptive alt text for screen readers',
+        },
       ],
       recommendations: [
         'Implement AVIF format for 20% better compression',
         'Add blur placeholders for better perceived performance',
-        'Configure service worker for image caching strategy'
-      ]
-    }
+        'Configure service worker for image caching strategy',
+      ],
+    };
   }
 
   // Méthodes utilitaires privées
   private detectImageFormat(src: string): string {
-    const extension = src.split('.').pop()?.toLowerCase()
+    const extension = src.split('.').pop()?.toLowerCase();
     const formatMap: Record<string, string> = {
-      'jpg': 'image/jpeg',
-      'jpeg': 'image/jpeg',
-      'png': 'image/png',
-      'webp': 'image/webp',
-      'avif': 'image/avif',
-      'gif': 'image/gif',
-      'svg': 'image/svg+xml'
-    }
-    return formatMap[extension || ''] || 'image/jpeg'
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      webp: 'image/webp',
+      avif: 'image/avif',
+      gif: 'image/gif',
+      svg: 'image/svg+xml',
+    };
+    return formatMap[extension || ''] || 'image/jpeg';
   }
 }
 
 /**
  * Instance singleton
  */
-export const imageOptimizer = new ImageOptimizer()
+export const imageOptimizer = new ImageOptimizer();
 
 /**
  * Hook React pour optimisation d'images
  */
 export function useImageOptimization() {
   return {
-    optimizeImage: (config: ImageConfig) =>
-      imageOptimizer.optimizeImage(config),
-    
-    analyzeImagePerformance: () =>
-      imageOptimizer.analyzeImagePerformance()
-  }
+    optimizeImage: (config: ImageConfig) => imageOptimizer.optimizeImage(config),
+
+    analyzeImagePerformance: () => imageOptimizer.analyzeImagePerformance(),
+  };
 }

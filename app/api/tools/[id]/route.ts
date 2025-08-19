@@ -1,33 +1,33 @@
 /**
  * API Routes for Individual Tool Management
- * 
+ *
  * Provides RESTful endpoints for managing individual tools
  * from the directory database with full CRUD operations.
- * 
+ *
  * Endpoints:
  * - GET /api/tools/[id] - Get specific tool details
  * - PUT /api/tools/[id] - Update tool information
  * - DELETE /api/tools/[id] - Delete tool
- * 
+ *
  * Features:
  * - Full tool data retrieval
  * - Comprehensive update capabilities
  * - Soft delete with data preservation
  * - Validation and error handling
  * - Type-safe responses
- * 
+ *
  * @author Video-IA.net Development Team
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { toolsService } from '@/src/lib/database/services/tools'
+import { NextRequest, NextResponse } from 'next/server';
+import { toolsService } from '@/src/lib/database/services/tools';
 
 /**
  * GET /api/tools/[id]
- * 
+ *
  * Retrieve detailed information about a specific tool.
  * Returns complete tool data including all metadata and statistics.
- * 
+ *
  * @param request Next.js request object
  * @param params Route parameters containing tool ID
  * @returns Tool details or error response
@@ -38,56 +38,55 @@ export async function GET(
 ) {
   try {
     // Next.js 15 requires awaiting params
-    const { id } = await params
-    const toolId = parseInt(id)
-    
+    const { id } = await params;
+    const toolId = parseInt(id);
+
     if (isNaN(toolId)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid tool ID'
+          error: 'Invalid tool ID',
         },
         { status: 400 }
-      )
+      );
     }
 
-    const tool = await toolsService.getToolById(toolId)
-    
+    const tool = await toolsService.getToolById(toolId);
+
     if (!tool) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Tool not found'
+          error: 'Tool not found',
         },
         { status: 404 }
-      )
+      );
     }
 
     return NextResponse.json({
       success: true,
-      tool
-    })
-    
+      tool,
+    });
   } catch (error) {
-    console.error('Error in GET /api/tools/[id]:', error)
-    
+    console.error('Error in GET /api/tools/[id]:', error);
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to retrieve tool',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
       },
       { status: 500 }
-    )
+    );
   }
 }
 
 /**
  * PUT /api/tools/[id]
- * 
+ *
  * Update tool information in the database.
  * Supports partial updates and validates data integrity.
- * 
+ *
  * Request Body:
  * - tool_name: Tool name
  * - tool_category: Category name
@@ -106,7 +105,7 @@ export async function GET(
  * - meta_title: SEO title
  * - meta_description: SEO description
  * - seo_keywords: SEO keywords
- * 
+ *
  * @param request Next.js request object
  * @param params Route parameters containing tool ID
  * @returns Updated tool data or error response
@@ -117,42 +116,42 @@ export async function PUT(
 ) {
   try {
     // Next.js 15 requires awaiting params
-    const { id } = await params
-    const toolId = parseInt(id)
-    
+    const { id } = await params;
+    const toolId = parseInt(id);
+
     if (isNaN(toolId)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid tool ID'
+          error: 'Invalid tool ID',
         },
         { status: 400 }
-      )
+      );
     }
 
-    const body = await request.json()
-    
+    const body = await request.json();
+
     // Validate required fields
     if (!body.toolName) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Tool name is required'
+          error: 'Tool name is required',
         },
         { status: 400 }
-      )
+      );
     }
 
     // Check if tool exists
-    const existingTool = await toolsService.getToolById(toolId)
+    const existingTool = await toolsService.getToolById(toolId);
     if (!existingTool) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Tool not found'
+          error: 'Tool not found',
         },
         { status: 404 }
-      )
+      );
     }
 
     // Prepare update data
@@ -170,53 +169,55 @@ export async function PUT(
       slug: body.slug || existingTool.slug,
       isActive: body.isActive !== undefined ? body.isActive : existingTool.isActive,
       featured: body.featured !== undefined ? body.featured : existingTool.featured,
-      quality_score: body.quality_score !== undefined ? body.quality_score : existingTool.quality_score,
+      quality_score:
+        body.quality_score !== undefined
+          ? body.quality_score
+          : existingTool.quality_score,
       metaTitle: body.metaTitle || existingTool.metaTitle,
       metaDescription: body.metaDescription || existingTool.metaDescription,
       seoKeywords: body.seoKeywords || existingTool.seoKeywords,
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    };
 
     // Update tool
-    const updatedTool = await toolsService.updateTool(toolId, updateData)
-    
+    const updatedTool = await toolsService.updateTool(toolId, updateData);
+
     if (!updatedTool) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Failed to update tool'
+          error: 'Failed to update tool',
         },
         { status: 500 }
-      )
+      );
     }
 
     return NextResponse.json({
       success: true,
       tool: updatedTool,
-      message: 'Tool updated successfully'
-    })
-    
+      message: 'Tool updated successfully',
+    });
   } catch (error) {
-    console.error('Error in PUT /api/tools/[id]:', error)
-    
+    console.error('Error in PUT /api/tools/[id]:', error);
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to update tool',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
       },
       { status: 500 }
-    )
+    );
   }
 }
 
 /**
  * DELETE /api/tools/[id]
- * 
+ *
  * Delete a tool from the database.
  * Implements soft delete by setting is_active to false
  * to preserve data integrity and allow recovery.
- * 
+ *
  * @param request Next.js request object
  * @param params Route parameters containing tool ID
  * @returns Success confirmation or error response
@@ -227,63 +228,62 @@ export async function DELETE(
 ) {
   try {
     // Next.js 15 requires awaiting params
-    const { id } = await params
-    const toolId = parseInt(id)
-    
+    const { id } = await params;
+    const toolId = parseInt(id);
+
     if (isNaN(toolId)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid tool ID'
+          error: 'Invalid tool ID',
         },
         { status: 400 }
-      )
+      );
     }
 
     // Check if tool exists
-    const existingTool = await toolsService.getToolById(toolId)
+    const existingTool = await toolsService.getToolById(toolId);
     if (!existingTool) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Tool not found'
+          error: 'Tool not found',
         },
         { status: 404 }
-      )
+      );
     }
 
     // Soft delete by setting is_active to false
     const deletedTool = await toolsService.updateTool(toolId, {
       isActive: false,
-      updatedAt: new Date()
-    })
-    
+      updatedAt: new Date(),
+    });
+
     if (!deletedTool) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Failed to delete tool'
+          error: 'Failed to delete tool',
         },
         { status: 500 }
-      )
+      );
     }
 
     return NextResponse.json({
       success: true,
       message: 'Tool deleted successfully',
-      tool: deletedTool
-    })
-    
+      tool: deletedTool,
+    });
   } catch (error) {
-    console.error('Error in DELETE /api/tools/[id]:', error)
-    
+    console.error('Error in DELETE /api/tools/[id]:', error);
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to delete tool',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
       },
       { status: 500 }
-    )
+    );
   }
-} 
+}

@@ -1,15 +1,17 @@
-import { Metadata } from 'next'
-import { SupportedLanguage } from '@/src/lib/i18n/types'
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
-import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers'
+import { Metadata } from 'next';
+import { SupportedLanguage } from '@/src/lib/i18n/types';
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
+import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
 
 interface AudiencesPageProps {
-  params: Promise<{ lang: SupportedLanguage }>
+  params: Promise<{ lang: SupportedLanguage }>;
 }
 
-export async function generateMetadata({ params }: AudiencesPageProps): Promise<Metadata> {
-  const { lang } = await params
-  
+export async function generateMetadata({
+  params,
+}: AudiencesPageProps): Promise<Metadata> {
+  const { lang } = await params;
+
   const titles = {
     en: 'AI Tools by Target Audience - Find Your Perfect Match',
     fr: 'Outils IA par Public Cible - Trouvez Votre Match Parfait',
@@ -17,8 +19,8 @@ export async function generateMetadata({ params }: AudiencesPageProps): Promise<
     de: 'KI-Tools nach Zielgruppe - Finden Sie Ihren perfekten Match',
     it: 'Strumenti IA per Pubblico Target - Trova la Tua Combinazione Perfetta',
     nl: 'AI-tools per Doelgroep - Vind je Perfecte Match',
-    pt: 'Ferramentas de IA por Público-Alvo - Encontre sua Combinação Perfeita'
-  }
+    pt: 'Ferramentas de IA por Público-Alvo - Encontre sua Combinação Perfeita',
+  };
 
   const descriptions = {
     en: 'Discover AI tools tailored for specific audiences: content creators, developers, marketers, educators, and more. Find solutions designed for your needs.',
@@ -27,8 +29,8 @@ export async function generateMetadata({ params }: AudiencesPageProps): Promise<
     de: 'Entdecken Sie KI-Tools, die für bestimmte Zielgruppen entwickelt wurden: Content Creator, Entwickler, Vermarkter, Pädagogen und mehr. Finden Sie Lösungen, die für Ihre Bedürfnisse entwickelt wurden.',
     it: 'Scopri strumenti IA adattati per pubblici specifici: creatori di contenuti, sviluppatori, marketer, educatori e molto altro. Trova soluzioni progettate per le tue esigenze.',
     nl: 'Ontdek AI-tools die zijn aangepast voor specifieke doelgroepen: content creators, ontwikkelaars, marketeers, docenten en meer. Vind oplossingen die zijn ontworpen voor jouw behoeften.',
-    pt: 'Descubra ferramentas de IA adaptadas para públicos específicos: criadores de conteúdo, desenvolvedores, profissionais de marketing, educadores e muito mais. Encontre soluções projetadas para suas necessidades.'
-  }
+    pt: 'Descubra ferramentas de IA adaptadas para públicos específicos: criadores de conteúdo, desenvolvedores, profissionais de marketing, educadores e muito mais. Encontre soluções projetadas para suas necessidades.',
+  };
 
   return {
     title: titles[lang] || titles.en,
@@ -42,80 +44,83 @@ export async function generateMetadata({ params }: AudiencesPageProps): Promise<
         de: 'https://video-ia.net/de/p',
         it: 'https://video-ia.net/it/p',
         nl: 'https://video-ia.net/nl/p',
-        pt: 'https://video-ia.net/pt/p'
-      }
-    }
-  }
+        pt: 'https://video-ia.net/pt/p',
+      },
+    },
+  };
 }
 
 export default async function AudiencesPage({ params }: AudiencesPageProps) {
-  const { lang } = await params
-  
+  const { lang } = await params;
+
   // Get unique audiences from tools
   const tools = await multilingualToolsService.searchTools({
     language: lang,
     page: 1,
-    limit: 1000 // Get more tools to extract audiences
-  })
+    limit: 1000, // Get more tools to extract audiences
+  });
 
   // Extract unique audiences
-  const audiences = new Map<string, { name: string; count: number; slug: string }>()
-  
+  const audiences = new Map<string, { name: string; count: number; slug: string }>();
+
   tools.tools.forEach((tool: any) => {
     if (tool.target_audience) {
-      const audienceName = tool.target_audience.trim()
-      const slug = audienceName.toLowerCase().replace(/\s+/g, '-')
-      
+      const audienceName = tool.target_audience.trim();
+      const slug = audienceName.toLowerCase().replace(/\s+/g, '-');
+
       if (audiences.has(audienceName)) {
-        audiences.get(audienceName)!.count++
+        audiences.get(audienceName)!.count++;
       } else {
-        audiences.set(audienceName, { name: audienceName, count: 1, slug })
+        audiences.set(audienceName, { name: audienceName, count: 1, slug });
       }
     }
-  })
+  });
 
-  const serializedAudiences = Array.from(audiences.values())
-    .sort((a, b) => b.count - a.count)
+  const serializedAudiences = Array.from(audiences.values()).sort(
+    (a, b) => b.count - a.count
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {lang === 'fr' ? 'Outils IA par Public Cible' : 'AI Tools by Target Audience'}
+    <div className='min-h-screen bg-gray-50'>
+      <div className='mx-auto max-w-7xl px-4 py-8'>
+        <div className='mb-8'>
+          <h1 className='mb-4 text-4xl font-bold text-gray-900'>
+            {lang === 'fr'
+              ? 'Outils IA par Public Cible'
+              : 'AI Tools by Target Audience'}
           </h1>
-          <p className="text-lg text-gray-600 max-w-3xl">
-            {lang === 'fr' 
+          <p className='max-w-3xl text-lg text-gray-600'>
+            {lang === 'fr'
               ? 'Découvrez des outils IA adaptés à des publics spécifiques. Trouvez des solutions conçues pour vos besoins et votre profil.'
-              : 'Discover AI tools tailored for specific audiences. Find solutions designed for your needs and profile.'
-            }
+              : 'Discover AI tools tailored for specific audiences. Find solutions designed for your needs and profile.'}
           </p>
         </div>
 
         {/* Audiences Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {serializedAudiences.map((audience) => (
-            <div key={audience.slug} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    <a 
+        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+          {serializedAudiences.map(audience => (
+            <div
+              key={audience.slug}
+              className='overflow-hidden rounded-lg bg-white shadow-md transition-shadow hover:shadow-lg'
+            >
+              <div className='p-6'>
+                <div className='mb-4 flex items-center justify-between'>
+                  <h3 className='text-lg font-semibold text-gray-900'>
+                    <a
                       href={`/${lang}/p/${audience.slug}`}
-                      className="hover:text-blue-600 transition-colors"
+                      className='transition-colors hover:text-blue-600'
                     >
                       {audience.name}
                     </a>
                   </h3>
-                  <span className="text-sm text-gray-500">
-                    {audience.count} tools
-                  </span>
+                  <span className='text-sm text-gray-500'>{audience.count} tools</span>
                 </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
+
+                <div className='flex items-center justify-between'>
+                  <span className='text-sm text-gray-500'>
                     {audience.count} {lang === 'fr' ? 'outils' : 'tools'} disponibles
                   </span>
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  <span className='rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800'>
                     {lang === 'fr' ? 'Public' : 'Audience'}
                   </span>
                 </div>
@@ -125,16 +130,15 @@ export default async function AudiencesPage({ params }: AudiencesPageProps) {
         </div>
 
         {serializedAudiences.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              {lang === 'fr' 
+          <div className='py-12 text-center'>
+            <p className='text-lg text-gray-500'>
+              {lang === 'fr'
                 ? 'Aucune audience trouvée pour le moment.'
-                : 'No audiences found at the moment.'
-              }
+                : 'No audiences found at the moment.'}
             </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

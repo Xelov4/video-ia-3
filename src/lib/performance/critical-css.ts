@@ -1,77 +1,77 @@
 /**
  * Système Critical CSS par Langue - Video-IA.net
- * 
+ *
  * Optimisation du CSS critique pour performance multilingue :
  * - Extraction CSS above-the-fold par langue
  * - Génération automatique de CSS critique
  * - Inlining intelligent et lazy loading
  * - Purge CSS inutilisé par route
- * 
+ *
  * @author Video-IA.net Development Team
  */
 
-'use client'
+'use client';
 
-import { SupportedLocale } from '@/middleware'
+import { SupportedLocale } from '@/middleware';
 
 // Types pour Critical CSS
 export interface CriticalCssConfig {
-  language: SupportedLocale
-  route: string
-  criticalCss: string
-  aboveFoldSelectors: string[]
-  deferredCss: string[]
-  inlineSize: number
-  totalReduction: number
+  language: SupportedLocale;
+  route: string;
+  criticalCss: string;
+  aboveFoldSelectors: string[];
+  deferredCss: string[];
+  inlineSize: number;
+  totalReduction: number;
 }
 
 export interface CssAnalysis {
-  totalSize: number
-  usedSelectors: string[]
-  unusedSelectors: string[]
-  criticalSelectors: string[]
-  fontSelectors: string[]
-  mediaQueries: MediaQueryAnalysis[]
+  totalSize: number;
+  usedSelectors: string[];
+  unusedSelectors: string[];
+  criticalSelectors: string[];
+  fontSelectors: string[];
+  mediaQueries: MediaQueryAnalysis[];
 }
 
 export interface MediaQueryAnalysis {
-  query: string
-  selectors: string[]
-  size: number
-  critical: boolean
+  query: string;
+  selectors: string[];
+  size: number;
+  critical: boolean;
 }
 
 export interface PerformanceMetrics {
   beforeOptimization: {
-    totalCssSize: number
-    blockingTime: number
-    firstPaint: number
-  }
+    totalCssSize: number;
+    blockingTime: number;
+    firstPaint: number;
+  };
   afterOptimization: {
-    inlineCssSize: number
-    deferredCssSize: number
-    firstPaint: number
-    speedIndex: number
-  }
+    inlineCssSize: number;
+    deferredCssSize: number;
+    firstPaint: number;
+    speedIndex: number;
+  };
   improvement: {
-    sizeReduction: number
-    fasterFirstPaint: number
-    scoreImprovement: number
-  }
+    sizeReduction: number;
+    fasterFirstPaint: number;
+    scoreImprovement: number;
+  };
 }
 
 /**
  * Générateur de Critical CSS
  */
 export class CriticalCssGenerator {
-  private criticalSelectors: Map<string, string[]> = new Map()
-  private languageSpecificSelectors: Map<SupportedLocale, string[]> = new Map()
-  private routeSpecificSelectors: Map<string, string[]> = new Map()
+  private criticalSelectors: Map<string, string[]> = new Map();
+  private languageSpecificSelectors: Map<SupportedLocale, string[]> = new Map();
+  private routeSpecificSelectors: Map<string, string[]> = new Map();
 
   constructor() {
-    this.initializeCriticalSelectors()
-    this.initializeLanguageSelectors()
-    this.initializeRouteSelectors()
+    this.initializeCriticalSelectors();
+    this.initializeLanguageSelectors();
+    this.initializeRouteSelectors();
   }
 
   /**
@@ -80,33 +80,60 @@ export class CriticalCssGenerator {
   private initializeCriticalSelectors() {
     const globalCritical = [
       // Base styles
-      'html', 'body', '*', '*::before', '*::after',
-      
-      // Typography
-      'h1', 'h2', 'h3', 'p', 'a',
-      
-      // Layout containers
-      '.container', '.max-w-*', '.mx-auto',
-      
-      // Navigation
-      'header', 'nav', '.header', '.navigation',
-      
-      // Above fold components
-      '.hero', '.banner', '.intro',
-      
-      // Loading states
-      '.loading', '.spinner', '.skeleton',
-      
-      // Critical utility classes
-      '.block', '.flex', '.grid', '.hidden',
-      '.text-*', '.bg-*', '.border-*',
-      '.p-*', '.m-*', '.w-*', '.h-*',
-      
-      // Critical responsive
-      '.sm\\:*', '.md\\:*', '.lg\\:*'
-    ]
+      'html',
+      'body',
+      '*',
+      '*::before',
+      '*::after',
 
-    this.criticalSelectors.set('global', globalCritical)
+      // Typography
+      'h1',
+      'h2',
+      'h3',
+      'p',
+      'a',
+
+      // Layout containers
+      '.container',
+      '.max-w-*',
+      '.mx-auto',
+
+      // Navigation
+      'header',
+      'nav',
+      '.header',
+      '.navigation',
+
+      // Above fold components
+      '.hero',
+      '.banner',
+      '.intro',
+
+      // Loading states
+      '.loading',
+      '.spinner',
+      '.skeleton',
+
+      // Critical utility classes
+      '.block',
+      '.flex',
+      '.grid',
+      '.hidden',
+      '.text-*',
+      '.bg-*',
+      '.border-*',
+      '.p-*',
+      '.m-*',
+      '.w-*',
+      '.h-*',
+
+      // Critical responsive
+      '.sm\\:*',
+      '.md\\:*',
+      '.lg\\:*',
+    ];
+
+    this.criticalSelectors.set('global', globalCritical);
   }
 
   /**
@@ -114,26 +141,36 @@ export class CriticalCssGenerator {
    */
   private initializeLanguageSelectors() {
     const commonI18nSelectors = [
-      '[dir="rtl"]', '[dir="ltr"]',
-      '.text-right', '.text-left',
-      '.font-arabic', '.font-latin', '.font-cjk'
-    ]
+      '[dir="rtl"]',
+      '[dir="ltr"]',
+      '.text-right',
+      '.text-left',
+      '.font-arabic',
+      '.font-latin',
+      '.font-cjk',
+    ];
 
     // Sélecteurs RTL pour certaines langues futures
     const rtlSelectors = [
-      '.rtl\\:text-right', '.rtl\\:text-left',
-      '.rtl\\:mr-*', '.rtl\\:ml-*',
-      '.rtl\\:pr-*', '.rtl\\:pl-*'
-    ]
+      '.rtl\\:text-right',
+      '.rtl\\:text-left',
+      '.rtl\\:mr-*',
+      '.rtl\\:ml-*',
+      '.rtl\\:pr-*',
+      '.rtl\\:pl-*',
+    ];
 
     // Sélecteurs spécifiques par langue
-    this.languageSpecificSelectors.set('en', [...commonI18nSelectors])
-    this.languageSpecificSelectors.set('fr', [...commonI18nSelectors, '.font-french'])
-    this.languageSpecificSelectors.set('es', [...commonI18nSelectors, '.font-spanish'])
-    this.languageSpecificSelectors.set('it', [...commonI18nSelectors, '.font-italian'])
-    this.languageSpecificSelectors.set('de', [...commonI18nSelectors, '.font-german'])
-    this.languageSpecificSelectors.set('nl', [...commonI18nSelectors, '.font-dutch'])
-    this.languageSpecificSelectors.set('pt', [...commonI18nSelectors, '.font-portuguese'])
+    this.languageSpecificSelectors.set('en', [...commonI18nSelectors]);
+    this.languageSpecificSelectors.set('fr', [...commonI18nSelectors, '.font-french']);
+    this.languageSpecificSelectors.set('es', [...commonI18nSelectors, '.font-spanish']);
+    this.languageSpecificSelectors.set('it', [...commonI18nSelectors, '.font-italian']);
+    this.languageSpecificSelectors.set('de', [...commonI18nSelectors, '.font-german']);
+    this.languageSpecificSelectors.set('nl', [...commonI18nSelectors, '.font-dutch']);
+    this.languageSpecificSelectors.set('pt', [
+      ...commonI18nSelectors,
+      '.font-portuguese',
+    ]);
   }
 
   /**
@@ -142,55 +179,73 @@ export class CriticalCssGenerator {
   private initializeRouteSelectors() {
     // Homepage
     this.routeSpecificSelectors.set('/', [
-      '.hero-section', '.featured-tools', '.categories-grid',
-      '.search-form', '.stats-counter'
-    ])
+      '.hero-section',
+      '.featured-tools',
+      '.categories-grid',
+      '.search-form',
+      '.stats-counter',
+    ]);
 
     // Tools listing
     this.routeSpecificSelectors.set('/tools', [
-      '.tools-grid', '.filter-sidebar', '.pagination',
-      '.tool-card', '.category-filter'
-    ])
+      '.tools-grid',
+      '.filter-sidebar',
+      '.pagination',
+      '.tool-card',
+      '.category-filter',
+    ]);
 
     // Tool detail
     this.routeSpecificSelectors.set('/tools/[slug]', [
-      '.tool-header', '.tool-description', '.tool-features',
-      '.tool-gallery', '.related-tools'
-    ])
+      '.tool-header',
+      '.tool-description',
+      '.tool-features',
+      '.tool-gallery',
+      '.related-tools',
+    ]);
 
     // Categories
     this.routeSpecificSelectors.set('/categories', [
-      '.categories-list', '.category-card', '.tool-count'
-    ])
+      '.categories-list',
+      '.category-card',
+      '.tool-count',
+    ]);
 
     // Category detail
     this.routeSpecificSelectors.set('/categories/[slug]', [
-      '.category-header', '.category-tools', '.subcategories'
-    ])
+      '.category-header',
+      '.category-tools',
+      '.subcategories',
+    ]);
   }
 
   /**
    * Générer CSS critique pour une page
    */
   async generateCriticalCss(config: {
-    language: SupportedLocale
-    route: string
-    viewport?: { width: number; height: number }
-    cssFiles?: string[]
+    language: SupportedLocale;
+    route: string;
+    viewport?: { width: number; height: number };
+    cssFiles?: string[];
   }): Promise<CriticalCssConfig> {
-    const { language, route, viewport = { width: 1200, height: 800 }, cssFiles = [] } = config
+    const {
+      language,
+      route,
+      viewport = { width: 1200, height: 800 },
+      cssFiles = [],
+    } = config;
 
     // Collecter tous les sélecteurs critiques
-    const criticalSelectors = this.collectCriticalSelectors(language, route)
-    
+    const criticalSelectors = this.collectCriticalSelectors(language, route);
+
     // Analyser le CSS existant
-    const cssAnalysis = await this.analyzeCssFiles(cssFiles, criticalSelectors)
-    
+    const cssAnalysis = await this.analyzeCssFiles(cssFiles, criticalSelectors);
+
     // Extraire le CSS critique
-    const criticalCss = this.extractCriticalCss(cssAnalysis, criticalSelectors)
-    
+    const criticalCss = this.extractCriticalCss(cssAnalysis, criticalSelectors);
+
     // Identifier le CSS différé
-    const deferredCss = this.identifyDeferredCss(cssAnalysis, criticalSelectors)
+    const deferredCss = this.identifyDeferredCss(cssAnalysis, criticalSelectors);
 
     return {
       language,
@@ -199,78 +254,93 @@ export class CriticalCssGenerator {
       aboveFoldSelectors: criticalSelectors,
       deferredCss,
       inlineSize: this.calculateSize(criticalCss),
-      totalReduction: this.calculateReduction(cssAnalysis.totalSize, criticalCss)
-    }
+      totalReduction: this.calculateReduction(cssAnalysis.totalSize, criticalCss),
+    };
   }
 
   /**
    * Collecter les sélecteurs critiques
    */
   private collectCriticalSelectors(language: SupportedLocale, route: string): string[] {
-    const selectors: string[] = []
-    
+    const selectors: string[] = [];
+
     // Ajouter sélecteurs globaux
-    selectors.push(...(this.criticalSelectors.get('global') || []))
-    
+    selectors.push(...(this.criticalSelectors.get('global') || []));
+
     // Ajouter sélecteurs spécifiques à la langue
-    selectors.push(...(this.languageSpecificSelectors.get(language) || []))
-    
+    selectors.push(...(this.languageSpecificSelectors.get(language) || []));
+
     // Ajouter sélecteurs spécifiques à la route
-    const normalizedRoute = this.normalizeRoute(route)
-    selectors.push(...(this.routeSpecificSelectors.get(normalizedRoute) || []))
-    
-    return [...new Set(selectors)] // Déduplication
+    const normalizedRoute = this.normalizeRoute(route);
+    selectors.push(...(this.routeSpecificSelectors.get(normalizedRoute) || []));
+
+    return [...new Set(selectors)]; // Déduplication
   }
 
   /**
    * Analyser les fichiers CSS
    */
-  private async analyzeCssFiles(cssFiles: string[], criticalSelectors: string[]): Promise<CssAnalysis> {
+  private async analyzeCssFiles(
+    cssFiles: string[],
+    criticalSelectors: string[]
+  ): Promise<CssAnalysis> {
     // Simulation de l'analyse CSS (en production, utiliser postcss/cssnano)
     const mockAnalysis: CssAnalysis = {
       totalSize: 145000, // 145KB
       usedSelectors: [
-        'body', 'html', '.container', '.header', '.nav',
-        '.hero', '.btn', '.card', '.grid', '.flex',
-        ...criticalSelectors.slice(0, 50)
+        'body',
+        'html',
+        '.container',
+        '.header',
+        '.nav',
+        '.hero',
+        '.btn',
+        '.card',
+        '.grid',
+        '.flex',
+        ...criticalSelectors.slice(0, 50),
       ],
       unusedSelectors: [
-        '.unused-component', '.legacy-style', '.debug-*',
-        '.print-only', '.ie-specific'
+        '.unused-component',
+        '.legacy-style',
+        '.debug-*',
+        '.print-only',
+        '.ie-specific',
       ],
       criticalSelectors: criticalSelectors.slice(0, 30),
-      fontSelectors: [
-        '@font-face', '.font-sans', '.font-serif', '.font-mono'
-      ],
+      fontSelectors: ['@font-face', '.font-sans', '.font-serif', '.font-mono'],
       mediaQueries: [
         {
           query: '@media (max-width: 640px)',
           selectors: ['.sm\\:hidden', '.sm\\:block'],
           size: 2400,
-          critical: true
+          critical: true,
         },
         {
           query: '@media (max-width: 768px)',
           selectors: ['.md\\:flex', '.md\\:grid'],
           size: 1800,
-          critical: true
+          critical: true,
         },
         {
           query: '@media (min-width: 1024px)',
           selectors: ['.lg\\:w-full', '.lg\\:max-w-none'],
           size: 3200,
-          critical: false
-        }
-      ]
-    }
+          critical: false,
+        },
+      ],
+    };
 
-    return mockAnalysis
+    return mockAnalysis;
   }
 
   /**
    * Extraire le CSS critique
    */
-  private extractCriticalCss(analysis: CssAnalysis, criticalSelectors: string[]): string {
+  private extractCriticalCss(
+    analysis: CssAnalysis,
+    criticalSelectors: string[]
+  ): string {
     // Simulation de génération CSS critique
     const criticalRules = [
       '/* Critical CSS - Above the fold */',
@@ -287,33 +357,36 @@ export class CriticalCssGenerator {
       '.loading{display:flex;justify-content:center;padding:2rem}',
       '.spinner{width:2rem;height:2rem;border:2px solid #e5e7eb;border-top:2px solid #3b82f6;border-radius:50%;animation:spin 1s linear infinite}',
       '@keyframes spin{to{transform:rotate(360deg)}}',
-      
+
       // Media queries critiques
       '@media (max-width: 640px){',
       '.container{padding:0 0.75rem}',
       '.hero{padding:2rem 0}',
       '}',
-      
+
       '@media (max-width: 768px){',
       '.nav{padding:0 1rem}',
       '.hero{font-size:0.875rem}',
-      '}'
-    ]
+      '}',
+    ];
 
-    return criticalRules.join('\n')
+    return criticalRules.join('\n');
   }
 
   /**
    * Identifier le CSS différé
    */
-  private identifyDeferredCss(analysis: CssAnalysis, criticalSelectors: string[]): string[] {
+  private identifyDeferredCss(
+    analysis: CssAnalysis,
+    criticalSelectors: string[]
+  ): string[] {
     return [
       'components.css', // Composants non-critiques
       'utilities.css', // Classes utilitaires avancées
       'animations.css', // Animations complexes
       'print.css', // Styles d'impression
-      'forms.css' // Styles de formulaires
-    ]
+      'forms.css', // Styles de formulaires
+    ];
   }
 
   /**
@@ -433,7 +506,7 @@ window.loadComponentStyles = (styleUrls) => {
     window.deferredCssLoader.loadStyles(styleUrls)
   }
 }
-    `.trim()
+    `.trim();
   }
 
   /**
@@ -446,65 +519,65 @@ window.loadComponentStyles = (styleUrls) => {
         './src/components/**/*.{js,ts,jsx,tsx,mdx}',
         './src/app/**/*.{js,ts,jsx,tsx,mdx}',
       ],
-      
+
       // Purge agressif pour production
       safelist: [
         // Classes dynamiques importantes
         'text-red-500',
-        'text-green-500', 
+        'text-green-500',
         'text-yellow-500',
         'bg-red-50',
         'bg-green-50',
         'bg-yellow-50',
-        
+
         // Classes pour le language switcher
         'opacity-0',
         'opacity-100',
         'transform',
         'transition-all',
-        
+
         // Classes RTL futures
         {
-          pattern: /rtl:(mr|ml|pr|pl|text)-.*/
-        }
+          pattern: /rtl:(mr|ml|pr|pl|text)-.*/,
+        },
       ],
 
       theme: {
         extend: {
           // Fonts optimisés par langue
           fontFamily: {
-            'sans': ['Inter', 'system-ui', 'sans-serif'],
-            'french': ['Source Sans Pro', 'sans-serif'],
-            'german': ['Roboto', 'sans-serif'],
-            'spanish': ['Open Sans', 'sans-serif']
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            french: ['Source Sans Pro', 'sans-serif'],
+            german: ['Roboto', 'sans-serif'],
+            spanish: ['Open Sans', 'sans-serif'],
           },
-          
+
           // Animations optimisées
           animation: {
             'fade-in': 'fadeIn 0.3s ease-in-out',
             'slide-in': 'slideIn 0.2s ease-out',
-            'pulse-soft': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-          }
-        }
+            'pulse-soft': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+        },
       },
 
       plugins: [
         // Plugin pour RTL support
-        function({ addUtilities }) {
+        function ({ addUtilities }) {
           const rtlUtilities = {
             '.rtl\\:text-right': {
               '[dir="rtl"] &': {
-                textAlign: 'right'
-              }
+                textAlign: 'right',
+              },
             },
             '.rtl\\:text-left': {
               '[dir="rtl"] &': {
-                textAlign: 'left'
-              }
-            }
-          }
-          addUtilities(rtlUtilities)
-        }
+                textAlign: 'left',
+              },
+            },
+          };
+          addUtilities(rtlUtilities);
+        },
       ],
 
       // Optimisations de build
@@ -518,37 +591,37 @@ window.loadComponentStyles = (styleUrls) => {
         backdropInvert: false,
         backdropOpacity: false,
         backdropSaturate: false,
-        backdropSepia: false
-      }
-    }
+        backdropSepia: false,
+      },
+    };
   }
 
   /**
    * Mesurer les performances
    */
   measurePerformance(beforeCss: string, afterCriticalCss: string): PerformanceMetrics {
-    const beforeSize = this.calculateSize(beforeCss)
-    const afterSize = this.calculateSize(afterCriticalCss)
-    
+    const beforeSize = this.calculateSize(beforeCss);
+    const afterSize = this.calculateSize(afterCriticalCss);
+
     // Simulation des métriques de performance
     return {
       beforeOptimization: {
         totalCssSize: beforeSize,
         blockingTime: beforeSize * 0.01, // ~1ms per KB
-        firstPaint: 1200 + (beforeSize * 0.01)
+        firstPaint: 1200 + beforeSize * 0.01,
       },
       afterOptimization: {
         inlineCssSize: afterSize,
         deferredCssSize: beforeSize - afterSize,
-        firstPaint: 800 + (afterSize * 0.005),
-        speedIndex: 1500
+        firstPaint: 800 + afterSize * 0.005,
+        speedIndex: 1500,
       },
       improvement: {
         sizeReduction: ((beforeSize - afterSize) / beforeSize) * 100,
         fasterFirstPaint: 400,
-        scoreImprovement: 15
-      }
-    }
+        scoreImprovement: 15,
+      },
+    };
   }
 
   // Méthodes utilitaires privées
@@ -556,33 +629,34 @@ window.loadComponentStyles = (styleUrls) => {
     // Normaliser les routes dynamiques
     return route
       .replace(/\/[a-z]{2}\//, '/') // Retirer préfixe langue
-      .replace(/\/[^/]+$/, '/[slug]') // Remplacer segments dynamiques
+      .replace(/\/[^/]+$/, '/[slug]'); // Remplacer segments dynamiques
   }
 
   private calculateSize(css: string): number {
-    return new Blob([css]).size
+    return new Blob([css]).size;
   }
 
   private calculateReduction(originalSize: number, optimizedCss: string): number {
-    const newSize = this.calculateSize(optimizedCss)
-    return ((originalSize - newSize) / originalSize) * 100
+    const newSize = this.calculateSize(optimizedCss);
+    return ((originalSize - newSize) / originalSize) * 100;
   }
 }
 
 /**
  * Instance singleton
  */
-export const criticalCssGenerator = new CriticalCssGenerator()
+export const criticalCssGenerator = new CriticalCssGenerator();
 
 /**
  * Hook React pour Critical CSS
  */
 export function useCriticalCss() {
   return {
-    generateCriticalCss: (config: Parameters<typeof criticalCssGenerator.generateCriticalCss>[0]) =>
-      criticalCssGenerator.generateCriticalCss(config),
-    
+    generateCriticalCss: (
+      config: Parameters<typeof criticalCssGenerator.generateCriticalCss>[0]
+    ) => criticalCssGenerator.generateCriticalCss(config),
+
     measurePerformance: (beforeCss: string, afterCriticalCss: string) =>
-      criticalCssGenerator.measurePerformance(beforeCss, afterCriticalCss)
-  }
+      criticalCssGenerator.measurePerformance(beforeCss, afterCriticalCss),
+  };
 }

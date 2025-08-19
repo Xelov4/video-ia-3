@@ -21,18 +21,12 @@ export async function POST(request: NextRequest) {
     const { url } = body;
 
     if (!url) {
-      return NextResponse.json(
-        { error: 'URL is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
     // Validate URL format
     if (!validateUrl(url)) {
-      return NextResponse.json(
-        { error: 'Invalid URL format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
     }
 
     // Always use the full professional analysis
@@ -42,17 +36,16 @@ export async function POST(request: NextRequest) {
       ...analysis,
       processingMode: 'professional',
       timestamp: new Date().toISOString(),
-      version: '2.0'
+      version: '2.0',
     });
-
   } catch (error) {
     console.error('Scraper API error:', error);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: error instanceof Error ? error.message : 'Internal server error',
         details: 'Failed to analyze the provided URL',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

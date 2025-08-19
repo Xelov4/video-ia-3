@@ -126,13 +126,10 @@ function aggressivePrettier() {
   console.log('\n3️⃣ Formatage Prettier AGGRESSIF...');
   try {
     // Forcer le formatage même avec des erreurs
-    execSync(
-      'npx prettier --write src/ app/ --ignore-unknown --loglevel error',
-      {
-        stdio: 'pipe',
-        maxBuffer: 1024 * 1024 * 10, // 10MB buffer
-      }
-    );
+    execSync('npx prettier --write src/ app/ --ignore-unknown --loglevel error', {
+      stdio: 'pipe',
+      maxBuffer: 1024 * 1024 * 10, // 10MB buffer
+    });
     console.log('✅ Prettier agressif terminé');
   } catch (error) {
     console.log('⚠️ Prettier a rencontré des erreurs (normal)');
@@ -143,13 +140,10 @@ function aggressivePrettier() {
 function aggressiveESLintFix() {
   console.log('\n4️⃣ ESLint --fix AGGRESSIF...');
   try {
-    execSync(
-      'npx eslint src/ app/ --fix --ext .ts,.tsx,.js,.jsx --max-warnings 1000',
-      {
-        stdio: 'pipe',
-        maxBuffer: 1024 * 1024 * 10, // 10MB buffer
-      }
-    );
+    execSync('npx eslint src/ app/ --fix --ext .ts,.tsx,.js,.jsx --max-warnings 1000', {
+      stdio: 'pipe',
+      maxBuffer: 1024 * 1024 * 10, // 10MB buffer
+    });
     console.log('✅ ESLint --fix agressif terminé');
   } catch (error) {
     console.log('⚠️ ESLint a traité les fichiers (erreurs restantes normales)');
@@ -222,9 +216,7 @@ function finalReport() {
     const errorCount = lines.filter(line => line.includes('Error:')).length;
     const warningCount = lines.filter(line => line.includes('Warning:')).length;
 
-    console.log(
-      `📊 Rapport final: ${errorCount} erreurs, ${warningCount} warnings`
-    );
+    console.log(`📊 Rapport final: ${errorCount} erreurs, ${warningCount} warnings`);
 
     if (errorCount === 0) {
       console.log('🎯 SUCCÈS ! Aucune erreur critique restante !');

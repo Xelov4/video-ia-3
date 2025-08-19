@@ -1,16 +1,16 @@
 /**
  * Database Services Index
- * 
+ *
  * Central export point for all database services and utilities.
  * Provides unified access to the complete database layer with
  * type safety and comprehensive functionality.
- * 
+ *
  * Services:
  * - ToolsService: AI tools management with search, analytics, CRUD
  * - CategoriesService: Category management with hierarchical support
  * - TagsService: Tag management with usage tracking and cleanup
  * - Database client: Prisma client with connection management
- * 
+ *
  * Features:
  * - Type-safe database operations
  * - Performance-optimized queries
@@ -18,123 +18,106 @@
  * - Analytics and statistics
  * - SEO optimization support
  * - Admin interface integration
- * 
+ *
  * @author Video-IA.net Development Team
  */
 
 // Core database client
-export { prisma, checkDatabaseConnection, disconnectDatabase } from './client'
+export { prisma, checkDatabaseConnection, disconnectDatabase } from './client';
 
 // Service classes
-export { ToolsService } from './services/tools'
-export { CategoriesService } from './services/categories'
-export { TagsService } from './services/tags'
+export { ToolsService } from './services/tools';
+export { CategoriesService } from './services/categories';
+export { TagsService } from './services/tags';
 
 // Type exports
 export type {
   ToolsSearchParams,
   PaginatedToolsResponse,
-  ToolData
-} from './services/tools'
+  ToolData,
+} from './services/tools';
 
-export type {
-  CategoryWithStats,
-  CategoryData
-} from './services/categories'
+export type { CategoryWithStats, CategoryData } from './services/categories';
 
-export type {
-  TagWithStats,
-  TagData,
-  TagCloudItem
-} from './services/tags'
+export type { TagWithStats, TagData, TagCloudItem } from './services/tags';
 
 // Re-export Prisma types
-export type { Tool, Category, Tag } from '@prisma/client'
+export type { Tool, Category, Tag } from '@prisma/client';
 
 /**
  * Database Utilities
- * 
+ *
  * Helper functions for common database operations
  * and maintenance tasks.
  */
 export class DatabaseUtils {
   /**
    * Synchronize all counts and statistics
-   * 
+   *
    * Updates all count fields across the database for
    * data consistency. Should be run periodically.
-   * 
+   *
    * @returns Summary of synchronization results
    */
   static async synchronizeAllCounts(): Promise<{
-    categoriesUpdated: number
-    tagsUpdated: number
-    unusedTagsDeleted: number
+    categoriesUpdated: number;
+    tagsUpdated: number;
+    unusedTagsDeleted: number;
   }> {
     try {
-      const { CategoriesService } = await import('./services/categories')
-      const { TagsService } = await import('./services/tags')
+      const { CategoriesService } = await import('./services/categories');
+      const { TagsService } = await import('./services/tags');
 
-      const [
-        updatedCategories,
-        updatedTags,
-        deletedTags
-      ] = await Promise.all([
+      const [updatedCategories, updatedTags, deletedTags] = await Promise.all([
         CategoriesService.synchronizeAllToolCounts(),
         TagsService.synchronizeAllUsageCounts(),
-        TagsService.cleanupUnusedTags()
-      ])
+        TagsService.cleanupUnusedTags(),
+      ]);
 
       return {
         categoriesUpdated: updatedCategories.length,
         tagsUpdated: updatedTags.length,
-        unusedTagsDeleted: deletedTags
-      }
+        unusedTagsDeleted: deletedTags,
+      };
     } catch (error) {
-      console.error('Error synchronizing database counts:', error)
-      throw new Error('Failed to synchronize database counts')
+      console.error('Error synchronizing database counts:', error);
+      throw new Error('Failed to synchronize database counts');
     }
   }
 
   /**
    * Get comprehensive database statistics
-   * 
+   *
    * Retrieves statistics from all database entities
    * for admin dashboard and monitoring.
-   * 
+   *
    * @returns Complete database statistics
    */
   static async getDatabaseStatistics(): Promise<{
-    tools: any
-    categories: any
-    tags: any
+    tools: any;
+    categories: any;
+    tags: any;
     system: {
-      connected: boolean
-      totalRecords: number
-      lastSynchronized: Date
-    }
+      connected: boolean;
+      totalRecords: number;
+      lastSynchronized: Date;
+    };
   }> {
     try {
-      const { toolsService } = await import('./services/tools')
-      const { CategoriesService } = await import('./services/categories')
-      const { TagsService } = await import('./services/tags')
-      const { checkDatabaseConnection } = await import('./client')
+      const { toolsService } = await import('./services/tools');
+      const { CategoriesService } = await import('./services/categories');
+      const { TagsService } = await import('./services/tags');
+      const { checkDatabaseConnection } = await import('./client');
 
-      const [
-        toolStats,
-        categoryStats,
-        tagStats,
-        connectionStatus
-      ] = await Promise.all([
+      const [toolStats, categoryStats, tagStats, connectionStatus] = await Promise.all([
         toolsService.getToolStatistics(),
         CategoriesService.getCategoryStatistics(),
         TagsService.getTagStatistics(),
-        checkDatabaseConnection()
-      ])
+        checkDatabaseConnection(),
+      ]);
 
-      const totalRecords = toolStats.totalTools + 
-                          categoryStats.totalCategories + 
-                          tagStats.totalTags
+      const totalRecords =
+        toolStats.totalTools + categoryStats.totalCategories + tagStats.totalTags;
 
       return {
         tools: toolStats,
@@ -143,122 +126,124 @@ export class DatabaseUtils {
         system: {
           connected: connectionStatus.connected,
           totalRecords,
-          lastSynchronized: new Date()
-        }
-      }
+          lastSynchronized: new Date(),
+        },
+      };
     } catch (error) {
-      console.error('Error getting database statistics:', error)
-      throw new Error('Failed to retrieve database statistics')
+      console.error('Error getting database statistics:', error);
+      throw new Error('Failed to retrieve database statistics');
     }
   }
 
   /**
    * Health check for all database services
-   * 
+   *
    * Verifies that all database services are functioning
    * correctly. Used for monitoring and debugging.
-   * 
+   *
    * @returns Health check results
    */
   static async healthCheck(): Promise<{
-    status: 'healthy' | 'degraded' | 'unhealthy'
+    status: 'healthy' | 'degraded' | 'unhealthy';
     services: {
-      database: boolean
-      tools: boolean
-      categories: boolean
-      tags: boolean
-    }
-    errors: string[]
+      database: boolean;
+      tools: boolean;
+      categories: boolean;
+      tags: boolean;
+    };
+    errors: string[];
   }> {
-    const errors: string[] = []
+    const errors: string[] = [];
     const services = {
       database: false,
       tools: false,
       categories: false,
-      tags: false
-    }
+      tags: false,
+    };
 
     try {
       // Test database connection
-      const { checkDatabaseConnection } = await import('./client')
-      const connectionStatus = await checkDatabaseConnection()
-      services.database = connectionStatus.connected
-      
+      const { checkDatabaseConnection } = await import('./client');
+      const connectionStatus = await checkDatabaseConnection();
+      services.database = connectionStatus.connected;
+
       if (!connectionStatus.connected) {
-        errors.push(`Database connection failed: ${connectionStatus.error}`)
+        errors.push(`Database connection failed: ${connectionStatus.error}`);
       }
     } catch (error) {
-      errors.push('Database service error')
+      errors.push('Database service error');
     }
 
     try {
       // Test tools service
-      const { toolsService } = await import('./services/tools')
-      await toolsService.searchTools({ limit: 1 })
-      services.tools = true
+      const { toolsService } = await import('./services/tools');
+      await toolsService.searchTools({ limit: 1 });
+      services.tools = true;
     } catch (error) {
-      errors.push('Tools service error')
+      errors.push('Tools service error');
     }
 
     try {
       // Test categories service
-      const { CategoriesService } = await import('./services/categories')
-      await CategoriesService.getAllCategories()
-      services.categories = true
+      const { CategoriesService } = await import('./services/categories');
+      await CategoriesService.getAllCategories();
+      services.categories = true;
     } catch (error) {
-      errors.push('Categories service error')
+      errors.push('Categories service error');
     }
 
     try {
       // Test tags service
-      const { TagsService } = await import('./services/tags')
-      await TagsService.getAllTags()
-      services.tags = true
+      const { TagsService } = await import('./services/tags');
+      await TagsService.getAllTags();
+      services.tags = true;
     } catch (error) {
-      errors.push('Tags service error')
+      errors.push('Tags service error');
     }
 
     // Determine overall status
-    const healthyServices = Object.values(services).filter(Boolean).length
-    const totalServices = Object.keys(services).length
+    const healthyServices = Object.values(services).filter(Boolean).length;
+    const totalServices = Object.keys(services).length;
 
-    let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy'
+    let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
     if (healthyServices === 0) {
-      status = 'unhealthy'
+      status = 'unhealthy';
     } else if (healthyServices < totalServices) {
-      status = 'degraded'
+      status = 'degraded';
     }
 
     return {
       status,
       services,
-      errors
-    }
+      errors,
+    };
   }
 }
 
 /**
  * Database initialization and setup
- * 
+ *
  * Ensures database is properly initialized and ready for use.
  * Should be called during application startup.
  */
 export async function initializeDatabase(): Promise<boolean> {
   try {
-    const { checkDatabaseConnection } = await import('./client')
-    const status = await checkDatabaseConnection()
-    
+    const { checkDatabaseConnection } = await import('./client');
+    const status = await checkDatabaseConnection();
+
     if (!status.connected) {
-      console.error('Database initialization failed:', status.error)
-      return false
+      console.error('Database initialization failed:', status.error);
+      return false;
     }
 
-    console.log('✅ Database initialized successfully')
-    console.log(`📊 Database stats: ${status.stats?.toolCount} tools, ${status.stats?.categoryCount} categories, ${status.stats?.tagCount} tags`)
-    
-    return true
+    console.log('✅ Database initialized successfully');
+    console.log(
+      `📊 Database stats: ${status.stats?.toolCount} tools, ${status.stats?.categoryCount} categories, ${status.stats?.tagCount} tags`
+    );
+
+    return true;
   } catch (error) {
-    console.error('Database initialization error:', error)
-    return false
+    console.error('Database initialization error:', error);
+    return false;
   }
 }

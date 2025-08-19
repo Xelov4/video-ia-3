@@ -1,6 +1,6 @@
 /**
  * API Route for Tool Analysis
- * 
+ *
  * Analyzes and updates specific tools from the database using AI analysis
  * Integrates with ScraperService for intelligent content analysis
  */
@@ -13,13 +13,13 @@ const scraperService = new ScraperService();
 
 /**
  * POST /api/tools/[id]/analyze
- * 
+ *
  * Analyzes a specific tool from the database and optionally updates its fields
- * 
+ *
  * Request Body:
  * - fields: Array of field names to update (optional)
  * - updateOptions: Additional options for the update process
- * 
+ *
  * @param request Next.js request object
  * @param params Route parameters containing tool ID
  * @returns Analysis results and update confirmation
@@ -32,12 +32,12 @@ export async function POST(
     // Next.js 15 requires awaiting params
     const { id } = await params;
     const toolId = parseInt(id);
-    
+
     if (isNaN(toolId)) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid tool ID'
+          error: 'Invalid tool ID',
         },
         { status: 400 }
       );
@@ -49,12 +49,12 @@ export async function POST(
 
     // Get tool from database
     const tool = await toolsService.getToolById(toolId);
-    
+
     if (!tool) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Tool not found'
+          error: 'Tool not found',
         },
         { status: 404 }
       );
@@ -65,7 +65,7 @@ export async function POST(
       return NextResponse.json(
         {
           success: false,
-          error: 'Tool does not have a valid URL for analysis'
+          error: 'Tool does not have a valid URL for analysis',
         },
         { status: 400 }
       );
@@ -75,18 +75,21 @@ export async function POST(
     const analysis = await scraperService.analyzeProfessionalTool(tool.tool_link);
 
     // Prepare update data based on requested fields or use all fields if none specified
-    const fieldsToUpdate = fields.length > 0 ? fields : [
-      'tool_name',
-      'tool_category', 
-      'overview',
-      'tool_description',
-      'target_audience',
-      'key_features',
-      'tags',
-      'meta_title',
-      'meta_description',
-      'seo_keywords'
-    ];
+    const fieldsToUpdate =
+      fields.length > 0
+        ? fields
+        : [
+            'tool_name',
+            'tool_category',
+            'overview',
+            'tool_description',
+            'target_audience',
+            'key_features',
+            'tags',
+            'meta_title',
+            'meta_description',
+            'seo_keywords',
+          ];
 
     const updateData: any = {};
     const updatedFields: string[] = [];
@@ -152,7 +155,10 @@ export async function POST(
           }
           break;
         case 'meta_description':
-          if (analysis.metaDescription && analysis.metaDescription !== tool.meta_description) {
+          if (
+            analysis.metaDescription &&
+            analysis.metaDescription !== tool.meta_description
+          ) {
             updateData.meta_description = analysis.metaDescription;
             updatedFields.push('meta_description');
           }
@@ -192,22 +198,22 @@ export async function POST(
         updatedFields,
         hasChanges: updatedFields.length > 0,
         processingMode: 'professional',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
-      message: updatedFields.length > 0 
-        ? `Tool analyzed and ${updatedFields.length} fields updated successfully`
-        : 'Tool analyzed successfully, no updates needed'
+      message:
+        updatedFields.length > 0
+          ? `Tool analyzed and ${updatedFields.length} fields updated successfully`
+          : 'Tool analyzed successfully, no updates needed',
     });
-
   } catch (error) {
     console.error('Error in POST /api/tools/[id]/analyze:', error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to analyze tool',
         message: error instanceof Error ? error.message : 'Unknown error occurred',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );

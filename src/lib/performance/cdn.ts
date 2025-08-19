@@ -1,68 +1,68 @@
 /**
  * Système CDN et Distribution Globale - Video-IA.net
- * 
+ *
  * Optimisation performance multilingue avec distribution globale :
  * - Configuration CDN par région/langue
  * - Cache strategies intelligent
  * - Edge computing pour l'i18n
  * - Monitoring performance globale
- * 
+ *
  * @author Video-IA.net Development Team
  */
 
-'use client'
+'use client';
 
-import { SupportedLocale } from '@/middleware'
+import { SupportedLocale } from '@/middleware';
 
 // Configuration des régions CDN
 export interface CdnRegion {
-  code: string
-  name: string
-  countries: string[]
-  languages: SupportedLocale[]
-  primaryLanguage: SupportedLocale
-  endpoint: string
-  cacheTtl: number
+  code: string;
+  name: string;
+  countries: string[];
+  languages: SupportedLocale[];
+  primaryLanguage: SupportedLocale;
+  endpoint: string;
+  cacheTtl: number;
 }
 
 export interface CdnConfig {
-  provider: 'cloudflare' | 'aws' | 'cloudfront' | 'fastly'
-  regions: CdnRegion[]
-  defaultRegion: string
-  cacheRules: CacheRule[]
-  purgeStrategy: 'immediate' | 'scheduled' | 'lazy'
+  provider: 'cloudflare' | 'aws' | 'cloudfront' | 'fastly';
+  regions: CdnRegion[];
+  defaultRegion: string;
+  cacheRules: CacheRule[];
+  purgeStrategy: 'immediate' | 'scheduled' | 'lazy';
 }
 
 export interface CacheRule {
-  pattern: string | RegExp
-  ttl: number
-  conditions: string[]
-  headers: Record<string, string>
-  edgeRules?: string[]
+  pattern: string | RegExp;
+  ttl: number;
+  conditions: string[];
+  headers: Record<string, string>;
+  edgeRules?: string[];
 }
 
 export interface PerformanceMetrics {
-  region: string
-  language: SupportedLocale
-  loadTime: number
-  ttfb: number
-  cls: number
-  fid: number
-  lcp: number
-  cacheHitRate: number
-  bandwidth: number
-  timestamp: Date
+  region: string;
+  language: SupportedLocale;
+  loadTime: number;
+  ttfb: number;
+  cls: number;
+  fid: number;
+  lcp: number;
+  cacheHitRate: number;
+  bandwidth: number;
+  timestamp: Date;
 }
 
 /**
  * Gestionnaire CDN et performance globale
  */
 export class CdnManager {
-  private config: CdnConfig
-  private metricsStore: PerformanceMetrics[] = []
+  private config: CdnConfig;
+  private metricsStore: PerformanceMetrics[] = [];
 
   constructor() {
-    this.config = this.generateCdnConfig()
+    this.config = this.generateCdnConfig();
   }
 
   /**
@@ -81,7 +81,7 @@ export class CdnManager {
           languages: ['en'],
           primaryLanguage: 'en',
           endpoint: 'https://us-east.video-ia.net',
-          cacheTtl: 3600
+          cacheTtl: 3600,
         },
         {
           code: 'eu-west',
@@ -90,7 +90,7 @@ export class CdnManager {
           languages: ['fr', 'de', 'nl'],
           primaryLanguage: 'fr',
           endpoint: 'https://eu-west.video-ia.net',
-          cacheTtl: 3600
+          cacheTtl: 3600,
         },
         {
           code: 'eu-south',
@@ -99,7 +99,7 @@ export class CdnManager {
           languages: ['it', 'es', 'pt'],
           primaryLanguage: 'es',
           endpoint: 'https://eu-south.video-ia.net',
-          cacheTtl: 3600
+          cacheTtl: 3600,
         },
         {
           code: 'asia-pacific',
@@ -108,8 +108,8 @@ export class CdnManager {
           languages: ['en'],
           primaryLanguage: 'en',
           endpoint: 'https://ap.video-ia.net',
-          cacheTtl: 7200
-        }
+          cacheTtl: 7200,
+        },
       ],
       cacheRules: [
         {
@@ -118,9 +118,9 @@ export class CdnManager {
           conditions: ['static-assets'],
           headers: {
             'Cache-Control': 'public, max-age=31536000, immutable',
-            'Vary': 'Accept-Encoding'
+            Vary: 'Accept-Encoding',
           },
-          edgeRules: ['compress', 'minify']
+          edgeRules: ['compress', 'minify'],
         },
         {
           pattern: /\.(jpg|jpeg|png|webp|avif|svg)$/,
@@ -128,9 +128,9 @@ export class CdnManager {
           conditions: ['images'],
           headers: {
             'Cache-Control': 'public, max-age=604800',
-            'Vary': 'Accept, Accept-Encoding'
+            Vary: 'Accept, Accept-Encoding',
           },
-          edgeRules: ['compress', 'webp-conversion', 'resize-responsive']
+          edgeRules: ['compress', 'webp-conversion', 'resize-responsive'],
         },
         {
           pattern: '/api/tools',
@@ -138,9 +138,9 @@ export class CdnManager {
           conditions: ['api-data'],
           headers: {
             'Cache-Control': 'public, max-age=300, s-maxage=600',
-            'Vary': 'Accept-Language, Accept-Encoding'
+            Vary: 'Accept-Language, Accept-Encoding',
           },
-          edgeRules: ['language-cache']
+          edgeRules: ['language-cache'],
         },
         {
           pattern: /^\/[a-z]{2}\/.*$/,
@@ -148,76 +148,86 @@ export class CdnManager {
           conditions: ['localized-pages'],
           headers: {
             'Cache-Control': 'public, max-age=1800, s-maxage=3600',
-            'Vary': 'Accept-Language, Accept-Encoding'
+            Vary: 'Accept-Language, Accept-Encoding',
           },
-          edgeRules: ['language-detection', 'hreflang-injection']
-        }
-      ]
-    }
+          edgeRules: ['language-detection', 'hreflang-injection'],
+        },
+      ],
+    };
   }
 
   /**
    * Détecter la région optimale pour un utilisateur
    */
-  detectOptimalRegion(userLocation?: { country?: string; language?: SupportedLocale }): CdnRegion {
+  detectOptimalRegion(userLocation?: {
+    country?: string;
+    language?: SupportedLocale;
+  }): CdnRegion {
     if (!userLocation) {
-      return this.config.regions.find(r => r.code === this.config.defaultRegion) || this.config.regions[0]
+      return (
+        this.config.regions.find(r => r.code === this.config.defaultRegion) ||
+        this.config.regions[0]
+      );
     }
 
     // Prioriser par pays
     if (userLocation.country) {
-      const regionByCountry = this.config.regions.find(region => 
+      const regionByCountry = this.config.regions.find(region =>
         region.countries.includes(userLocation.country!)
-      )
-      if (regionByCountry) return regionByCountry
+      );
+      if (regionByCountry) return regionByCountry;
     }
 
     // Prioriser par langue
     if (userLocation.language) {
       const regionByLanguage = this.config.regions.find(region =>
         region.languages.includes(userLocation.language!)
-      )
-      if (regionByLanguage) return regionByLanguage
+      );
+      if (regionByLanguage) return regionByLanguage;
     }
 
     // Fallback vers région par défaut
-    return this.config.regions.find(r => r.code === this.config.defaultRegion) || this.config.regions[0]
+    return (
+      this.config.regions.find(r => r.code === this.config.defaultRegion) ||
+      this.config.regions[0]
+    );
   }
 
   /**
    * Générer URL CDN optimisée
    */
   generateCdnUrl(
-    assetPath: string, 
+    assetPath: string,
     options?: {
-      region?: string
-      language?: SupportedLocale
-      transformations?: string[]
+      region?: string;
+      language?: SupportedLocale;
+      transformations?: string[];
     }
   ): string {
-    const { region, language, transformations = [] } = options || {}
+    const { region, language, transformations = [] } = options || {};
 
     // Déterminer la région
-    let targetRegion: CdnRegion
+    let targetRegion: CdnRegion;
     if (region) {
-      targetRegion = this.config.regions.find(r => r.code === region) || this.config.regions[0]
+      targetRegion =
+        this.config.regions.find(r => r.code === region) || this.config.regions[0];
     } else {
-      targetRegion = this.detectOptimalRegion({ language })
+      targetRegion = this.detectOptimalRegion({ language });
     }
 
     // Construire l'URL de base
-    let cdnUrl = `${targetRegion.endpoint}${assetPath.startsWith('/') ? '' : '/'}${assetPath}`
+    let cdnUrl = `${targetRegion.endpoint}${assetPath.startsWith('/') ? '' : '/'}${assetPath}`;
 
     // Ajouter transformations pour les images
     if (transformations.length > 0 && this.isImageAsset(assetPath)) {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams();
       transformations.forEach(transform => {
-        params.append('t', transform)
-      })
-      cdnUrl += `?${params.toString()}`
+        params.append('t', transform);
+      });
+      cdnUrl += `?${params.toString()}`;
     }
 
-    return cdnUrl
+    return cdnUrl;
   }
 
   /**
@@ -321,16 +331,16 @@ async function injectHreflangTags(response, url, currentLang) {
     headers: response.headers
   })
 }
-    `.trim()
+    `.trim();
   }
 
   /**
    * Optimiser les ressources statiques
    */
   optimizeStaticAssets(): {
-    cssOptimization: string[]
-    jsOptimization: string[]
-    imageOptimization: string[]
+    cssOptimization: string[];
+    jsOptimization: string[];
+    imageOptimization: string[];
   } {
     return {
       cssOptimization: [
@@ -338,36 +348,36 @@ async function injectHreflangTags(response, url, currentLang) {
         'critical-css-inlining',
         'unused-css-removal',
         'gzip-compression',
-        'brotli-compression'
+        'brotli-compression',
       ],
       jsOptimization: [
         'code-splitting-by-language',
         'tree-shaking',
         'minification',
         'bundle-analysis',
-        'lazy-loading'
+        'lazy-loading',
       ],
       imageOptimization: [
         'webp-conversion',
         'avif-support',
         'responsive-sizes',
         'lazy-loading',
-        'placeholder-blur'
-      ]
-    }
+        'placeholder-blur',
+      ],
+    };
   }
 
   /**
    * Mesurer les performances par région
    */
   async measurePerformance(
-    region: string, 
-    language: SupportedLocale, 
+    region: string,
+    language: SupportedLocale,
     testUrls: string[]
   ): Promise<PerformanceMetrics> {
     // Simulation des métriques de performance
-    const baseLatency = this.getRegionBaseLatency(region)
-    
+    const baseLatency = this.getRegionBaseLatency(region);
+
     return {
       region,
       language,
@@ -378,8 +388,8 @@ async function injectHreflangTags(response, url, currentLang) {
       lcp: baseLatency + Math.random() * 1000,
       cacheHitRate: 0.85 + Math.random() * 0.1,
       bandwidth: 50 + Math.random() * 100, // Mbps
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    };
   }
 
   /**
@@ -387,30 +397,30 @@ async function injectHreflangTags(response, url, currentLang) {
    */
   generatePerformanceReport(): {
     globalMetrics: {
-      averageLoadTime: number
-      globalCacheHitRate: number
-      worstPerformingRegions: string[]
-      bestPerformingRegions: string[]
-    }
-    byRegion: Record<string, PerformanceMetrics[]>
-    recommendations: string[]
+      averageLoadTime: number;
+      globalCacheHitRate: number;
+      worstPerformingRegions: string[];
+      bestPerformingRegions: string[];
+    };
+    byRegion: Record<string, PerformanceMetrics[]>;
+    recommendations: string[];
   } {
-    const byRegion = this.groupMetricsByRegion()
-    
+    const byRegion = this.groupMetricsByRegion();
+
     const globalMetrics = {
       averageLoadTime: this.calculateAverageMetric('loadTime'),
       globalCacheHitRate: this.calculateAverageMetric('cacheHitRate'),
       worstPerformingRegions: this.getWorstPerformingRegions(3),
-      bestPerformingRegions: this.getBestPerformingRegions(3)
-    }
+      bestPerformingRegions: this.getBestPerformingRegions(3),
+    };
 
-    const recommendations = this.generateRecommendations(globalMetrics, byRegion)
+    const recommendations = this.generateRecommendations(globalMetrics, byRegion);
 
     return {
       globalMetrics,
       byRegion,
-      recommendations
-    }
+      recommendations,
+    };
   }
 
   /**
@@ -420,11 +430,11 @@ async function injectHreflangTags(response, url, currentLang) {
     return {
       experimental: {
         optimizeCss: true,
-        optimizeServerReact: true
+        optimizeServerReact: true,
       },
       compress: false, // Handled by CDN
       poweredByHeader: false,
-      
+
       images: {
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -441,38 +451,38 @@ async function injectHreflangTags(response, url, currentLang) {
             headers: [
               {
                 key: 'Cache-Control',
-                value: 'public, max-age=300, s-maxage=600'
+                value: 'public, max-age=300, s-maxage=600',
               },
               {
                 key: 'Vary',
-                value: 'Accept-Language, Accept-Encoding'
-              }
-            ]
+                value: 'Accept-Language, Accept-Encoding',
+              },
+            ],
           },
           {
             source: '/:path*',
             headers: [
               {
                 key: 'X-DNS-Prefetch-Control',
-                value: 'on'
+                value: 'on',
               },
               {
                 key: 'X-Frame-Options',
-                value: 'SAMEORIGIN'
+                value: 'SAMEORIGIN',
               },
               {
                 key: 'X-Content-Type-Options',
-                value: 'nosniff'
-              }
-            ]
-          }
-        ]
+                value: 'nosniff',
+              },
+            ],
+          },
+        ];
       },
 
       async redirects() {
         return [
           // Legacy URL redirects will be handled by migration system
-        ]
+        ];
       },
 
       webpack: (config: any, { dev, isServer }: any) => {
@@ -484,25 +494,25 @@ async function injectHreflangTags(response, url, currentLang) {
               name: 'i18n',
               test: /[\\/]i18n[\\/]/,
               chunks: 'all',
-              enforce: true
+              enforce: true,
             },
             translations: {
               name: 'translations',
               test: /[\\/]translations[\\/]/,
               chunks: 'all',
-              enforce: true
-            }
-          }
+              enforce: true,
+            },
+          };
         }
-        
-        return config
-      }
-    }
+
+        return config;
+      },
+    };
   }
 
   // Méthodes utilitaires privées
   private isImageAsset(path: string): boolean {
-    return /\.(jpg|jpeg|png|webp|avif|svg)$/i.test(path)
+    return /\.(jpg|jpeg|png|webp|avif|svg)$/i.test(path);
   }
 
   private getRegionBaseLatency(region: string): number {
@@ -510,95 +520,105 @@ async function injectHreflangTags(response, url, currentLang) {
       'us-east': 50,
       'eu-west': 80,
       'eu-south': 90,
-      'asia-pacific': 120
-    }
-    return latencies[region] || 100
+      'asia-pacific': 120,
+    };
+    return latencies[region] || 100;
   }
 
   private groupMetricsByRegion(): Record<string, PerformanceMetrics[]> {
-    return this.metricsStore.reduce((acc, metric) => {
-      if (!acc[metric.region]) acc[metric.region] = []
-      acc[metric.region].push(metric)
-      return acc
-    }, {} as Record<string, PerformanceMetrics[]>)
+    return this.metricsStore.reduce(
+      (acc, metric) => {
+        if (!acc[metric.region]) acc[metric.region] = [];
+        acc[metric.region].push(metric);
+        return acc;
+      },
+      {} as Record<string, PerformanceMetrics[]>
+    );
   }
 
   private calculateAverageMetric(metricName: keyof PerformanceMetrics): number {
-    if (this.metricsStore.length === 0) return 0
-    
+    if (this.metricsStore.length === 0) return 0;
+
     const sum = this.metricsStore.reduce((acc, metric) => {
-      const value = metric[metricName]
-      return acc + (typeof value === 'number' ? value : 0)
-    }, 0)
-    
-    return sum / this.metricsStore.length
+      const value = metric[metricName];
+      return acc + (typeof value === 'number' ? value : 0);
+    }, 0);
+
+    return sum / this.metricsStore.length;
   }
 
   private getWorstPerformingRegions(count: number): string[] {
-    const byRegion = this.groupMetricsByRegion()
-    
+    const byRegion = this.groupMetricsByRegion();
+
     return Object.entries(byRegion)
       .map(([region, metrics]) => ({
         region,
-        avgLoadTime: metrics.reduce((sum, m) => sum + m.loadTime, 0) / metrics.length
+        avgLoadTime: metrics.reduce((sum, m) => sum + m.loadTime, 0) / metrics.length,
       }))
       .sort((a, b) => b.avgLoadTime - a.avgLoadTime)
       .slice(0, count)
-      .map(item => item.region)
+      .map(item => item.region);
   }
 
   private getBestPerformingRegions(count: number): string[] {
-    const byRegion = this.groupMetricsByRegion()
-    
+    const byRegion = this.groupMetricsByRegion();
+
     return Object.entries(byRegion)
       .map(([region, metrics]) => ({
         region,
-        avgLoadTime: metrics.reduce((sum, m) => sum + m.loadTime, 0) / metrics.length
+        avgLoadTime: metrics.reduce((sum, m) => sum + m.loadTime, 0) / metrics.length,
       }))
       .sort((a, b) => a.avgLoadTime - b.avgLoadTime)
       .slice(0, count)
-      .map(item => item.region)
+      .map(item => item.region);
   }
 
   private generateRecommendations(globalMetrics: any, byRegion: any): string[] {
-    const recommendations: string[] = []
-    
+    const recommendations: string[] = [];
+
     if (globalMetrics.averageLoadTime > 2000) {
-      recommendations.push('Optimiser les temps de chargement globaux (>2s)')
+      recommendations.push('Optimiser les temps de chargement globaux (>2s)');
     }
-    
+
     if (globalMetrics.globalCacheHitRate < 0.8) {
-      recommendations.push('Améliorer le taux de cache hit (<80%)')
+      recommendations.push('Améliorer le taux de cache hit (<80%)');
     }
-    
+
     if (globalMetrics.worstPerformingRegions.length > 0) {
-      recommendations.push(`Optimiser les régions : ${globalMetrics.worstPerformingRegions.join(', ')}`)
+      recommendations.push(
+        `Optimiser les régions : ${globalMetrics.worstPerformingRegions.join(', ')}`
+      );
     }
-    
-    return recommendations
+
+    return recommendations;
   }
 }
 
 /**
  * Instance singleton
  */
-export const cdnManager = new CdnManager()
+export const cdnManager = new CdnManager();
 
 /**
  * Hook React pour CDN et performance
  */
 export function useCdn() {
   return {
-    generateCdnUrl: (assetPath: string, options?: Parameters<typeof cdnManager.generateCdnUrl>[1]) =>
-      cdnManager.generateCdnUrl(assetPath, options),
-    
-    detectOptimalRegion: (userLocation?: Parameters<typeof cdnManager.detectOptimalRegion>[0]) =>
-      cdnManager.detectOptimalRegion(userLocation),
-    
-    measurePerformance: (region: string, language: SupportedLocale, testUrls: string[]) =>
-      cdnManager.measurePerformance(region, language, testUrls),
-    
-    generatePerformanceReport: () =>
-      cdnManager.generatePerformanceReport()
-  }
+    generateCdnUrl: (
+      assetPath: string,
+      options?: Parameters<typeof cdnManager.generateCdnUrl>[1]
+    ) => cdnManager.generateCdnUrl(assetPath, options),
+
+    detectOptimalRegion: (
+      userLocation?: Parameters<typeof cdnManager.detectOptimalRegion>[0]
+    ) => cdnManager.detectOptimalRegion(userLocation),
+
+    measurePerformance: (
+      region: string,
+      language: SupportedLocale,
+      testUrls: string[]
+    ) => cdnManager.measurePerformance(region, language, testUrls),
+
+    generatePerformanceReport: () => cdnManager.generatePerformanceReport(),
+  };
 }

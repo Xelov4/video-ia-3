@@ -1,96 +1,98 @@
 /**
  * Posts Service - Prisma Implementation
- * 
+ *
  * Service de gestion des articles/posts du blog utilisant Prisma ORM.
  * Fournit toutes les opérations CRUD et de recherche pour les posts.
- * 
+ *
  * @author Video-IA.net Development Team
  */
 
-import { prisma } from '../client'
-import { Post, PostTranslation, Prisma, PostStatus, PostType } from '@prisma/client'
+import { prisma } from '../client';
+import { Post, PostTranslation, Prisma, PostStatus, PostType } from '@prisma/client';
 
 export interface PostsSearchParams {
-  query?: string
-  category?: string
-  status?: PostStatus
-  postType?: PostType
-  featured?: boolean
-  authorId?: number
-  language?: string // Support multilingue
-  page?: number
-  limit?: number
-  sortBy?: string
-  sortOrder?: 'asc' | 'desc'
+  query?: string;
+  category?: string;
+  status?: PostStatus;
+  postType?: PostType;
+  featured?: boolean;
+  authorId?: number;
+  language?: string; // Support multilingue
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PaginatedPostsResponse {
-  posts: PostWithDetails[]
-  totalCount: number
-  page: number
-  limit: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPreviousPage: boolean
+  posts: PostWithDetails[];
+  totalCount: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }
 
 export interface PostWithDetails extends Post {
   author: {
-    id: number
-    name: string
-    email: string
-  }
-  translations: PostTranslation[]
+    id: number;
+    name: string;
+    email: string;
+  };
+  translations: PostTranslation[];
   postCategories: {
     category: {
-      id: number
-      name: string
-      slug: string
-    }
-  }[]
+      id: number;
+      name: string;
+      slug: string;
+    };
+  }[];
   postTags: {
     tag: {
-      id: number
-      name: string
-      slug: string
-    }
-  }[]
+      id: number;
+      name: string;
+      slug: string;
+    };
+  }[];
   _count: {
-    comments: number
-  }
+    comments: number;
+  };
 }
 
 export interface PostData {
-  slug: string
-  authorId: number
-  status?: PostStatus
-  postType?: PostType
-  featuredImageUrl?: string
-  publishedAt?: Date
-  isFeatured?: boolean
-  allowComments?: boolean
-  readingTimeMinutes?: number
+  slug: string;
+  authorId: number;
+  status?: PostStatus;
+  postType?: PostType;
+  featuredImageUrl?: string;
+  publishedAt?: Date;
+  isFeatured?: boolean;
+  allowComments?: boolean;
+  readingTimeMinutes?: number;
   // Relations
-  categoryIds?: number[]
-  tagIds?: number[]
+  categoryIds?: number[];
+  tagIds?: number[];
 }
 
 export interface PostTranslationData {
-  languageCode: string
-  title: string
-  content: string
-  excerpt?: string
-  metaTitle?: string
-  metaDescription?: string
-  translationSource?: string
-  humanReviewed?: boolean
+  languageCode: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  translationSource?: string;
+  humanReviewed?: boolean;
 }
 
 export class PostsService {
   /**
    * Rechercher des posts avec filtres et pagination
    */
-  static async searchPosts(params: PostsSearchParams = {}): Promise<PaginatedPostsResponse> {
+  static async searchPosts(
+    params: PostsSearchParams = {}
+  ): Promise<PaginatedPostsResponse> {
     const {
       query,
       category,
@@ -102,26 +104,26 @@ export class PostsService {
       page = 1,
       limit = 20,
       sortBy = 'updatedAt',
-      sortOrder = 'desc'
-    } = params
+      sortOrder = 'desc',
+    } = params;
 
     // Construction des conditions WHERE
-    const where: Prisma.PostWhereInput = {}
+    const where: Prisma.PostWhereInput = {};
 
     if (status) {
-      where.status = status
+      where.status = status;
     }
 
     if (postType) {
-      where.postType = postType
+      where.postType = postType;
     }
 
     if (featured !== undefined) {
-      where.isFeatured = featured
+      where.isFeatured = featured;
     }
 
     if (authorId) {
-      where.authorId = authorId
+      where.authorId = authorId;
     }
 
     if (category) {
@@ -130,31 +132,39 @@ export class PostsService {
           category: {
             OR: [
               { name: { contains: category, mode: 'insensitive' } },
-              { slug: category }
-            ]
-          }
-        }
-      }
+              { slug: category },
+            ],
+          },
+        },
+      };
     }
 
     if (query) {
       where.OR = [
         { slug: { contains: query, mode: 'insensitive' } },
         { translations: { some: { title: { contains: query, mode: 'insensitive' } } } },
-        { translations: { some: { content: { contains: query, mode: 'insensitive' } } } },
-        { translations: { some: { excerpt: { contains: query, mode: 'insensitive' } } } }
-      ]
+        {
+          translations: { some: { content: { contains: query, mode: 'insensitive' } } },
+        },
+        {
+          translations: { some: { excerpt: { contains: query, mode: 'insensitive' } } },
+        },
+      ];
     }
 
     // Construction de l'ordre
-    const orderBy: Prisma.PostOrderByWithRelationInput = {}
-    if (sortBy === 'createdAt' || sortBy === 'created_at') orderBy.createdAt = sortOrder
-    else if (sortBy === 'updatedAt' || sortBy === 'updated_at') orderBy.updatedAt = sortOrder
-    else if (sortBy === 'publishedAt' || sortBy === 'published_at') orderBy.publishedAt = sortOrder
-    else if (sortBy === 'viewCount' || sortBy === 'view_count') orderBy.viewCount = sortOrder
-    else orderBy.updatedAt = sortOrder
+    const orderBy: Prisma.PostOrderByWithRelationInput = {};
+    if (sortBy === 'createdAt' || sortBy === 'created_at')
+      orderBy.createdAt = sortOrder;
+    else if (sortBy === 'updatedAt' || sortBy === 'updated_at')
+      orderBy.updatedAt = sortOrder;
+    else if (sortBy === 'publishedAt' || sortBy === 'published_at')
+      orderBy.publishedAt = sortOrder;
+    else if (sortBy === 'viewCount' || sortBy === 'view_count')
+      orderBy.viewCount = sortOrder;
+    else orderBy.updatedAt = sortOrder;
 
-    const skip = (page - 1) * limit
+    const skip = (page - 1) * limit;
 
     // Relations à inclure - filtrer les traductions par langue pour l'affichage
     const include = {
@@ -162,13 +172,13 @@ export class PostsService {
         select: {
           id: true,
           name: true,
-          email: true
-        }
+          email: true,
+        },
       },
       translations: {
         where: {
-          languageCode: language
-        }
+          languageCode: language,
+        },
       },
       postCategories: {
         include: {
@@ -176,10 +186,10 @@ export class PostsService {
             select: {
               id: true,
               name: true,
-              slug: true
-            }
-          }
-        }
+              slug: true,
+            },
+          },
+        },
       },
       postTags: {
         include: {
@@ -187,17 +197,17 @@ export class PostsService {
             select: {
               id: true,
               name: true,
-              slug: true
-            }
-          }
-        }
+              slug: true,
+            },
+          },
+        },
       },
       _count: {
         select: {
-          comments: true
-        }
-      }
-    }
+          comments: true,
+        },
+      },
+    };
 
     // Exécution des requêtes en parallèle
     const [posts, totalCount] = await Promise.all([
@@ -206,12 +216,12 @@ export class PostsService {
         orderBy,
         skip,
         take: limit,
-        include
+        include,
       }),
-      prisma.post.count({ where })
-    ])
+      prisma.post.count({ where }),
+    ]);
 
-    const totalPages = Math.ceil(totalCount / limit)
+    const totalPages = Math.ceil(totalCount / limit);
 
     return {
       posts: posts as PostWithDetails[],
@@ -220,8 +230,8 @@ export class PostsService {
       limit,
       totalPages,
       hasNextPage: page < totalPages,
-      hasPreviousPage: page > 1
-    }
+      hasPreviousPage: page > 1,
+    };
   }
 
   /**
@@ -235,13 +245,13 @@ export class PostsService {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         translations: {
           orderBy: {
-            languageCode: 'asc'
-          }
+            languageCode: 'asc',
+          },
         },
         postCategories: {
           include: {
@@ -249,10 +259,10 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         postTags: {
           include: {
@@ -260,18 +270,18 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         _count: {
           select: {
-            comments: true
-          }
-        }
-      }
-    }) as Promise<PostWithDetails | null>
+            comments: true,
+          },
+        },
+      },
+    }) as Promise<PostWithDetails | null>;
   }
 
   /**
@@ -285,8 +295,8 @@ export class PostsService {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         translations: true,
         postCategories: {
@@ -295,10 +305,10 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         postTags: {
           include: {
@@ -306,75 +316,75 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         _count: {
           select: {
-            comments: true
-          }
-        }
-      }
-    }) as Promise<PostWithDetails | null>
+            comments: true,
+          },
+        },
+      },
+    }) as Promise<PostWithDetails | null>;
   }
 
   /**
    * Créer un nouveau post
    */
   static async createPost(data: PostData): Promise<Post> {
-    const { categoryIds, tagIds, ...postData } = data
-    
+    const { categoryIds, tagIds, ...postData } = data;
+
     const post = await prisma.post.create({
       data: {
         ...postData,
         // Gérer les relations many-to-many
         ...(categoryIds && {
           postCategories: {
-            create: categoryIds.map(categoryId => ({ categoryId }))
-          }
+            create: categoryIds.map(categoryId => ({ categoryId })),
+          },
         }),
         ...(tagIds && {
           postTags: {
-            create: tagIds.map(tagId => ({ tagId }))
-          }
-        })
-      }
-    })
+            create: tagIds.map(tagId => ({ tagId })),
+          },
+        }),
+      },
+    });
 
-    return post
+    return post;
   }
 
   /**
    * Mettre à jour un post
    */
   static async updatePost(id: number, data: Partial<PostData>): Promise<Post> {
-    const { categoryIds, tagIds, ...postData } = data
-    
+    const { categoryIds, tagIds, ...postData } = data;
+
     // Si les catégories ou tags sont fournis, on les met à jour
     if (categoryIds !== undefined || tagIds !== undefined) {
-      return prisma.$transaction(async (tx) => {
+      return prisma.$transaction(async tx => {
         // Supprimer les relations existantes si de nouvelles sont fournies
         if (categoryIds !== undefined) {
           await tx.postCategoryLink.deleteMany({
-            where: { postId: id }
-          })
+            where: { postId: id },
+          });
           if (categoryIds.length > 0) {
             await tx.postCategoryLink.createMany({
-              data: categoryIds.map(categoryId => ({ postId: id, categoryId }))
-            })
+              data: categoryIds.map(categoryId => ({ postId: id, categoryId })),
+            });
           }
         }
 
         if (tagIds !== undefined) {
           await tx.postTagLink.deleteMany({
-            where: { postId: id }
-          })
+            where: { postId: id },
+          });
           if (tagIds.length > 0) {
             await tx.postTagLink.createMany({
-              data: tagIds.map(tagId => ({ postId: id, tagId }))
-            })
+              data: tagIds.map(tagId => ({ postId: id, tagId })),
+            });
           }
         }
 
@@ -383,19 +393,19 @@ export class PostsService {
           where: { id },
           data: {
             ...postData,
-            updatedAt: new Date()
-          }
-        })
-      })
+            updatedAt: new Date(),
+          },
+        });
+      });
     }
 
     return prisma.post.update({
       where: { id },
       data: {
         ...postData,
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      },
+    });
   }
 
   /**
@@ -403,8 +413,8 @@ export class PostsService {
    */
   static async deletePost(id: number): Promise<Post> {
     return prisma.post.delete({
-      where: { id }
-    })
+      where: { id },
+    });
   }
 
   /**
@@ -416,9 +426,9 @@ export class PostsService {
       data: {
         status: 'PUBLISHED',
         publishedAt: new Date(),
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      },
+    });
   }
 
   /**
@@ -430,9 +440,9 @@ export class PostsService {
       data: {
         status: 'DRAFT',
         publishedAt: null,
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      },
+    });
   }
 
   /**
@@ -443,11 +453,11 @@ export class PostsService {
       where: { id },
       data: {
         viewCount: {
-          increment: 1
+          increment: 1,
         },
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      },
+    });
   }
 
   /**
@@ -457,10 +467,10 @@ export class PostsService {
     return prisma.post.findMany({
       where: {
         isFeatured: true,
-        status: 'PUBLISHED'
+        status: 'PUBLISHED',
       },
       orderBy: {
-        publishedAt: 'desc'
+        publishedAt: 'desc',
       },
       take: limit,
       include: {
@@ -468,8 +478,8 @@ export class PostsService {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         translations: true,
         postCategories: {
@@ -478,10 +488,10 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         postTags: {
           include: {
@@ -489,18 +499,18 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         _count: {
           select: {
-            comments: true
-          }
-        }
-      }
-    }) as Promise<PostWithDetails[]>
+            comments: true,
+          },
+        },
+      },
+    }) as Promise<PostWithDetails[]>;
   }
 
   /**
@@ -509,10 +519,10 @@ export class PostsService {
   static async getRecentPosts(limit: number = 10): Promise<PostWithDetails[]> {
     return prisma.post.findMany({
       where: {
-        status: 'PUBLISHED'
+        status: 'PUBLISHED',
       },
       orderBy: {
-        publishedAt: 'desc'
+        publishedAt: 'desc',
       },
       take: limit,
       include: {
@@ -520,8 +530,8 @@ export class PostsService {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         translations: true,
         postCategories: {
@@ -530,10 +540,10 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         postTags: {
           include: {
@@ -541,31 +551,34 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         _count: {
           select: {
-            comments: true
-          }
-        }
-      }
-    }) as Promise<PostWithDetails[]>
+            comments: true,
+          },
+        },
+      },
+    }) as Promise<PostWithDetails[]>;
   }
 
   /**
    * Obtenir les posts d'un auteur
    */
-  static async getPostsByAuthor(authorId: number, limit: number = 10): Promise<PostWithDetails[]> {
+  static async getPostsByAuthor(
+    authorId: number,
+    limit: number = 10
+  ): Promise<PostWithDetails[]> {
     return prisma.post.findMany({
       where: {
         authorId,
-        status: 'PUBLISHED'
+        status: 'PUBLISHED',
       },
       orderBy: {
-        publishedAt: 'desc'
+        publishedAt: 'desc',
       },
       take: limit,
       include: {
@@ -573,8 +586,8 @@ export class PostsService {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         translations: true,
         postCategories: {
@@ -583,10 +596,10 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         postTags: {
           include: {
@@ -594,42 +607,37 @@ export class PostsService {
               select: {
                 id: true,
                 name: true,
-                slug: true
-              }
-            }
-          }
+                slug: true,
+              },
+            },
+          },
         },
         _count: {
           select: {
-            comments: true
-          }
-        }
-      }
-    }) as Promise<PostWithDetails[]>
+            comments: true,
+          },
+        },
+      },
+    }) as Promise<PostWithDetails[]>;
   }
 
   /**
    * Obtenir les statistiques des posts
    */
   static async getPostsStats() {
-    const [
-      totalPosts,
-      publishedPosts,
-      draftPosts,
-      featuredPosts
-    ] = await Promise.all([
+    const [totalPosts, publishedPosts, draftPosts, featuredPosts] = await Promise.all([
       prisma.post.count(),
       prisma.post.count({ where: { status: 'PUBLISHED' } }),
       prisma.post.count({ where: { status: 'DRAFT' } }),
-      prisma.post.count({ where: { isFeatured: true } })
-    ])
+      prisma.post.count({ where: { isFeatured: true } }),
+    ]);
 
     return {
       totalPosts,
       publishedPosts,
       draftPosts,
-      featuredPosts
-    }
+      featuredPosts,
+    };
   }
 }
 
@@ -644,64 +652,73 @@ export class PostTranslationsService {
     return prisma.postTranslation.findMany({
       where: { postId },
       include: {
-        language: true
+        language: true,
       },
       orderBy: {
-        languageCode: 'asc'
-      }
-    })
+        languageCode: 'asc',
+      },
+    });
   }
 
   /**
    * Obtenir une traduction spécifique
    */
-  static async getPostTranslation(postId: number, languageCode: string): Promise<PostTranslation | null> {
+  static async getPostTranslation(
+    postId: number,
+    languageCode: string
+  ): Promise<PostTranslation | null> {
     return prisma.postTranslation.findUnique({
       where: {
         postId_languageCode: {
           postId,
-          languageCode
-        }
+          languageCode,
+        },
       },
       include: {
-        language: true
-      }
-    })
+        language: true,
+      },
+    });
   }
 
   /**
    * Créer ou mettre à jour une traduction
    */
-  static async upsertPostTranslation(postId: number, data: PostTranslationData): Promise<PostTranslation> {
+  static async upsertPostTranslation(
+    postId: number,
+    data: PostTranslationData
+  ): Promise<PostTranslation> {
     return prisma.postTranslation.upsert({
       where: {
         postId_languageCode: {
           postId,
-          languageCode: data.languageCode
-        }
+          languageCode: data.languageCode,
+        },
       },
       create: {
         postId,
-        ...data
+        ...data,
       },
       update: {
         ...data,
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      },
+    });
   }
 
   /**
    * Supprimer une traduction
    */
-  static async deletePostTranslation(postId: number, languageCode: string): Promise<PostTranslation> {
+  static async deletePostTranslation(
+    postId: number,
+    languageCode: string
+  ): Promise<PostTranslation> {
     return prisma.postTranslation.delete({
       where: {
         postId_languageCode: {
           postId,
-          languageCode
-        }
-      }
-    })
+          languageCode,
+        },
+      },
+    });
   }
 }

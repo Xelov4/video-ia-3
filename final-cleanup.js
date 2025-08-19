@@ -21,11 +21,7 @@ function removeAllConsoleLogs() {
       const filePath = path.join(dir, file);
       const stat = fs.statSync(filePath);
 
-      if (
-        stat.isDirectory() &&
-        !file.startsWith('.') &&
-        file !== 'node_modules'
-      ) {
+      if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
         processDirectory(filePath);
       } else if (
         file.endsWith('.ts') ||
@@ -138,31 +134,19 @@ function fixRemainingUnusedVars() {
       content = content.replace(
         /(\w+):\s*(\w+)(\s*[,}])/g,
         (match, param, type, end) => {
-          if (
-            param.startsWith('_') ||
-            param === 'props' ||
-            param === 'children'
-          )
+          if (param.startsWith('_') || param === 'props' || param === 'children')
             return match;
           return `_${param}: ${type}${end}`;
         }
       );
 
       // Préfixer les variables assignées non utilisées
-      content = content.replace(
-        /(\w+)\s*=\s*([^,}]+)/g,
-        (match, varName, value) => {
-          if (
-            varName.startsWith('_') ||
-            varName === 'props' ||
-            varName === 'children'
-          )
-            return match;
-          if (value.includes('useState') || value.includes('useEffect'))
-            return match;
-          return `_${varName} = ${value}`;
-        }
-      );
+      content = content.replace(/(\w+)\s*=\s*([^,}]+)/g, (match, varName, value) => {
+        if (varName.startsWith('_') || varName === 'props' || varName === 'children')
+          return match;
+        if (value.includes('useState') || value.includes('useEffect')) return match;
+        return `_${varName} = ${value}`;
+      });
 
       if (content !== fs.readFileSync(filePath, 'utf8')) {
         fs.writeFileSync(filePath, content);
@@ -172,9 +156,7 @@ function fixRemainingUnusedVars() {
     }
   });
 
-  console.log(
-    `\n📊 Variables non utilisées corrigées dans ${fixedFiles} fichiers`
-  );
+  console.log(`\n📊 Variables non utilisées corrigées dans ${fixedFiles} fichiers`);
 }
 
 // 4. CORRECTION DES APOSTROPHES RESTANTES

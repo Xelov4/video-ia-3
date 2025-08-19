@@ -1,55 +1,58 @@
 /**
  * ModernFooter Component - Footer Informatif et Utile
- * 
+ *
  * Footer moderne avec liens utiles, newsletter, réseaux sociaux,
  * et informations légales multilingues.
  */
 
-import React from 'react'
-import Link from 'next/link'
-import { Github, Twitter, Linkedin, Mail, Globe } from 'lucide-react'
-import { SupportedLocale } from '@/middleware'
+import React from 'react';
+import Link from 'next/link';
+import { Github, Twitter, Linkedin, Mail, Globe } from 'lucide-react';
+import { SupportedLocale } from '@/middleware';
 
-import { Container } from '@/src/components/ui/Container'
-import { Button } from '@/src/components/ui/Button'
+import { Container } from '@/src/components/ui/Container';
+import { Button } from '@/src/components/ui/Button';
 
 interface ModernFooterProps {
-  lang: SupportedLocale
+  lang: SupportedLocale;
 }
 
-const FOOTER_LABELS: Record<SupportedLocale, {
-  explore: string
-  discover: string
-  categories: string
-  audiences: string
-  useCases: string
-  features: string
-  tools: string
-  trending: string
-  newest: string
-  free: string
-  premium: string
-  company: string
-  about: string
-  blog: string
-  contact: string
-  help: string
-  support: string
-  api: string
-  legal: string
-  privacy: string
-  terms: string
-  cookies: string
-  sitemap: string
-  newsletter: string
-  newsletterDesc: string
-  subscribe: string
-  emailPlaceholder: string
-  followUs: string
-  allRights: string
-  made: string
-}> = {
-  'en': {
+const FOOTER_LABELS: Record<
+  SupportedLocale,
+  {
+    explore: string;
+    discover: string;
+    categories: string;
+    audiences: string;
+    useCases: string;
+    features: string;
+    tools: string;
+    trending: string;
+    newest: string;
+    free: string;
+    premium: string;
+    company: string;
+    about: string;
+    blog: string;
+    contact: string;
+    help: string;
+    support: string;
+    api: string;
+    legal: string;
+    privacy: string;
+    terms: string;
+    cookies: string;
+    sitemap: string;
+    newsletter: string;
+    newsletterDesc: string;
+    subscribe: string;
+    emailPlaceholder: string;
+    followUs: string;
+    allRights: string;
+    made: string;
+  }
+> = {
+  en: {
     explore: 'Explore',
     discover: 'Discover',
     categories: 'Categories',
@@ -79,14 +82,14 @@ const FOOTER_LABELS: Record<SupportedLocale, {
     emailPlaceholder: 'Enter your email',
     followUs: 'Follow Us',
     allRights: 'All rights reserved.',
-    made: 'Made with ❤️ for the AI community'
+    made: 'Made with ❤️ for the AI community',
   },
-  'fr': {
+  fr: {
     explore: 'Explorer',
     discover: 'Découvrir',
     categories: 'Catégories',
     audiences: 'Pour Équipes',
-    useCases: 'Cas d\'Usage',
+    useCases: "Cas d'Usage",
     features: 'Fonctionnalités',
     tools: 'Outils',
     trending: 'Tendances',
@@ -102,23 +105,23 @@ const FOOTER_LABELS: Record<SupportedLocale, {
     api: 'API',
     legal: 'Légal',
     privacy: 'Politique de Confidentialité',
-    terms: 'Conditions d\'Utilisation',
+    terms: "Conditions d'Utilisation",
     cookies: 'Politique des Cookies',
     sitemap: 'Plan du Site',
     newsletter: 'Newsletter',
     newsletterDesc: 'Recevez les derniers outils IA et insights dans votre boîte mail',
-    subscribe: 'S\'abonner',
+    subscribe: "S'abonner",
     emailPlaceholder: 'Votre email',
     followUs: 'Suivez-nous',
     allRights: 'Tous droits réservés.',
-    made: 'Fait avec ❤️ pour la communauté IA'
+    made: 'Fait avec ❤️ pour la communauté IA',
   },
-  'it': {
+  it: {
     explore: 'Esplora',
     discover: 'Scopri',
     categories: 'Categorie',
     audiences: 'Per Team',
-    useCases: 'Casi d\'Uso',
+    useCases: "Casi d'Uso",
     features: 'Funzionalità',
     tools: 'Strumenti',
     trending: 'Di Tendenza',
@@ -143,9 +146,9 @@ const FOOTER_LABELS: Record<SupportedLocale, {
     emailPlaceholder: 'La tua email',
     followUs: 'Seguici',
     allRights: 'Tutti i diritti riservati.',
-    made: 'Fatto con ❤️ per la comunità IA'
+    made: 'Fatto con ❤️ per la comunità IA',
   },
-  'es': {
+  es: {
     explore: 'Explorar',
     discover: 'Descubrir',
     categories: 'Categorías',
@@ -175,9 +178,9 @@ const FOOTER_LABELS: Record<SupportedLocale, {
     emailPlaceholder: 'Tu email',
     followUs: 'Síguenos',
     allRights: 'Todos los derechos reservados.',
-    made: 'Hecho con ❤️ para la comunidad IA'
+    made: 'Hecho con ❤️ para la comunidad IA',
   },
-  'de': {
+  de: {
     explore: 'Erkunden',
     discover: 'Entdecken',
     categories: 'Kategorien',
@@ -207,9 +210,9 @@ const FOOTER_LABELS: Record<SupportedLocale, {
     emailPlaceholder: 'Ihre E-Mail',
     followUs: 'Folgen Sie uns',
     allRights: 'Alle Rechte vorbehalten.',
-    made: 'Mit ❤️ für die KI-Community gemacht'
+    made: 'Mit ❤️ für die KI-Community gemacht',
   },
-  'nl': {
+  nl: {
     explore: 'Verkennen',
     discover: 'Ontdekken',
     categories: 'Categorieën',
@@ -239,9 +242,9 @@ const FOOTER_LABELS: Record<SupportedLocale, {
     emailPlaceholder: 'Je email',
     followUs: 'Volg Ons',
     allRights: 'Alle rechten voorbehouden.',
-    made: 'Gemaakt met ❤️ voor de AI-community'
+    made: 'Gemaakt met ❤️ voor de AI-community',
   },
-  'pt': {
+  pt: {
     explore: 'Explorar',
     discover: 'Descobrir',
     categories: 'Categorias',
@@ -266,55 +269,54 @@ const FOOTER_LABELS: Record<SupportedLocale, {
     cookies: 'Política de Cookies',
     sitemap: 'Mapa do Site',
     newsletter: 'Newsletter',
-    newsletterDesc: 'Receba as últimas ferramentas IA e insights na sua caixa de entrada',
+    newsletterDesc:
+      'Receba as últimas ferramentas IA e insights na sua caixa de entrada',
     subscribe: 'Inscrever-se',
     emailPlaceholder: 'Seu email',
     followUs: 'Nos Siga',
     allRights: 'Todos os direitos reservados.',
-    made: 'Feito com ❤️ para a comunidade IA'
-  }
-}
+    made: 'Feito com ❤️ para a comunidade IA',
+  },
+};
 
 export default function ModernFooter({ lang }: ModernFooterProps) {
-  const labels = FOOTER_LABELS[lang]
-  
+  const labels = FOOTER_LABELS[lang];
+
   const getLocalizedHref = (path: string) => {
     if (lang === 'en') {
-      return path === '/' ? '/' : path
+      return path === '/' ? '/' : path;
     }
-    return path === '/' ? `/${lang}` : `/${lang}${path}`
-  }
+    return path === '/' ? `/${lang}` : `/${lang}${path}`;
+  };
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <Container size="xl">
+    <footer className='bg-gray-900 text-gray-300'>
+      <Container size='xl'>
         {/* Main Footer Content */}
-        <div className="py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className='py-16'>
+          <div className='grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5'>
             {/* Brand Section */}
-            <div className="lg:col-span-2">
-              <div className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">V</span>
+            <div className='lg:col-span-2'>
+              <div className='mb-6 flex items-center space-x-2'>
+                <div className='flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-purple-600'>
+                  <span className='text-sm font-bold text-white'>V</span>
                 </div>
-                <span className="font-bold text-xl text-white">Video-IA.net</span>
+                <span className='text-xl font-bold text-white'>Video-IA.net</span>
               </div>
-              
-              <p className="text-gray-400 mb-6 max-w-md">
-                {labels.made}
-              </p>
-              
+
+              <p className='mb-6 max-w-md text-gray-400'>{labels.made}</p>
+
               {/* Newsletter Signup */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-white mb-2">{labels.newsletter}</h3>
-                <p className="text-sm text-gray-400 mb-4">{labels.newsletterDesc}</p>
-                <div className="flex space-x-2">
+              <div className='mb-6'>
+                <h3 className='mb-2 font-semibold text-white'>{labels.newsletter}</h3>
+                <p className='mb-4 text-sm text-gray-400'>{labels.newsletterDesc}</p>
+                <div className='flex space-x-2'>
                   <input
-                    type="email"
+                    type='email'
                     placeholder={labels.emailPlaceholder}
-                    className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className='flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500'
                   />
-                  <Button variant="primary" size="sm">
+                  <Button variant='primary' size='sm'>
                     {labels.subscribe}
                   </Button>
                 </div>
@@ -322,19 +324,31 @@ export default function ModernFooter({ lang }: ModernFooterProps) {
 
               {/* Social Links */}
               <div>
-                <h3 className="font-semibold text-white mb-3">{labels.followUs}</h3>
-                <div className="flex space-x-4">
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                    <Twitter className="w-5 h-5" />
+                <h3 className='mb-3 font-semibold text-white'>{labels.followUs}</h3>
+                <div className='flex space-x-4'>
+                  <a
+                    href='#'
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
+                    <Twitter className='h-5 w-5' />
                   </a>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                    <Github className="w-5 h-5" />
+                  <a
+                    href='#'
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
+                    <Github className='h-5 w-5' />
                   </a>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                    <Linkedin className="w-5 h-5" />
+                  <a
+                    href='#'
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
+                    <Linkedin className='h-5 w-5' />
                   </a>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                    <Mail className="w-5 h-5" />
+                  <a
+                    href='#'
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
+                    <Mail className='h-5 w-5' />
                   </a>
                 </div>
               </div>
@@ -342,30 +356,45 @@ export default function ModernFooter({ lang }: ModernFooterProps) {
 
             {/* Explore Section */}
             <div>
-              <h3 className="font-semibold text-white mb-4">{labels.explore}</h3>
-              <ul className="space-y-3">
+              <h3 className='mb-4 font-semibold text-white'>{labels.explore}</h3>
+              <ul className='space-y-3'>
                 <li>
-                  <Link href={getLocalizedHref('/discover')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/discover')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.discover}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/categories')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/categories')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.categories}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/audiences')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/audiences')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.audiences}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/use-cases')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/use-cases')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.useCases}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/features')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/features')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.features}
                   </Link>
                 </li>
@@ -374,25 +403,37 @@ export default function ModernFooter({ lang }: ModernFooterProps) {
 
             {/* Tools Section */}
             <div>
-              <h3 className="font-semibold text-white mb-4">{labels.tools}</h3>
-              <ul className="space-y-3">
+              <h3 className='mb-4 font-semibold text-white'>{labels.tools}</h3>
+              <ul className='space-y-3'>
                 <li>
-                  <Link href={getLocalizedHref('/trending')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/trending')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.trending}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/newest')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/newest')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.newest}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/free')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/free')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.free}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/premium')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/premium')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.premium}
                   </Link>
                 </li>
@@ -401,30 +442,45 @@ export default function ModernFooter({ lang }: ModernFooterProps) {
 
             {/* Company Section */}
             <div>
-              <h3 className="font-semibold text-white mb-4">{labels.company}</h3>
-              <ul className="space-y-3">
+              <h3 className='mb-4 font-semibold text-white'>{labels.company}</h3>
+              <ul className='space-y-3'>
                 <li>
-                  <Link href={getLocalizedHref('/about')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/about')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.about}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/blog')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/blog')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.blog}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/contact')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/contact')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.contact}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/help')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/help')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.help}
                   </Link>
                 </li>
                 <li>
-                  <Link href={getLocalizedHref('/api')} className="text-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={getLocalizedHref('/api')}
+                    className='text-gray-400 transition-colors hover:text-white'
+                  >
                     {labels.api}
                   </Link>
                 </li>
@@ -434,36 +490,48 @@ export default function ModernFooter({ lang }: ModernFooterProps) {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
-              <p className="text-sm text-gray-400">
+        <div className='border-t border-gray-800 py-8'>
+          <div className='flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0'>
+            <div className='flex flex-col items-center space-y-2 md:flex-row md:space-x-6 md:space-y-0'>
+              <p className='text-sm text-gray-400'>
                 © 2024 Video-IA.net. {labels.allRights}
               </p>
-              
-              <div className="flex items-center space-x-6">
-                <Link href={getLocalizedHref('/privacy')} className="text-sm text-gray-400 hover:text-white transition-colors">
+
+              <div className='flex items-center space-x-6'>
+                <Link
+                  href={getLocalizedHref('/privacy')}
+                  className='text-sm text-gray-400 transition-colors hover:text-white'
+                >
                   {labels.privacy}
                 </Link>
-                <Link href={getLocalizedHref('/terms')} className="text-sm text-gray-400 hover:text-white transition-colors">
+                <Link
+                  href={getLocalizedHref('/terms')}
+                  className='text-sm text-gray-400 transition-colors hover:text-white'
+                >
                   {labels.terms}
                 </Link>
-                <Link href={getLocalizedHref('/cookies')} className="text-sm text-gray-400 hover:text-white transition-colors">
+                <Link
+                  href={getLocalizedHref('/cookies')}
+                  className='text-sm text-gray-400 transition-colors hover:text-white'
+                >
                   {labels.cookies}
                 </Link>
-                <Link href={getLocalizedHref('/sitemap')} className="text-sm text-gray-400 hover:text-white transition-colors">
+                <Link
+                  href={getLocalizedHref('/sitemap')}
+                  className='text-sm text-gray-400 transition-colors hover:text-white'
+                >
                   {labels.sitemap}
                 </Link>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 text-sm text-gray-400">
-              <Globe className="w-4 h-4" />
+            <div className='flex items-center space-x-2 text-sm text-gray-400'>
+              <Globe className='h-4 w-4' />
               <span>16,765+ AI Tools</span>
             </div>
           </div>
         </div>
       </Container>
     </footer>
-  )
+  );
 }

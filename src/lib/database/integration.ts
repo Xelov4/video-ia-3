@@ -4,9 +4,9 @@
  */
 
 import { Pool, PoolClient } from 'pg';
-import { 
-  AITool, 
-  AIToolTranslation, 
+import {
+  AITool,
+  AIToolTranslation,
   AIToolFeature,
   AIToolAudience,
   AIToolTag,
@@ -23,7 +23,7 @@ import {
   ContactType,
   BillingCycle,
   SocialPlatform,
-  LANGUAGE_MAPPINGS
+  LANGUAGE_MAPPINGS,
 } from './types';
 
 // Interface pour les données du scraper existant
@@ -119,11 +119,11 @@ export class DatabaseIntegration {
    * Fonction principale pour intégrer les données du scraper existant
    */
   async integrateScrapingResult(
-    scrapingData: ExistingScrapingResult, 
+    scrapingData: ExistingScrapingResult,
     analysis: ExistingToolAnalysis
   ): Promise<number> {
     const client = await this.pool.connect();
-    
+
     try {
       await client.query('BEGIN');
 
@@ -161,14 +161,26 @@ export class DatabaseIntegration {
       await this.insertRecommendedActions(client, toolId, analysis);
 
       // 12. Enregistrer l'historique de mise à jour
-      await this.insertUpdateHistory(client, toolId, 'scrape', [
-        'tool_info', 'translations', 'features', 'audiences', 'tags',
-        'social_links', 'contact_info', 'pricing_plans', 'affiliate_info'
-      ], analysis.confidence);
+      await this.insertUpdateHistory(
+        client,
+        toolId,
+        'scrape',
+        [
+          'tool_info',
+          'translations',
+          'features',
+          'audiences',
+          'tags',
+          'social_links',
+          'contact_info',
+          'pricing_plans',
+          'affiliate_info',
+        ],
+        analysis.confidence
+      );
 
       await client.query('COMMIT');
       return toolId;
-
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -178,8 +190,8 @@ export class DatabaseIntegration {
   }
 
   private async insertOrUpdateTool(
-    client: PoolClient, 
-    scrapingData: ExistingScrapingResult, 
+    client: PoolClient,
+    scrapingData: ExistingScrapingResult,
     analysis: ExistingToolAnalysis
   ): Promise<number> {
     const query = `
@@ -217,7 +229,7 @@ export class DatabaseIntegration {
       analysis.pricingDetails.freeTier,
       analysis.pricingDetails.paidPlans,
       analysis.pricingDetails.enterpriseAvailable,
-      analysis.affiliateInfo.hasAffiliateProgram
+      analysis.affiliateInfo.hasAffiliateProgram,
     ];
 
     const result = await client.query(query, values);
@@ -225,9 +237,9 @@ export class DatabaseIntegration {
   }
 
   private async insertMetadata(
-    client: PoolClient, 
-    toolId: number, 
-    scrapingData: ExistingScrapingResult, 
+    client: PoolClient,
+    toolId: number,
+    scrapingData: ExistingScrapingResult,
     analysis: ExistingToolAnalysis
   ): Promise<void> {
     const query = `
@@ -255,15 +267,15 @@ export class DatabaseIntegration {
       scrapingData.metadata.ogTitle,
       scrapingData.metadata.ogDescription,
       scrapingData.pricing,
-      scrapingData.features
+      scrapingData.features,
     ];
 
     await client.query(query, values);
   }
 
   private async insertTranslations(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     analysis: ExistingToolAnalysis
   ): Promise<void> {
     // Supprimer les traductions existantes
@@ -278,38 +290,54 @@ export class DatabaseIntegration {
     `;
 
     await client.query(englishQuery, [
-      toolId, 'en', analysis.toolName, analysis.primaryFunction,
-      analysis.description, analysis.metaTitle, analysis.metaDescription,
-      analysis.pricingSummary
+      toolId,
+      'en',
+      analysis.toolName,
+      analysis.primaryFunction,
+      analysis.description,
+      analysis.metaTitle,
+      analysis.metaDescription,
+      analysis.pricingSummary,
     ]);
 
     // Insérer la traduction française si disponible
     if (analysis.translations) {
       await client.query(englishQuery, [
-        toolId, 'fr', analysis.translations.toolName, analysis.translations.primaryFunction,
-        analysis.translations.description, analysis.translations.metaTitle, 
-        analysis.translations.metaDescription, analysis.translations.pricingSummary
+        toolId,
+        'fr',
+        analysis.translations.toolName,
+        analysis.translations.primaryFunction,
+        analysis.translations.description,
+        analysis.translations.metaTitle,
+        analysis.translations.metaDescription,
+        analysis.translations.pricingSummary,
       ]);
     }
 
     // TODO: Intégrer ici l'API de traduction pour les autres langues
     // Pour l'instant, nous créons des entrées avec des valeurs par défaut
     const otherLanguages: LanguageCode[] = ['de', 'nl', 'it', 'pt', 'es'];
-    
+
     for (const lang of otherLanguages) {
-      if (lang !== 'fr') { // Français déjà traité
+      if (lang !== 'fr') {
+        // Français déjà traité
         await client.query(englishQuery, [
-          toolId, lang, analysis.toolName, analysis.primaryFunction,
-          analysis.description, analysis.metaTitle, analysis.metaDescription,
-          analysis.pricingSummary
+          toolId,
+          lang,
+          analysis.toolName,
+          analysis.primaryFunction,
+          analysis.description,
+          analysis.metaTitle,
+          analysis.metaDescription,
+          analysis.pricingSummary,
         ]);
       }
     }
   }
 
   private async insertFeatures(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     analysis: ExistingToolAnalysis
   ): Promise<void> {
     // Supprimer les caractéristiques existantes
@@ -328,7 +356,12 @@ export class DatabaseIntegration {
     // Insérer les caractéristiques en français si disponible
     if (analysis.translations?.keyFeatures) {
       for (let i = 0; i < analysis.translations.keyFeatures.length; i++) {
-        await client.query(query, [toolId, 'fr', analysis.translations.keyFeatures[i], i]);
+        await client.query(query, [
+          toolId,
+          'fr',
+          analysis.translations.keyFeatures[i],
+          i,
+        ]);
       }
     }
 
@@ -344,8 +377,8 @@ export class DatabaseIntegration {
   }
 
   private async insertAudiences(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     analysis: ExistingToolAnalysis
   ): Promise<void> {
     // Supprimer les audiences existantes
@@ -364,7 +397,12 @@ export class DatabaseIntegration {
     // Insérer les audiences en français si disponible
     if (analysis.translations?.targetAudience) {
       for (let i = 0; i < analysis.translations.targetAudience.length; i++) {
-        await client.query(query, [toolId, 'fr', analysis.translations.targetAudience[i], i]);
+        await client.query(query, [
+          toolId,
+          'fr',
+          analysis.translations.targetAudience[i],
+          i,
+        ]);
       }
     }
 
@@ -380,8 +418,8 @@ export class DatabaseIntegration {
   }
 
   private async insertTags(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     analysis: ExistingToolAnalysis
   ): Promise<void> {
     // Supprimer les tags existants
@@ -394,7 +432,7 @@ export class DatabaseIntegration {
 
     // Insérer les tags pour toutes les langues (les tags sont généralement universels)
     const allLanguages: LanguageCode[] = ['en', 'fr', 'de', 'nl', 'it', 'pt', 'es'];
-    
+
     for (const lang of allLanguages) {
       for (const tag of analysis.tags) {
         await client.query(query, [toolId, lang, tag]);
@@ -403,8 +441,8 @@ export class DatabaseIntegration {
   }
 
   private async insertSocialLinks(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     socialLinks: Record<string, string>
   ): Promise<void> {
     // Supprimer les liens sociaux existants
@@ -423,8 +461,8 @@ export class DatabaseIntegration {
   }
 
   private async insertContactInfo(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     contactInfo: any
   ): Promise<void> {
     // Supprimer les informations de contact existantes
@@ -453,12 +491,14 @@ export class DatabaseIntegration {
   }
 
   private async insertPricingPlans(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     analysis: ExistingToolAnalysis
   ): Promise<void> {
     // Supprimer les plans existants
-    await client.query('DELETE FROM ai_tool_pricing_plans WHERE tool_id = $1', [toolId]);
+    await client.query('DELETE FROM ai_tool_pricing_plans WHERE tool_id = $1', [
+      toolId,
+    ]);
 
     if (!analysis.pricingDetails.plans.length) return;
 
@@ -475,17 +515,22 @@ export class DatabaseIntegration {
 
     // Insérer les plans pour toutes les langues
     const allLanguages: LanguageCode[] = ['en', 'fr', 'de', 'nl', 'it', 'pt', 'es'];
-    
+
     for (const lang of allLanguages) {
       for (let i = 0; i < analysis.pricingDetails.plans.length; i++) {
         const plan = analysis.pricingDetails.plans[i];
-        
+
         const planResult = await client.query(planQuery, [
-          toolId, lang, plan.name, plan.price, plan.billing, i
+          toolId,
+          lang,
+          plan.name,
+          plan.price,
+          plan.billing,
+          i,
         ]);
-        
+
         const planId = planResult.rows[0].id;
-        
+
         // Insérer les caractéristiques du plan
         for (let j = 0; j < plan.features.length; j++) {
           await client.query(featureQuery, [planId, plan.features[j], j]);
@@ -495,8 +540,8 @@ export class DatabaseIntegration {
   }
 
   private async insertAffiliateInfo(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     affiliateInfo: any
   ): Promise<void> {
     const query = `
@@ -517,17 +562,19 @@ export class DatabaseIntegration {
       affiliateInfo.affiliateProgramUrl,
       affiliateInfo.affiliateContactEmail,
       affiliateInfo.affiliateContactForm,
-      affiliateInfo.notes
+      affiliateInfo.notes,
     ]);
   }
 
   private async insertRecommendedActions(
-    client: PoolClient, 
-    toolId: number, 
+    client: PoolClient,
+    toolId: number,
     analysis: ExistingToolAnalysis
   ): Promise<void> {
     // Supprimer les actions existantes
-    await client.query('DELETE FROM ai_tool_recommended_actions WHERE tool_id = $1', [toolId]);
+    await client.query('DELETE FROM ai_tool_recommended_actions WHERE tool_id = $1', [
+      toolId,
+    ]);
 
     if (!analysis.recommendedActions.length) return;
 
@@ -538,7 +585,7 @@ export class DatabaseIntegration {
 
     // Insérer les actions pour toutes les langues
     const allLanguages: LanguageCode[] = ['en', 'fr', 'de', 'nl', 'it', 'pt', 'es'];
-    
+
     for (const lang of allLanguages) {
       for (const action of analysis.recommendedActions) {
         await client.query(query, [toolId, lang, action, 'medium']);
@@ -644,7 +691,7 @@ export function createDatabaseIntegration(config?: any) {
     database: process.env.DB_NAME || 'video_ia_net',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'password',
-    ssl: process.env.NODE_ENV === 'production'
+    ssl: process.env.NODE_ENV === 'production',
   };
 
   return new DatabaseIntegration(config || defaultConfig);

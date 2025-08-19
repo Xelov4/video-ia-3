@@ -3,10 +3,12 @@
  * Définit les paramètres selon le contexte d'utilisation
  */
 
-import type { SearchFiltersConfig } from '@/src/types/search'
+import type { SearchFiltersConfig } from '@/src/types/search';
 
 // Configuration pour la page publique des outils
-export const toolsPageConfig = (onFiltersChange: (filters: any) => void): SearchFiltersConfig => ({
+export const toolsPageConfig = (
+  onFiltersChange: (filters: any) => void
+): SearchFiltersConfig => ({
   context: 'tools',
   searchPlaceholder: 'Rechercher des outils IA...',
   showSearch: true,
@@ -26,7 +28,7 @@ export const toolsPageConfig = (onFiltersChange: (filters: any) => void): Search
       placeholder: 'Toutes les catégories',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'featured',
@@ -35,7 +37,7 @@ export const toolsPageConfig = (onFiltersChange: (filters: any) => void): Search
       placeholder: 'Tous les outils',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'qualityScore',
@@ -44,14 +46,16 @@ export const toolsPageConfig = (onFiltersChange: (filters: any) => void): Search
       placeholder: 'Tous les scores',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
-    }
+      clearable: true,
+    },
   ],
-  onFiltersChange
-})
+  onFiltersChange,
+});
 
 // Configuration pour la page d'administration des outils
-export const adminToolsPageConfig = (onFiltersChange: (filters: any) => void): SearchFiltersConfig => ({
+export const adminToolsPageConfig = (
+  onFiltersChange: (filters: any) => void
+): SearchFiltersConfig => ({
   context: 'admin-tools',
   searchPlaceholder: 'Rechercher dans les outils...',
   showSearch: true,
@@ -71,7 +75,7 @@ export const adminToolsPageConfig = (onFiltersChange: (filters: any) => void): S
       placeholder: 'Toutes les catégories',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'status',
@@ -80,7 +84,7 @@ export const adminToolsPageConfig = (onFiltersChange: (filters: any) => void): S
       placeholder: 'Tous les statuts',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'featured',
@@ -89,7 +93,7 @@ export const adminToolsPageConfig = (onFiltersChange: (filters: any) => void): S
       placeholder: 'Tous les outils',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'qualityScore',
@@ -98,14 +102,16 @@ export const adminToolsPageConfig = (onFiltersChange: (filters: any) => void): S
       placeholder: 'Tous les scores',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
-    }
+      clearable: true,
+    },
   ],
-  onFiltersChange
-})
+  onFiltersChange,
+});
 
 // Configuration pour la page publique des catégories
-export const categoriesPageConfig = (onFiltersChange: (filters: any) => void): SearchFiltersConfig => ({
+export const categoriesPageConfig = (
+  onFiltersChange: (filters: any) => void
+): SearchFiltersConfig => ({
   context: 'categories',
   searchPlaceholder: 'Rechercher des catégories...',
   showSearch: true,
@@ -125,7 +131,7 @@ export const categoriesPageConfig = (onFiltersChange: (filters: any) => void): S
       placeholder: 'Toutes les catégories',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'hasTools',
@@ -134,23 +140,25 @@ export const categoriesPageConfig = (onFiltersChange: (filters: any) => void): S
       placeholder: 'Toutes',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'toolCount',
       type: 'select',
-      label: 'Nombre d\'outils',
+      label: "Nombre d'outils",
       placeholder: 'Tous les nombres',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
-    }
+      clearable: true,
+    },
   ],
-  onFiltersChange
-})
+  onFiltersChange,
+});
 
 // Configuration pour la page d'administration des catégories
-export const adminCategoriesPageConfig = (onFiltersChange: (filters: any) => void): SearchFiltersConfig => ({
+export const adminCategoriesPageConfig = (
+  onFiltersChange: (filters: any) => void
+): SearchFiltersConfig => ({
   context: 'admin-categories',
   searchPlaceholder: 'Rechercher dans les catégories...',
   showSearch: true,
@@ -170,7 +178,7 @@ export const adminCategoriesPageConfig = (onFiltersChange: (filters: any) => voi
       placeholder: 'Toutes les catégories',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'hasTools',
@@ -179,20 +187,20 @@ export const adminCategoriesPageConfig = (onFiltersChange: (filters: any) => voi
       placeholder: 'Toutes',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
+      clearable: true,
     },
     {
       id: 'toolCount',
       type: 'select',
-      label: 'Nombre d\'outils',
+      label: "Nombre d'outils",
       placeholder: 'Tous les nombres',
       options: [], // Rempli dynamiquement par l'API
       visible: true,
-      clearable: true
-    }
+      clearable: true,
+    },
   ],
-  onFiltersChange
-})
+  onFiltersChange,
+});
 
 // Configuration compacte pour les widgets ou sidebars
 export const compactSearchConfig = (
@@ -218,7 +226,7 @@ export const compactSearchConfig = (
       placeholder: 'Toutes',
       options: [],
       visible: context === 'tools',
-      clearable: true
+      clearable: true,
     },
     {
       id: 'featured',
@@ -227,11 +235,11 @@ export const compactSearchConfig = (
       placeholder: 'Tous',
       options: [],
       visible: true,
-      clearable: true
-    }
+      clearable: true,
+    },
   ],
-  onFiltersChange
-})
+  onFiltersChange,
+});
 
 // Fonction utilitaire pour obtenir une configuration selon le contexte
 export function getSearchFiltersConfig(
@@ -241,22 +249,22 @@ export function getSearchFiltersConfig(
 ): SearchFiltersConfig {
   switch (page) {
     case 'tools':
-      return toolsPageConfig(onFiltersChange)
-    
+      return toolsPageConfig(onFiltersChange);
+
     case 'admin-tools':
-      return adminToolsPageConfig(onFiltersChange)
-    
+      return adminToolsPageConfig(onFiltersChange);
+
     case 'categories':
-      return categoriesPageConfig(onFiltersChange)
-    
+      return categoriesPageConfig(onFiltersChange);
+
     case 'admin-categories':
-      return adminCategoriesPageConfig(onFiltersChange)
-    
+      return adminCategoriesPageConfig(onFiltersChange);
+
     case 'compact':
-      return compactSearchConfig(context, onFiltersChange)
-    
+      return compactSearchConfig(context, onFiltersChange);
+
     default:
-      return toolsPageConfig(onFiltersChange)
+      return toolsPageConfig(onFiltersChange);
   }
 }
 
@@ -266,5 +274,5 @@ export default {
   categoriesPageConfig,
   adminCategoriesPageConfig,
   compactSearchConfig,
-  getSearchFiltersConfig
-}
+  getSearchFiltersConfig,
+};

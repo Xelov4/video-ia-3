@@ -59,9 +59,7 @@ async function testProductionDatabase() {
     console.log(`\n${'='.repeat(100)}\n`);
 
     const startTime = Date.now();
-    console.log(
-      `🚀 DÉMARRAGE TEST PRODUCTION à ${new Date().toLocaleTimeString()}`
-    );
+    console.log(`🚀 DÉMARRAGE TEST PRODUCTION à ${new Date().toLocaleTimeString()}`);
 
     // Vérifier l'état initial de l'outil
     console.log(`🔍 Vérification état initial de l'outil ${toolId}...`);
@@ -78,9 +76,7 @@ async function testProductionDatabase() {
     }
 
     console.log(`✅ Outil initial trouvé: ${initialTool.toolName}`);
-    console.log(
-      `📊 Traductions existantes: ${initialTool.translations.length}`
-    );
+    console.log(`📊 Traductions existantes: ${initialTool.translations.length}`);
 
     // ✅ Vérification des liens sociaux stockés directement dans la table Tool
     const initialSocialLinks = [
@@ -181,9 +177,7 @@ async function testProductionDatabase() {
     Object.entries(translationsByLang).forEach(([lang, trans]) => {
       console.log(`   ${lang.toUpperCase()}: ${trans.length} champs traduits`);
       trans.forEach(t => {
-        console.log(
-          `     - ${t.name}: ${t.overview || t.description ? '✅' : '❌'}`
-        );
+        console.log(`     - ${t.name}: ${t.overview || t.description ? '✅' : '❌'}`);
       });
     });
 
@@ -193,24 +187,20 @@ async function testProductionDatabase() {
     if (finalTool.socialFacebook)
       console.log(`   Facebook: ${finalTool.socialFacebook} ✅`);
     if (finalTool.socialX) console.log(`   X/Twitter: ${finalTool.socialX} ✅`);
-    if (finalTool.socialGithub)
-      console.log(`   GitHub: ${finalTool.socialGithub} ✅`);
+    if (finalTool.socialGithub) console.log(`   GitHub: ${finalTool.socialGithub} ✅`);
     if (finalTool.socialDiscord)
       console.log(`   Discord: ${finalTool.socialDiscord} ✅`);
     if (finalTool.socialInstagram)
       console.log(`   Instagram: ${finalTool.socialInstagram} ✅`);
-    if (finalTool.socialTiktok)
-      console.log(`   TikTok: ${finalTool.socialTiktok} ✅`);
+    if (finalTool.socialTiktok) console.log(`   TikTok: ${finalTool.socialTiktok} ✅`);
 
     console.log(`\n🔗 LIENS UTILES (stockés directement dans la table Tool):`);
-    if (finalTool.docsLink)
-      console.log(`   Documentation: ${finalTool.docsLink} ✅`);
+    if (finalTool.docsLink) console.log(`   Documentation: ${finalTool.docsLink} ✅`);
     if (finalTool.affiliateLink)
       console.log(`   Affiliate: ${finalTool.affiliateLink} ✅`);
     if (finalTool.changelogLink)
       console.log(`   Changelog: ${finalTool.changelogLink} ✅`);
-    if (finalTool.mailAddress)
-      console.log(`   Email: ${finalTool.mailAddress} ✅`);
+    if (finalTool.mailAddress) console.log(`   Email: ${finalTool.mailAddress} ✅`);
 
     /**
      * 📈 RAPPORT DE VALIDATION PRODUCTION
@@ -280,10 +270,7 @@ async function testProductionDatabase() {
 
     // Sauvegarder le rapport de validation
     const reportFilename = `production-db-validation-${Date.now()}.json`;
-    await fs.writeFile(
-      reportFilename,
-      JSON.stringify(validationReport, null, 2)
-    );
+    await fs.writeFile(reportFilename, JSON.stringify(validationReport, null, 2));
 
     /**
      * 🏁 VERDICT FINAL - VALIDATION PRODUCTION
@@ -318,9 +305,7 @@ async function testProductionDatabase() {
     console.log(`\n📊 VALIDATION PRODUCTION:`);
     console.log(`   🎯 Outil: ${finalTool.toolName} (ID: ${toolId})`);
     console.log(`   ⏱️  Durée: ${duration.toFixed(2)}s`);
-    console.log(
-      `   📝 Contenu anglais: ${contentSuccess ? '✅ SUCCÈS' : '❌ ÉCHEC'}`
-    );
+    console.log(`   📝 Contenu anglais: ${contentSuccess ? '✅ SUCCÈS' : '❌ ÉCHEC'}`);
     console.log(
       `   🌍 Traductions: ${translationsSuccess ? '✅ SUCCÈS' : '❌ ÉCHEC'} (${finalTool.translations.length} champs)`
     );
@@ -328,8 +313,7 @@ async function testProductionDatabase() {
       `   🔗 Liens: ${linksSuccess ? '✅ SUCCÈS' : '❌ ÉCHEC'} (${finalSocialLinksCount + finalUsefulLinksCount} liens)`
     );
 
-    const overallSuccess =
-      translationsSuccess && contentSuccess && linksSuccess;
+    const overallSuccess = translationsSuccess && contentSuccess && linksSuccess;
 
     if (overallSuccess) {
       console.log(
@@ -340,9 +324,7 @@ async function testProductionDatabase() {
       console.log('🌍 Traductions multilangues persistées');
       console.log('🚀 Système recommandé pour la production');
     } else {
-      console.log(
-        `\n⚠️ === TEST PRODUCTION PARTIEL - VÉRIFICATIONS REQUISES ===`
-      );
+      console.log(`\n⚠️ === TEST PRODUCTION PARTIEL - VÉRIFICATIONS REQUISES ===`);
       console.log('🔧 Certaines validations ont échoué');
       console.log('📋 Analyser le rapport détaillé');
       console.log('💡 Vérifier la configuration de la base de données');
@@ -362,8 +344,7 @@ async function testProductionDatabase() {
     console.log('\n🔍 DIAGNOSTIC:');
     console.log(`   Type: ${error.constructor.name}`);
     console.log(`   Message: ${error.message}`);
-    if (error.stack)
-      console.log(`   Stack: ${error.stack.substring(0, 500)}...`);
+    if (error.stack) console.log(`   Stack: ${error.stack.substring(0, 500)}...`);
   } finally {
     await prisma.$disconnect();
   }

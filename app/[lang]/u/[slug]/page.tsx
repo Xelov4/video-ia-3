@@ -1,20 +1,23 @@
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { SupportedLanguage } from '@/src/lib/i18n/types'
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
-import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers'
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { SupportedLanguage } from '@/src/lib/i18n/types';
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
+import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
 
 interface UseCasePageProps {
-  params: Promise<{ lang: SupportedLanguage; slug: string }>
+  params: Promise<{ lang: SupportedLanguage; slug: string }>;
 }
 
-export async function generateMetadata({ params }: UseCasePageProps): Promise<Metadata> {
-  const { lang, slug } = await params
-  
+export async function generateMetadata({
+  params,
+}: UseCasePageProps): Promise<Metadata> {
+  const { lang, slug } = await params;
+
   // Convert slug to readable use case name
-  const useCaseName = slug.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ')
+  const useCaseName = slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
   const titles = {
     en: `${useCaseName} - AI Tools for This Use Case`,
@@ -23,8 +26,8 @@ export async function generateMetadata({ params }: UseCasePageProps): Promise<Me
     de: `${useCaseName} - KI-Tools für diesen Anwendungsfall`,
     it: `${useCaseName} - Strumenti IA per Questo Caso d'Uso`,
     nl: `${useCaseName} - AI-tools voor Dit Gebruiksscenario`,
-    pt: `${useCaseName} - Ferramentas de IA para Este Caso de Uso`
-  }
+    pt: `${useCaseName} - Ferramentas de IA para Este Caso de Uso`,
+  };
 
   const descriptions = {
     en: `Find the best AI tools for ${useCaseName.toLowerCase()}. Discover solutions that help you accomplish your goals efficiently.`,
@@ -33,8 +36,8 @@ export async function generateMetadata({ params }: UseCasePageProps): Promise<Me
     de: `Finden Sie die besten KI-Tools für ${useCaseName.toLowerCase()}. Entdecken Sie Lösungen, die Ihnen helfen, Ihre Ziele effizient zu erreichen.`,
     it: `Trova i migliori strumenti IA per ${useCaseName.toLowerCase()}. Scopri soluzioni che ti aiutano a raggiungere i tuoi obiettivi in modo efficiente.`,
     nl: `Vind de beste AI-tools voor ${useCaseName.toLowerCase()}. Ontdek oplossingen die u helpen uw doelen efficiënt te bereiken.`,
-    pt: `Encontre as melhores ferramentas de IA para ${useCaseName.toLowerCase()}. Descubra soluções que o ajudam a alcançar seus objetivos de forma eficiente.`
-  }
+    pt: `Encontre as melhores ferramentas de IA para ${useCaseName.toLowerCase()}. Descubra soluções que o ajudam a alcançar seus objetivos de forma eficiente.`,
+  };
 
   return {
     title: titles[lang] || titles.en,
@@ -48,18 +51,18 @@ export async function generateMetadata({ params }: UseCasePageProps): Promise<Me
         de: `https://video-ia.net/de/u/${slug}`,
         it: `https://video-ia.net/it/u/${slug}`,
         nl: `https://video-ia.net/nl/u/${slug}`,
-        pt: `https://video-ia.net/pt/u/${slug}`
-      }
-    }
-  }
+        pt: `https://video-ia.net/pt/u/${slug}`,
+      },
+    },
+  };
 }
 
 export default async function UseCasePage({ params }: UseCasePageProps) {
-  const { lang, slug } = await params
-  
+  const { lang, slug } = await params;
+
   // Convert slug to use case filter
-  const useCaseFilter = slug.split('-').join(' ')
-  
+  const useCaseFilter = slug.split('-').join(' ');
+
   // Get tools for this use case
   const tools = await multilingualToolsService.searchTools({
     language: lang,
@@ -67,57 +70,61 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
     page: 1,
     limit: 24,
     sortBy: 'quality_score',
-    sortOrder: 'desc'
-  })
+    sortOrder: 'desc',
+  });
 
   if (!tools.tools.length) {
-    notFound()
+    notFound();
   }
 
-  const serializedTools = serializePrismaObject(tools.tools)
-  const useCaseName = slug.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ')
+  const serializedTools = serializePrismaObject(tools.tools);
+  const useCaseName = slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+    <div className='min-h-screen bg-gray-50'>
+      <div className='mx-auto max-w-7xl px-4 py-8'>
+        <div className='mb-8'>
+          <h1 className='mb-4 text-4xl font-bold text-gray-900'>
             AI Tools for {useCaseName}
           </h1>
-          <p className="text-lg text-gray-600 max-w-3xl">
-            Discover the best AI tools designed specifically for {useCaseName.toLowerCase()}. 
-            These solutions will help you streamline your workflow and achieve better results.
+          <p className='max-w-3xl text-lg text-gray-600'>
+            Discover the best AI tools designed specifically for{' '}
+            {useCaseName.toLowerCase()}. These solutions will help you streamline your
+            workflow and achieve better results.
           </p>
-          <div className="mt-4 text-sm text-gray-500">
-            {tools.pagination.totalCount} tools available for {useCaseName.toLowerCase()}
+          <div className='mt-4 text-sm text-gray-500'>
+            {tools.pagination.totalCount} tools available for{' '}
+            {useCaseName.toLowerCase()}
           </div>
         </div>
 
         {/* Tools Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
           {serializedTools.map((tool: any) => (
-            <div key={tool.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  <a 
+            <div
+              key={tool.id}
+              className='overflow-hidden rounded-lg bg-white shadow-md'
+            >
+              <div className='p-6'>
+                <h3 className='mb-2 text-lg font-semibold text-gray-900'>
+                  <a
                     href={`/${lang}/t/${tool.slug}`}
-                    className="hover:text-blue-600 transition-colors"
+                    className='transition-colors hover:text-blue-600'
                   >
                     {tool.displayName}
                   </a>
                 </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                <p className='mb-3 line-clamp-2 text-sm text-gray-600'>
                   {tool.displayDescription}
                 </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
-                    {tool.tool_category}
-                  </span>
+                <div className='flex items-center justify-between'>
+                  <span className='text-sm text-gray-500'>{tool.tool_category}</span>
                   {tool.quality_score && (
-                    <div className="flex items-center text-sm text-gray-500">
-                      <span className="text-yellow-400 mr-1">★</span>
+                    <div className='flex items-center text-sm text-gray-500'>
+                      <span className='mr-1 text-yellow-400'>★</span>
                       {tool.quality_score}
                     </div>
                   )}
@@ -130,5 +137,5 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
         {/* Pagination would go here */}
       </div>
     </div>
-  )
+  );
 }

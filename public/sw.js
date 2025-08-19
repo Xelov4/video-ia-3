@@ -11,13 +11,13 @@ const PRECACHE_ASSETS = [
   '/favicon.ico',
   '/manifest.json',
   '/apple-touch-icon.png',
-  '/images/placeholders/ai-placeholder.jpg'
+  '/images/placeholders/ai-placeholder.jpg',
 ];
 
 // Install event - precache critical resources
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   console.log('[ServiceWorker] Install');
-  
+
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -29,9 +29,9 @@ self.addEventListener('install', (event) => {
 });
 
 // Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
   console.log('[ServiceWorker] Activate');
-  
+
   event.waitUntil(
     (async () => {
       const cacheKeys = await caches.keys();
@@ -43,43 +43,46 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch event - serve from cache if available, otherwise fetch from network
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
-  
+
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
     return;
   }
-  
+
   // Skip API requests
   if (event.request.url.includes('/api/')) {
     return;
   }
-  
+
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      
+
       try {
         // Try the network first
         const networkResponse = await fetch(event.request);
-        
+
         // Cache successful responses
         if (networkResponse && networkResponse.ok) {
           cache.put(event.request, networkResponse.clone());
         }
-        
+
         return networkResponse;
       } catch (error) {
-        console.log('[ServiceWorker] Fetch failed; returning offline page instead.', error);
-        
+        console.log(
+          '[ServiceWorker] Fetch failed; returning offline page instead.',
+          error
+        );
+
         // If network fails, try to serve from cache
         const cachedResponse = await cache.match(event.request);
         if (cachedResponse) return cachedResponse;
-        
+
         // If cache fails, show offline page
         return await cache.match(OFFLINE_URL);
       }

@@ -5,9 +5,18 @@
 
 import { GoogleGenAI } from '@google/genai';
 import { ScrapingResult } from '@/src/types/scraper';
-import { ToolAnalysis, PricingDetails, AffiliateInfo, FrenchTranslation } from '@/src/types/analysis';
-import { generateSlug, generateSEODescription, generatePricingSummary } from '@/src/utils/content';
-import { 
+import {
+  ToolAnalysis,
+  PricingDetails,
+  AffiliateInfo,
+  FrenchTranslation,
+} from '@/src/types/analysis';
+import {
+  generateSlug,
+  generateSEODescription,
+  generatePricingSummary,
+} from '@/src/utils/content';
+import {
   AI_TOOL_ANALYSIS_PROMPT,
   PRICING_ANALYSIS_PROMPT,
   AFFILIATE_ANALYSIS_PROMPT,
@@ -15,7 +24,7 @@ import {
   CONTENT_OPTIMIZATION_PROMPT,
   QUALITY_ASSESSMENT_PROMPT,
   generateCategorySpecificPrompt,
-  generateQualityRubric
+  generateQualityRubric,
 } from './prompts';
 
 function extractJsonFromString(text: string): string | null {
@@ -44,7 +53,7 @@ const PREMIUM_MODELS = [
   'gemini-2.0-flash',
   'gemini-1.5-pro-002',
   'gemini-1.5-pro',
-  'gemini-1.5-flash'
+  'gemini-1.5-flash',
 ];
 
 interface ModelConfig {
@@ -55,29 +64,29 @@ interface ModelConfig {
 }
 
 const MODEL_CONFIGS: Record<string, ModelConfig> = {
-  'analysis': {
-    temperature: 0.3,  // Lower for accuracy
+  analysis: {
+    temperature: 0.3, // Lower for accuracy
     topP: 0.8,
     topK: 40,
-    maxOutputTokens: 4096
+    maxOutputTokens: 4096,
   },
-  'creative': {
-    temperature: 0.7,  // Higher for creativity
+  creative: {
+    temperature: 0.7, // Higher for creativity
     topP: 0.9,
     topK: 50,
-    maxOutputTokens: 4096
+    maxOutputTokens: 4096,
   },
-  'translation': {
-    temperature: 0.4,  // Balanced for natural translations
+  translation: {
+    temperature: 0.4, // Balanced for natural translations
     topP: 0.85,
     topK: 45,
-    maxOutputTokens: 3072
-  }
+    maxOutputTokens: 3072,
+  },
 };
 
 async function executeWithRetry(
-  prompt: string, 
-  operation: string, 
+  prompt: string,
+  operation: string,
   config: ModelConfig,
   maxRetries: number = 3
 ): Promise<string> {
@@ -89,11 +98,13 @@ async function executeWithRetry(
 
   for (let modelIndex = 0; modelIndex < PREMIUM_MODELS.length; modelIndex++) {
     const model = PREMIUM_MODELS[modelIndex];
-    
+
     for (let retry = 0; retry < maxRetries; retry++) {
       try {
-        console.log(`🔄 Attempting ${operation} with ${model} (attempt ${retry + 1}/${maxRetries})`);
-        
+        console.log(
+          `🔄 Attempting ${operation} with ${model} (attempt ${retry + 1}/${maxRetries})`
+        );
+
         const genModel = ai.models.generateContent({
           model: model,
           contents: prompt,
@@ -101,25 +112,27 @@ async function executeWithRetry(
 
         const result = await genModel;
         const text = result.text;
-        
+
         if (!text) {
           throw new Error('No response text from Gemini API');
         }
 
         console.log(`✅ ${operation} successful with ${model} on attempt ${retry + 1}`);
         return text;
-
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error');
-        
-        console.log(`❌ ${operation} failed with ${model} (attempt ${retry + 1}): ${lastError.message}`);
-        
+
+        console.log(
+          `❌ ${operation} failed with ${model} (attempt ${retry + 1}): ${lastError.message}`
+        );
+
         // Check if we should retry with the same model
-        if (lastError.message.includes('overloaded') || 
-            lastError.message.includes('503') || 
-            lastError.message.includes('UNAVAILABLE') ||
-            lastError.message.includes('rate limit')) {
-          
+        if (
+          lastError.message.includes('overloaded') ||
+          lastError.message.includes('503') ||
+          lastError.message.includes('UNAVAILABLE') ||
+          lastError.message.includes('rate limit')
+        ) {
           if (retry < maxRetries - 1) {
             const delay = Math.pow(2, retry) * 1000; // Exponential backoff
             console.log(`⏳ Waiting ${delay}ms before retry...`);
@@ -127,7 +140,7 @@ async function executeWithRetry(
             continue;
           }
         }
-        
+
         // For other errors, try next model immediately
         break;
       }
@@ -140,7 +153,9 @@ async function executeWithRetry(
 /**
  * Enhanced tool analysis with professional prompts and quality scoring
  */
-export async function enhancedAnalyzeWithGemini(scrapingData: ScrapingResult): Promise<ToolAnalysis> {
+export async function enhancedAnalyzeWithGemini(
+  scrapingData: ScrapingResult
+): Promise<ToolAnalysis> {
   try {
     if (!ai) {
       console.log('No Gemini API key available, using fallback analysis');
@@ -149,11 +164,14 @@ export async function enhancedAnalyzeWithGemini(scrapingData: ScrapingResult): P
 
     // Pre-process content for better analysis
     const processedContent = preprocessContent(scrapingData);
-    
+
     // Detect likely category for specialized analysis
     const preliminaryCategory = detectPrimaryCategory(scrapingData);
-    const categoryPrompt = generateCategorySpecificPrompt(preliminaryCategory, scrapingData);
-    
+    const categoryPrompt = generateCategorySpecificPrompt(
+      preliminaryCategory,
+      scrapingData
+    );
+
     const fullPrompt = `${AI_TOOL_ANALYSIS_PROMPT}
 
 **WEBSITE DATA TO ANALYZE:**
@@ -163,7 +181,10 @@ Description: ${scrapingData.description}
 Content: ${processedContent.substring(0, 6000)}
 Features Detected: ${scrapingData.features.slice(0, 10).join(', ')}
 Pricing Mentions: ${scrapingData.pricing.slice(0, 5).join(', ')}
-Social Links: ${Object.entries(scrapingData.socialLinks).filter(([_, url]) => url).map(([platform, url]) => `${platform}: ${url}`).join(', ')}
+Social Links: ${Object.entries(scrapingData.socialLinks)
+      .filter(([_, url]) => url)
+      .map(([platform, url]) => `${platform}: ${url}`)
+      .join(', ')}
 Contact Info: ${scrapingData.contactInfo.email || 'None'} | ${scrapingData.contactInfo.contactFormUrl || 'None'}
 Logo: ${scrapingData.logoUrl || 'None detected'}
 
@@ -212,8 +233,8 @@ ${generateQualityRubric(preliminaryCategory)}
 }`;
 
     const response = await executeWithRetry(
-      fullPrompt, 
-      'Enhanced AI analysis', 
+      fullPrompt,
+      'Enhanced AI analysis',
       MODEL_CONFIGS.analysis
     );
 
@@ -223,14 +244,15 @@ ${generateQualityRubric(preliminaryCategory)}
     }
 
     const analysis = parseAIResponse(jsonResponse, scrapingData);
-    
+
     // Post-process and validate
     const validatedAnalysis = validateAndEnhanceAnalysis(analysis, scrapingData);
-    
-    console.log(`✅ Enhanced analysis completed: ${validatedAnalysis.toolName} (${validatedAnalysis.confidence}% confidence)`);
-    
-    return validatedAnalysis;
 
+    console.log(
+      `✅ Enhanced analysis completed: ${validatedAnalysis.toolName} (${validatedAnalysis.confidence}% confidence)`
+    );
+
+    return validatedAnalysis;
   } catch (error) {
     console.error('Enhanced AI analysis error:', error);
     return enhancedFallbackAnalysis(scrapingData);
@@ -240,14 +262,16 @@ ${generateQualityRubric(preliminaryCategory)}
 /**
  * Enhanced pricing analysis with detailed extraction
  */
-export async function enhancedPricingAnalysis(scrapingData: ScrapingResult): Promise<PricingDetails> {
+export async function enhancedPricingAnalysis(
+  scrapingData: ScrapingResult
+): Promise<PricingDetails> {
   try {
     if (!ai) {
       return getEnhancedFallbackPricing(scrapingData);
     }
 
     const pricingContent = extractPricingContent(scrapingData);
-    
+
     const fullPrompt = `${PRICING_ANALYSIS_PROMPT}
 
 **PRICING CONTENT TO ANALYZE:**
@@ -292,7 +316,6 @@ ${pricingContent}
 
     const pricing = JSON.parse(jsonResponse) as PricingDetails;
     return validatePricingDetails(pricing);
-
   } catch (error) {
     console.error('Enhanced pricing analysis error:', error);
     return getEnhancedFallbackPricing(scrapingData);
@@ -302,14 +325,16 @@ ${pricingContent}
 /**
  * Enhanced affiliate program analysis
  */
-export async function enhancedAffiliateAnalysis(scrapingData: ScrapingResult): Promise<AffiliateInfo> {
+export async function enhancedAffiliateAnalysis(
+  scrapingData: ScrapingResult
+): Promise<AffiliateInfo> {
   try {
     if (!ai) {
       return getEnhancedFallbackAffiliate(scrapingData);
     }
 
     const affiliateContent = extractAffiliateContent(scrapingData);
-    
+
     const fullPrompt = `${AFFILIATE_ANALYSIS_PROMPT}
 
 **CONTENT TO ANALYZE:**
@@ -345,7 +370,6 @@ ${affiliateContent}
     }
 
     return JSON.parse(jsonResponse) as AffiliateInfo;
-
   } catch (error) {
     console.error('Enhanced affiliate analysis error:', error);
     return getEnhancedFallbackAffiliate(scrapingData);
@@ -356,9 +380,10 @@ ${affiliateContent}
  * Translates tool content to a specified target language with SEO optimization.
  */
 export async function translateContent(
-  analysis: ToolAnalysis, 
+  analysis: ToolAnalysis,
   targetLanguage: { code: string; name: string }
-): Promise<FrenchTranslation> { // Note: We can reuse FrenchTranslation type if the structure is identical
+): Promise<FrenchTranslation> {
+  // Note: We can reuse FrenchTranslation type if the structure is identical
   try {
     if (!ai) {
       throw new Error('Gemini API key not available');
@@ -398,7 +423,6 @@ export async function translateContent(
     }
 
     return JSON.parse(jsonResponse) as FrenchTranslation;
-
   } catch (error) {
     console.error(`Error translating to ${targetLanguage.name}:`, error);
     throw error;
@@ -408,14 +432,20 @@ export async function translateContent(
 /**
  * Enhanced French translation with SEO optimization
  */
-export async function enhancedFrenchTranslation(analysis: ToolAnalysis): Promise<FrenchTranslation> {
+export async function enhancedFrenchTranslation(
+  analysis: ToolAnalysis
+): Promise<FrenchTranslation> {
   return translateContent(analysis, { code: 'fr', name: 'French' });
 }
 
 /**
  * Generates SEO-optimized meta title and description for a given tool.
  */
-export async function generateSeo(tool: { toolName: string; primaryFunction: string; keyFeatures: string[] }): Promise<{ metaTitle: string; metaDescription: string }> {
+export async function generateSeo(tool: {
+  toolName: string;
+  primaryFunction: string;
+  keyFeatures: string[];
+}): Promise<{ metaTitle: string; metaDescription: string }> {
   try {
     if (!ai) {
       throw new Error('Gemini API key not available');
@@ -455,7 +485,6 @@ export async function generateSeo(tool: { toolName: string; primaryFunction: str
       metaTitle: seoData.metaTitle,
       metaDescription: seoData.metaDescription,
     };
-
   } catch (error) {
     console.error('SEO generation error:', error);
     throw error; // Re-throw to be handled by the API route
@@ -468,10 +497,7 @@ export async function generateSeo(tool: { toolName: string; primaryFunction: str
 
 function preprocessContent(scrapingData: ScrapingResult): string {
   // Remove excessive whitespace and normalize content
-  return scrapingData.content
-    .replace(/\s+/g, ' ')
-    .replace(/\n+/g, '\n')
-    .trim();
+  return scrapingData.content.replace(/\s+/g, ' ').replace(/\n+/g, '\n').trim();
 }
 
 function detectPrimaryCategory(scrapingData: ScrapingResult): string {
@@ -481,12 +507,52 @@ function detectPrimaryCategory(scrapingData: ScrapingResult): string {
 
   // Enhanced category detection logic
   const categories = {
-    'Image Generation': ['image generat', 'ai art', 'create image', 'photo generat', 'dall-e', 'midjourney', 'stable diffusion'],
-    'Video Generation': ['video generat', 'create video', 'ai video', 'video creation', 'animate', 'motion'],
-    'Content Creation': ['content creat', 'blog writ', 'copywriting', 'article writ', 'content generat'],
-    'AI Assistant': ['ai assistant', 'chatbot', 'virtual assistant', 'conversational ai', 'chat gpt'],
-    'Developer Tools': ['developer', 'coding', 'programming', 'api', 'development', 'code generat'],
-    'Data Analysis': ['data analys', 'analytics', 'business intelligence', 'data visual', 'reporting']
+    'Image Generation': [
+      'image generat',
+      'ai art',
+      'create image',
+      'photo generat',
+      'dall-e',
+      'midjourney',
+      'stable diffusion',
+    ],
+    'Video Generation': [
+      'video generat',
+      'create video',
+      'ai video',
+      'video creation',
+      'animate',
+      'motion',
+    ],
+    'Content Creation': [
+      'content creat',
+      'blog writ',
+      'copywriting',
+      'article writ',
+      'content generat',
+    ],
+    'AI Assistant': [
+      'ai assistant',
+      'chatbot',
+      'virtual assistant',
+      'conversational ai',
+      'chat gpt',
+    ],
+    'Developer Tools': [
+      'developer',
+      'coding',
+      'programming',
+      'api',
+      'development',
+      'code generat',
+    ],
+    'Data Analysis': [
+      'data analys',
+      'analytics',
+      'business intelligence',
+      'data visual',
+      'reporting',
+    ],
   };
 
   for (const [category, keywords] of Object.entries(categories)) {
@@ -501,20 +567,23 @@ function detectPrimaryCategory(scrapingData: ScrapingResult): string {
 function parseAIResponse(response: string, scrapingData: ScrapingResult): ToolAnalysis {
   try {
     const parsed = JSON.parse(response) as ToolAnalysis;
-    
+
     // Add scraped data that AI might miss
     parsed.socialLinks = scrapingData.socialLinks;
     parsed.contactInfo = scrapingData.contactInfo;
     parsed.logoUrl = scrapingData.logoUrl;
     parsed.slug = generateSlug(parsed.toolName);
-    
+
     return parsed;
   } catch (error) {
     throw new Error('Failed to parse AI response JSON');
   }
 }
 
-function validateAndEnhanceAnalysis(analysis: ToolAnalysis, scrapingData: ScrapingResult): ToolAnalysis {
+function validateAndEnhanceAnalysis(
+  analysis: ToolAnalysis,
+  scrapingData: ScrapingResult
+): ToolAnalysis {
   // Validate required fields
   if (!analysis.toolName || !analysis.primaryFunction || !analysis.category) {
     throw new Error('Missing required analysis fields');
@@ -535,7 +604,10 @@ function validateAndEnhanceAnalysis(analysis: ToolAnalysis, scrapingData: Scrapi
 
   // Ensure quality scores are reasonable
   analysis.confidence = Math.max(60, Math.min(100, analysis.confidence || 75));
-  analysis.dataCompleteness = Math.max(50, Math.min(100, analysis.dataCompleteness || 70));
+  analysis.dataCompleteness = Math.max(
+    50,
+    Math.min(100, analysis.dataCompleteness || 70)
+  );
 
   return analysis;
 }
@@ -545,9 +617,14 @@ function extractPricingContent(scrapingData: ScrapingResult): string {
     .split('\n')
     .filter(line => {
       const lower = line.toLowerCase();
-      return lower.includes('price') || lower.includes('plan') || 
-             lower.includes('$') || lower.includes('€') || 
-             lower.includes('free') || lower.includes('premium');
+      return (
+        lower.includes('price') ||
+        lower.includes('plan') ||
+        lower.includes('$') ||
+        lower.includes('€') ||
+        lower.includes('free') ||
+        lower.includes('premium')
+      );
     })
     .slice(0, 20)
     .join('\n');
@@ -563,8 +640,12 @@ function extractAffiliateContent(scrapingData: ScrapingResult): string {
     .split('\n')
     .filter(line => {
       const lower = line.toLowerCase();
-      return lower.includes('affiliate') || lower.includes('partner') || 
-             lower.includes('referral') || lower.includes('commission');
+      return (
+        lower.includes('affiliate') ||
+        lower.includes('partner') ||
+        lower.includes('referral') ||
+        lower.includes('commission')
+      );
     })
     .slice(0, 10)
     .join('\n');
@@ -574,7 +655,10 @@ Contact: ${scrapingData.contactInfo.email || 'None'}
 Affiliate Content: ${affiliateSection}`;
 }
 
-function generateEnhancedDescription(analysis: ToolAnalysis, scrapingData: ScrapingResult): string {
+function generateEnhancedDescription(
+  analysis: ToolAnalysis,
+  scrapingData: ScrapingResult
+): string {
   return `<h2>What is ${analysis.toolName}?</h2>
 <p><strong>${analysis.toolName}</strong> is a cutting-edge ${analysis.category.toLowerCase()} tool that ${analysis.primaryFunction.toLowerCase()}. Designed for ${analysis.targetAudience.join(', ')}, this innovative platform leverages advanced artificial intelligence to deliver exceptional results.</p>
 
@@ -594,10 +678,10 @@ ${analysis.keyFeatures.map(feature => `<li><strong>${feature}</strong></li>`).jo
 function enhancedFallbackAnalysis(scrapingData: ScrapingResult): ToolAnalysis {
   const toolName = scrapingData.title || 'AI Tool';
   const category = detectPrimaryCategory(scrapingData);
-  
+
   const pricingDetails = getEnhancedFallbackPricing(scrapingData);
   const affiliateInfo = getEnhancedFallbackAffiliate(scrapingData);
-  
+
   return {
     toolName,
     slug: generateSlug(toolName),
@@ -606,33 +690,40 @@ function enhancedFallbackAnalysis(scrapingData: ScrapingResult): ToolAnalysis {
     targetAudience: ['Professionals', 'Businesses', 'Content Creators'],
     pricingModel: 'Freemium',
     category,
-    description: generateEnhancedDescription({
-      toolName,
-      category,
-      primaryFunction: `Advanced ${category.toLowerCase()} capabilities`,
-      keyFeatures: scrapingData.features.slice(0, 5),
-      targetAudience: ['Professionals', 'Businesses', 'Content Creators']
-    } as ToolAnalysis, scrapingData),
+    description: generateEnhancedDescription(
+      {
+        toolName,
+        category,
+        primaryFunction: `Advanced ${category.toLowerCase()} capabilities`,
+        keyFeatures: scrapingData.features.slice(0, 5),
+        targetAudience: ['Professionals', 'Businesses', 'Content Creators'],
+      } as ToolAnalysis,
+      scrapingData
+    ),
     metaTitle: `${toolName} - ${category} Tool - Video-IA.net`,
     metaDescription: `Discover ${toolName}, the advanced ${category.toLowerCase()} tool. Transform your workflow with AI-powered features. Try free today!`,
     tags: ['AI', category.replace(' ', ''), 'Productivity', 'Innovation'],
     confidence: 65,
     dataCompleteness: 60,
     qualityScore: 6.5,
-    recommendedActions: ['Verify tool features', 'Confirm pricing details', 'Test tool capabilities'],
+    recommendedActions: [
+      'Verify tool features',
+      'Confirm pricing details',
+      'Test tool capabilities',
+    ],
     socialLinks: scrapingData.socialLinks,
     contactInfo: scrapingData.contactInfo,
     logoUrl: scrapingData.logoUrl,
     pricingDetails,
     pricingSummary: generatePricingSummary(pricingDetails),
-    affiliateInfo
+    affiliateInfo,
   };
 }
 
 function getEnhancedFallbackPricing(scrapingData: ScrapingResult): PricingDetails {
   const content = scrapingData.content.toLowerCase();
   let model = 'Freemium';
-  
+
   if (content.includes('enterprise') && content.includes('custom')) {
     model = 'Enterprise';
   } else if (content.includes('subscription')) {
@@ -647,20 +738,25 @@ function getEnhancedFallbackPricing(scrapingData: ScrapingResult): PricingDetail
     freeTier: !content.includes('paid only'),
     paidPlans: content.includes('premium') || content.includes('pro'),
     enterpriseAvailable: content.includes('enterprise'),
-    pricingNotes: 'Pricing details extracted from website analysis'
+    pricingNotes: 'Pricing details extracted from website analysis',
   };
 }
 
 function getEnhancedFallbackAffiliate(scrapingData: ScrapingResult): AffiliateInfo {
   const content = scrapingData.content.toLowerCase();
-  const hasAffiliate = content.includes('affiliate') || content.includes('partner') || content.includes('referral');
-  
+  const hasAffiliate =
+    content.includes('affiliate') ||
+    content.includes('partner') ||
+    content.includes('referral');
+
   return {
     affiliateProgramUrl: undefined,
     affiliateContactEmail: scrapingData.contactInfo.email,
     affiliateContactForm: scrapingData.contactInfo.contactFormUrl,
     hasAffiliateProgram: hasAffiliate,
-    notes: hasAffiliate ? 'Affiliate program indicators found' : 'No affiliate program detected'
+    notes: hasAffiliate
+      ? 'Affiliate program indicators found'
+      : 'No affiliate program detected',
   };
 }
 
@@ -673,7 +769,7 @@ function getEnhancedFallbackTranslation(analysis: ToolAnalysis): FrenchTranslati
     description: analysis.description,
     metaTitle: `${analysis.toolName} - Outil IA ${analysis.category} - Video-IA.net`,
     metaDescription: `Découvrez ${analysis.toolName}, l'outil ${analysis.category.toLowerCase()} avancé. Transformez votre flux de travail avec l'IA. Essayez gratuitement !`,
-    pricingSummary: analysis.pricingSummary
+    pricingSummary: analysis.pricingSummary,
   };
 }
 

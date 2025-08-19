@@ -17,44 +17,50 @@ const searchParamsSchema = z.object({
   hasVideoUrl: z.coerce.boolean().optional(),
   featured: z.coerce.boolean().optional(),
   priceRange: z.string().optional(),
-  sortBy: z.enum(['relevance', 'name', 'created_at', 'view_count', 'quality_score']).optional().default('created_at'),
+  sortBy: z
+    .enum(['relevance', 'name', 'created_at', 'view_count', 'quality_score'])
+    .optional()
+    .default('created_at'),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     // Extract and validate parameters
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());
-    
+
     const validationResult = searchParamsSchema.safeParse(params);
     if (!validationResult.success) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid parameters',
-        details: validationResult.error.flatten()
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid parameters',
+          details: validationResult.error.flatten(),
+        },
+        { status: 400 }
+      );
     }
-    
-    const { 
+
+    const {
       lang,
-      query, 
-      page, 
-      limit, 
-      category, 
-      audience, 
-      useCase, 
+      query,
+      page,
+      limit,
+      category,
+      audience,
+      useCase,
       minQualityScore,
       hasImageUrl,
       hasVideoUrl,
       featured,
       priceRange,
       sortBy,
-      sortOrder
+      sortOrder,
     } = validationResult.data;
-    
+
     // Execute search
     const result = await multilingualToolsService.searchTools({
       language: validateLanguageParam(lang),
@@ -67,14 +73,14 @@ export async function GET(request: NextRequest) {
         hasImageUrl,
         hasVideoUrl,
         featured,
-        priceRange
+        priceRange,
       },
       sortBy,
       sortOrder,
       page,
-      limit
+      limit,
     });
-    
+
     // Return response
     return NextResponse.json({
       success: true,
@@ -83,18 +89,21 @@ export async function GET(request: NextRequest) {
         queryTime: Date.now() - startTime,
         language: result.meta.language,
         fallbackCount: result.meta.fallbackCount,
-        pagination: result.pagination
-      }
+        pagination: result.pagination,
+      },
     });
   } catch (error) {
     console.error('Error searching tools:', error);
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to search tools',
-      meta: {
-        queryTime: Date.now() - startTime
-      }
-    }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to search tools',
+        meta: {
+          queryTime: Date.now() - startTime,
+        },
+      },
+      { status: 500 }
+    );
   }
 }

@@ -27,9 +27,7 @@ async function testProd() {
     console.log('='.repeat(80));
     console.log(`⏱️  Durée totale: ${duration.toFixed(2)}s`);
     console.log(`📊 Status global: ${result.status}`);
-    console.log(
-      `🇺🇸 Phase 1 (anglais): ${result.phase1_english?.status || 'failed'}`
-    );
+    console.log(`🇺🇸 Phase 1 (anglais): ${result.phase1_english?.status || 'failed'}`);
 
     if (result.phase2_translations) {
       console.log(

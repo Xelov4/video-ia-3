@@ -6,12 +6,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/src/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import {
   Card,
   CardContent,
@@ -96,14 +91,14 @@ export const TranslationTabs = ({
       case 'complete':
         return (
           <Badge variant='default' className='bg-green-500'>
-            <Check className='h-3 w-3 mr-1' />
+            <Check className='mr-1 h-3 w-3' />
             Complet {quality && `(${quality}%)`}
           </Badge>
         );
       case 'partial':
         return (
           <Badge variant='secondary'>
-            <AlertCircle className='h-3 w-3 mr-1' />
+            <AlertCircle className='mr-1 h-3 w-3' />
             Partiel
           </Badge>
         );
@@ -124,12 +119,8 @@ export const TranslationTabs = ({
         description: edited.description || original?.description || '',
         overview: edited.overview || original?.overview || '',
         metaTitle: edited.metaTitle || original?.metaTitle || '',
-        metaDescription:
-          edited.metaDescription || original?.metaDescription || '',
-        status: getTranslationStatus(edited) as
-          | 'complete'
-          | 'partial'
-          | 'missing',
+        metaDescription: edited.metaDescription || original?.metaDescription || '',
+        status: getTranslationStatus(edited) as 'complete' | 'partial' | 'missing',
         quality: edited.quality || original?.quality || 0,
       };
     });
@@ -143,15 +134,13 @@ export const TranslationTabs = ({
         <div className='flex items-center justify-between'>
           <div>
             <CardTitle className='flex items-center'>
-              <Globe className='h-5 w-5 mr-2' />
+              <Globe className='mr-2 h-5 w-5' />
               Traductions
             </CardTitle>
-            <CardDescription>
-              Gérez le contenu dans toutes les langues
-            </CardDescription>
+            <CardDescription>Gérez le contenu dans toutes les langues</CardDescription>
           </div>
           <Button onClick={handleSave} disabled={loading}>
-            <Save className='h-4 w-4 mr-2' />
+            <Save className='mr-2 h-4 w-4' />
             Sauvegarder
           </Button>
         </div>
@@ -171,11 +160,9 @@ export const TranslationTabs = ({
                   className='flex items-center space-x-1'
                 >
                   <span>{lang.flag}</span>
-                  <span className='hidden sm:inline'>
-                    {lang.code.toUpperCase()}
-                  </span>
+                  <span className='hidden sm:inline'>{lang.code.toUpperCase()}</span>
                   <div
-                    className={`w-2 h-2 rounded-full ${
+                    className={`h-2 w-2 rounded-full ${
                       status === 'complete'
                         ? 'bg-green-500'
                         : status === 'partial'
@@ -194,20 +181,16 @@ export const TranslationTabs = ({
             const quality = translation.quality || 0;
 
             return (
-              <TabsContent
-                key={lang.code}
-                value={lang.code}
-                className='space-y-4'
-              >
+              <TabsContent key={lang.code} value={lang.code} className='space-y-4'>
                 <div className='flex items-center justify-between'>
-                  <h3 className='text-lg font-semibold flex items-center'>
+                  <h3 className='flex items-center text-lg font-semibold'>
                     <span className='mr-2'>{lang.flag}</span>
                     {lang.name}
                   </h3>
                   {getStatusBadge(status, quality)}
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                   <div className='space-y-2'>
                     <Label htmlFor={`name-${lang.code}`}>Nom *</Label>
                     <Input
@@ -221,36 +204,24 @@ export const TranslationTabs = ({
                   </div>
 
                   <div className='space-y-2'>
-                    <Label htmlFor={`meta-title-${lang.code}`}>
-                      Titre meta
-                    </Label>
+                    <Label htmlFor={`meta-title-${lang.code}`}>Titre meta</Label>
                     <Input
                       id={`meta-title-${lang.code}`}
                       value={translation.metaTitle || ''}
                       onChange={e =>
-                        updateTranslation(
-                          lang.code,
-                          'metaTitle',
-                          e.target.value
-                        )
+                        updateTranslation(lang.code, 'metaTitle', e.target.value)
                       }
                       placeholder='Titre pour SEO'
                     />
                   </div>
 
                   <div className='space-y-2 md:col-span-2'>
-                    <Label htmlFor={`description-${lang.code}`}>
-                      Description *
-                    </Label>
+                    <Label htmlFor={`description-${lang.code}`}>Description *</Label>
                     <Textarea
                       id={`description-${lang.code}`}
                       value={translation.description || ''}
                       onChange={e =>
-                        updateTranslation(
-                          lang.code,
-                          'description',
-                          e.target.value
-                        )
+                        updateTranslation(lang.code, 'description', e.target.value)
                       }
                       placeholder="Description courte de l'outil"
                       rows={3}
@@ -258,9 +229,7 @@ export const TranslationTabs = ({
                   </div>
 
                   <div className='space-y-2 md:col-span-2'>
-                    <Label htmlFor={`overview-${lang.code}`}>
-                      Vue d'ensemble *
-                    </Label>
+                    <Label htmlFor={`overview-${lang.code}`}>Vue d'ensemble *</Label>
                     <Textarea
                       id={`overview-${lang.code}`}
                       value={translation.overview || ''}
@@ -280,11 +249,7 @@ export const TranslationTabs = ({
                       id={`meta-description-${lang.code}`}
                       value={translation.metaDescription || ''}
                       onChange={e =>
-                        updateTranslation(
-                          lang.code,
-                          'metaDescription',
-                          e.target.value
-                        )
+                        updateTranslation(lang.code, 'metaDescription', e.target.value)
                       }
                       placeholder='Description pour les moteurs de recherche'
                       rows={2}

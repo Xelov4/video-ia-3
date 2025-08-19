@@ -3,16 +3,16 @@
  * Modern interface with shadcn/ui components for health checking and screenshot capture
  */
 
-'use client'
+'use client';
 
-import { useState, useEffect, useRef } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { 
-  PlayIcon, 
-  StopIcon, 
-  CheckCircleIcon, 
-  XCircleIcon, 
+import { useState, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import {
+  PlayIcon,
+  StopIcon,
+  CheckCircleIcon,
+  XCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   SearchIcon,
@@ -21,119 +21,148 @@ import {
   EyeIcon,
   EyeSlashIcon,
   ClockIcon,
-  GlobeIcon
-} from '@heroicons/react/24/outline'
+  GlobeIcon,
+} from '@heroicons/react/24/outline';
 
 // shadcn/ui components
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card'
-import { Button } from '@/src/components/ui/button'
-import { Input } from '@/src/components/ui/input'
-import { Badge } from '@/src/components/ui/badge'
-import { Checkbox } from '@/src/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs'
-import { Progress } from '@/src/components/ui/progress'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/src/components/ui/table'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/src/components/ui/alert-dialog'
-import { toast } from 'sonner'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/src/components/ui/card';
+import { Button } from '@/src/components/ui/button';
+import { Input } from '@/src/components/ui/input';
+import { Badge } from '@/src/components/ui/badge';
+import { Checkbox } from '@/src/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/src/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
+import { Progress } from '@/src/components/ui/progress';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/src/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/src/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 interface Tool {
-  id: number
-  toolName: string
-  toolLink: string
-  toolCategory: string
-  imageUrl: string | null
-  isActive: boolean
-  httpStatusCode: number | null
-  lastCheckedAt: string | null
-  last_optimized_at: string | null
-  featured: boolean
-  quality_score: number | null
+  id: number;
+  toolName: string;
+  toolLink: string;
+  toolCategory: string;
+  imageUrl: string | null;
+  isActive: boolean;
+  httpStatusCode: number | null;
+  lastCheckedAt: string | null;
+  last_optimized_at: string | null;
+  featured: boolean;
+  quality_score: number | null;
 }
 
 interface HealthCheckResult {
-  toolId: number
-  toolName: string
-  toolLink: string
-  toolCategory: string
-  httpStatusCode: number
-  isActive: boolean
-  screenshotUrl: string | null
-  error: string | null
-  processingTime: number
-  last_optimized_at: string
+  toolId: number;
+  toolName: string;
+  toolLink: string;
+  toolCategory: string;
+  httpStatusCode: number;
+  isActive: boolean;
+  screenshotUrl: string | null;
+  error: string | null;
+  processingTime: number;
+  last_optimized_at: string;
 }
 
 interface LogEntry {
-  id: string
-  timestamp: string
-  type: 'info' | 'success' | 'warning' | 'error'
-  message: string
+  id: string;
+  timestamp: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  message: string;
 }
 
 interface FilterState {
-  search: string
-  category: string
-  status: string
-  featured: boolean
+  search: string;
+  category: string;
+  status: string;
+  featured: boolean;
 }
 
 export default function AdminImageHttpPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   // State management
-  const [tools, setTools] = useState<Tool[]>([])
-  const [filteredTools, setFilteredTools] = useState<Tool[]>([])
-  const [selectedTools, setSelectedTools] = useState<number[]>([])
-  const [loading, setLoading] = useState(false)
-  const [processing, setProcessing] = useState(false)
-  const [results, setResults] = useState<HealthCheckResult[]>([])
-  const [logs, setLogs] = useState<LogEntry[]>([])
-  const [currentProgress, setCurrentProgress] = useState(0)
-  const [totalTools, setTotalTools] = useState(0)
-  const [activeTab, setActiveTab] = useState('tools')
-  
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [filteredTools, setFilteredTools] = useState<Tool[]>([]);
+  const [selectedTools, setSelectedTools] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [results, setResults] = useState<HealthCheckResult[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [currentProgress, setCurrentProgress] = useState(0);
+  const [totalTools, setTotalTools] = useState(0);
+  const [activeTab, setActiveTab] = useState('tools');
+
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(20)
-  const [totalPages, setTotalPages] = useState(1)
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+
   // Filters
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     category: '',
     status: '',
-    featured: false
-  })
-  
+    featured: false,
+  });
+
   // Categories for filter
-  const [categories, setCategories] = useState<string[]>([])
-  
-  const logsEndRef = useRef<HTMLDivElement>(null)
+  const [categories, setCategories] = useState<string[]>([]);
+
+  const logsEndRef = useRef<HTMLDivElement>(null);
 
   // Authentication protection
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/admin/login')
+      router.push('/admin/login');
     }
-  }, [status, router])
+  }, [status, router]);
 
   // Auto-scroll logs to bottom
   useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [logs])
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logs]);
 
   // Load tools from database
   const loadTools = async () => {
     try {
-      setLoading(true)
-      const response = await fetch('/api/admin/tools?limit=1000')
+      setLoading(true);
+      const response = await fetch('/api/admin/tools?limit=1000');
       if (!response.ok) {
-        throw new Error('Failed to fetch tools')
+        throw new Error('Failed to fetch tools');
       }
-      
-      const data = await response.json()
+
+      const data = await response.json();
       if (data.success) {
         const toolsData = data.tools.map((tool: any) => ({
           id: tool.id,
@@ -146,150 +175,152 @@ export default function AdminImageHttpPage() {
           lastCheckedAt: tool.lastCheckedAt,
           last_optimized_at: tool.last_optimized_at,
           featured: tool.featured,
-          quality_score: tool.quality_score
-        }))
-        
-        setTools(toolsData)
-        setTotalTools(toolsData.length)
-        
+          quality_score: tool.quality_score,
+        }));
+
+        setTools(toolsData);
+        setTotalTools(toolsData.length);
+
         // Extract unique categories
-        const uniqueCategories = [...new Set(toolsData.map(t => t.toolCategory).filter(Boolean))]
-        setCategories(uniqueCategories)
-        
-        addLog('info', `📊 Loaded ${toolsData.length} tools from database`)
-        applyFilters(toolsData, filters)
+        const uniqueCategories = [
+          ...new Set(toolsData.map(t => t.toolCategory).filter(Boolean)),
+        ];
+        setCategories(uniqueCategories);
+
+        addLog('info', `📊 Loaded ${toolsData.length} tools from database`);
+        applyFilters(toolsData, filters);
       }
     } catch (error) {
-      addLog('error', `❌ Error loading tools: ${error}`)
-      toast.error('Failed to load tools')
+      addLog('error', `❌ Error loading tools: ${error}`);
+      toast.error('Failed to load tools');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Apply filters to tools
   const applyFilters = (toolsToFilter: Tool[], currentFilters: FilterState) => {
-    let filtered = toolsToFilter
+    let filtered = toolsToFilter;
 
     // Search filter
     if (currentFilters.search) {
-      filtered = filtered.filter(tool => 
-        tool.toolName.toLowerCase().includes(currentFilters.search.toLowerCase()) ||
-        tool.toolLink.toLowerCase().includes(currentFilters.search.toLowerCase())
-      )
+      filtered = filtered.filter(
+        tool =>
+          tool.toolName.toLowerCase().includes(currentFilters.search.toLowerCase()) ||
+          tool.toolLink.toLowerCase().includes(currentFilters.search.toLowerCase())
+      );
     }
 
     // Category filter
     if (currentFilters.category) {
-      filtered = filtered.filter(tool => tool.toolCategory === currentFilters.category)
+      filtered = filtered.filter(tool => tool.toolCategory === currentFilters.category);
     }
 
     // Status filter
     if (currentFilters.status) {
       if (currentFilters.status === 'active') {
-        filtered = filtered.filter(tool => tool.isActive)
+        filtered = filtered.filter(tool => tool.isActive);
       } else if (currentFilters.status === 'inactive') {
-        filtered = filtered.filter(tool => !tool.isActive)
+        filtered = filtered.filter(tool => !tool.isActive);
       }
     }
 
     // Featured filter
     if (currentFilters.featured) {
-      filtered = filtered.filter(tool => tool.featured)
+      filtered = filtered.filter(tool => tool.featured);
     }
 
-    setFilteredTools(filtered)
-    setTotalPages(Math.ceil(filtered.length / pageSize))
-    setCurrentPage(1)
-  }
+    setFilteredTools(filtered);
+    setTotalPages(Math.ceil(filtered.length / pageSize));
+    setCurrentPage(1);
+  };
 
   // Handle filter changes
   const handleFilterChange = (key: keyof FilterState, value: string | boolean) => {
-    const newFilters = { ...filters, [key]: value }
-    setFilters(newFilters)
-    applyFilters(tools, newFilters)
-  }
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    applyFilters(tools, newFilters);
+  };
 
   // Get paginated tools
   const getPaginatedTools = () => {
-    const startIndex = (currentPage - 1) * pageSize
-    const endIndex = startIndex + pageSize
-    return filteredTools.slice(startIndex, endIndex)
-  }
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredTools.slice(startIndex, endIndex);
+  };
 
   // Load tools on component mount
   useEffect(() => {
     if (session) {
-      loadTools()
+      loadTools();
     }
-  }, [session])
+  }, [session]);
 
   const addLog = (type: LogEntry['type'], message: string) => {
     const newLog: LogEntry = {
       id: Date.now().toString(),
       timestamp: new Date().toLocaleTimeString(),
       type,
-      message
-    }
-    setLogs(prev => [...prev, newLog])
-  }
+      message,
+    };
+    setLogs(prev => [...prev, newLog]);
+  };
 
   // Selection handlers
   const toggleToolSelection = (toolId: number) => {
-    setSelectedTools(prev => 
-      prev.includes(toolId) 
-        ? prev.filter(id => id !== toolId)
-        : [...prev, toolId]
-    )
-  }
+    setSelectedTools(prev =>
+      prev.includes(toolId) ? prev.filter(id => id !== toolId) : [...prev, toolId]
+    );
+  };
 
   const selectAllTools = () => {
-    const currentPageTools = getPaginatedTools()
-    setSelectedTools(currentPageTools.map(t => t.id))
-  }
+    const currentPageTools = getPaginatedTools();
+    setSelectedTools(currentPageTools.map(t => t.id));
+  };
 
   const deselectAllTools = () => {
-    setSelectedTools([])
-  }
+    setSelectedTools([]);
+  };
 
   const startHealthCheck = async () => {
-    const toolsToProcess = selectedTools.length > 0 ? selectedTools : tools.map(t => t.id)
-    
+    const toolsToProcess =
+      selectedTools.length > 0 ? selectedTools : tools.map(t => t.id);
+
     if (toolsToProcess.length === 0) {
-      toast.warning('No tools to process')
-      return
+      toast.warning('No tools to process');
+      return;
     }
 
-    setProcessing(true)
-    setResults([])
-    setCurrentProgress(0)
-    addLog('info', `🚀 Starting health check for ${toolsToProcess.length} tools`)
+    setProcessing(true);
+    setResults([]);
+    setCurrentProgress(0);
+    addLog('info', `🚀 Starting health check for ${toolsToProcess.length} tools`);
 
-    const newResults: HealthCheckResult[] = []
+    const newResults: HealthCheckResult[] = [];
 
     for (let i = 0; i < toolsToProcess.length; i++) {
-      const toolId = toolsToProcess[i]
-      const tool = tools.find(t => t.id === toolId)
-      
-      if (!tool) continue
-      
-      const startTime = Date.now()
-      
-      addLog('info', `[${i + 1}/${toolsToProcess.length}] Checking: ${tool.toolName}`)
-      
+      const toolId = toolsToProcess[i];
+      const tool = tools.find(t => t.id === toolId);
+
+      if (!tool) continue;
+
+      const startTime = Date.now();
+
+      addLog('info', `[${i + 1}/${toolsToProcess.length}] Checking: ${tool.toolName}`);
+
       try {
         const response = await fetch('/api/admin/image-http/check', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ toolId: tool.id, toolLink: tool.toolLink })
-        })
+          body: JSON.stringify({ toolId: tool.id, toolLink: tool.toolLink }),
+        });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
+          throw new Error(`HTTP ${response.status}`);
         }
 
-        const result = await response.json()
-        
+        const result = await response.json();
+
         if (result.success) {
           const healthResult: HealthCheckResult = {
             toolId: tool.id,
@@ -301,34 +332,41 @@ export default function AdminImageHttpPage() {
             screenshotUrl: result.data.screenshotUrl,
             error: null,
             processingTime: Date.now() - startTime,
-            last_optimized_at: new Date().toISOString()
-          }
-          
-          newResults.push(healthResult)
-          
+            last_optimized_at: new Date().toISOString(),
+          };
+
+          newResults.push(healthResult);
+
           // Update tool status in local state
-          setTools(prev => prev.map(t => 
-            t.id === tool.id 
-              ? { 
-                  ...t, 
-                  httpStatusCode: result.data.httpStatusCode, 
-                  isActive: result.data.isActive,
-                  last_optimized_at: new Date().toISOString()
-                }
-              : t
-          ))
-          
-          const statusIcon = result.data.isActive ? '✅' : '❌'
-          addLog('success', `[${i + 1}/${toolsToProcess.length}] ${tool.toolName}: ${statusIcon} ${result.data.httpStatusCode}`)
-          toast.success(`${tool.toolName}: ${result.data.httpStatusCode}`)
+          setTools(prev =>
+            prev.map(t =>
+              t.id === tool.id
+                ? {
+                    ...t,
+                    httpStatusCode: result.data.httpStatusCode,
+                    isActive: result.data.isActive,
+                    last_optimized_at: new Date().toISOString(),
+                  }
+                : t
+            )
+          );
+
+          const statusIcon = result.data.isActive ? '✅' : '❌';
+          addLog(
+            'success',
+            `[${i + 1}/${toolsToProcess.length}] ${tool.toolName}: ${statusIcon} ${result.data.httpStatusCode}`
+          );
+          toast.success(`${tool.toolName}: ${result.data.httpStatusCode}`);
         } else {
-          throw new Error(result.error || 'Unknown error')
+          throw new Error(result.error || 'Unknown error');
         }
-        
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-        addLog('error', `[${i + 1}/${toolsToProcess.length}] ${tool.toolName}: ❌ ${errorMessage}`)
-        
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        addLog(
+          'error',
+          `[${i + 1}/${toolsToProcess.length}] ${tool.toolName}: ❌ ${errorMessage}`
+        );
+
         newResults.push({
           toolId: tool.id,
           toolName: tool.toolName,
@@ -339,97 +377,108 @@ export default function AdminImageHttpPage() {
           screenshotUrl: null,
           error: errorMessage,
           processingTime: Date.now() - startTime,
-          last_optimized_at: new Date().toISOString()
-        })
-        
-        toast.error(`${tool.toolName}: ${errorMessage}`)
+          last_optimized_at: new Date().toISOString(),
+        });
+
+        toast.error(`${tool.toolName}: ${errorMessage}`);
       }
-      
-      setCurrentProgress(i + 1)
-      
+
+      setCurrentProgress(i + 1);
+
       // Add delay to avoid overwhelming the server
       if (i < toolsToProcess.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
-    setResults(newResults)
-    setProcessing(false)
-    addLog('success', `🎉 Health check completed! Processed ${toolsToProcess.length} tools`)
-    
+    setResults(newResults);
+    setProcessing(false);
+    addLog(
+      'success',
+      `🎉 Health check completed! Processed ${toolsToProcess.length} tools`
+    );
+
     // Summary
-    const activeTools = newResults.filter(r => r.isActive).length
-    const inactiveTools = newResults.filter(r => !r.isActive).length
-    addLog('info', `📊 Summary: ${activeTools} active, ${inactiveTools} inactive`)
-    
-    toast.success(`Health check completed! ${activeTools} active, ${inactiveTools} inactive`)
-    
+    const activeTools = newResults.filter(r => r.isActive).length;
+    const inactiveTools = newResults.filter(r => !r.isActive).length;
+    addLog('info', `📊 Summary: ${activeTools} active, ${inactiveTools} inactive`);
+
+    toast.success(
+      `Health check completed! ${activeTools} active, ${inactiveTools} inactive`
+    );
+
     // Refresh tools list
-    await loadTools()
-  }
+    await loadTools();
+  };
 
   const stopHealthCheck = () => {
-    setProcessing(false)
-    addLog('warning', '⏹️ Health check stopped by user')
-    toast.warning('Health check stopped')
-  }
+    setProcessing(false);
+    addLog('warning', '⏹️ Health check stopped by user');
+    toast.warning('Health check stopped');
+  };
 
   const getStatusIcon = (statusCode: number | null, isActive: boolean) => {
-    if (statusCode === null) return <InformationCircleIcon className="h-5 w-5 text-gray-400" />
-    if (statusCode >= 200 && statusCode < 300) return <CheckCircleIcon className="h-5 w-5 text-green-500" />
-    if (statusCode >= 300 && statusCode < 400) return <ExclamationTriangleIcon className="h-5 w-5 text-yellow-500" />
-    return <XCircleIcon className="h-5 w-5 text-red-500" />
-  }
+    if (statusCode === null)
+      return <InformationCircleIcon className='h-5 w-5 text-gray-400' />;
+    if (statusCode >= 200 && statusCode < 300)
+      return <CheckCircleIcon className='h-5 w-5 text-green-500' />;
+    if (statusCode >= 300 && statusCode < 400)
+      return <ExclamationTriangleIcon className='h-5 w-5 text-yellow-500' />;
+    return <XCircleIcon className='h-5 w-5 text-red-500' />;
+  };
 
   const getStatusBadge = (statusCode: number | null, isActive: boolean) => {
-    if (statusCode === null) return <Badge variant="secondary">Non vérifié</Badge>
-    if (statusCode >= 200 && statusCode < 300) return <Badge className="bg-green-100 text-green-800">Actif</Badge>
-    if (statusCode >= 300 && statusCode < 400) return <Badge className="bg-yellow-100 text-yellow-800">Redirection</Badge>
-    return <Badge className="bg-red-100 text-red-800">Inactif</Badge>
-  }
+    if (statusCode === null) return <Badge variant='secondary'>Non vérifié</Badge>;
+    if (statusCode >= 200 && statusCode < 300)
+      return <Badge className='bg-green-100 text-green-800'>Actif</Badge>;
+    if (statusCode >= 300 && statusCode < 400)
+      return <Badge className='bg-yellow-100 text-yellow-800'>Redirection</Badge>;
+    return <Badge className='bg-red-100 text-red-800'>Inactif</Badge>;
+  };
 
   const getStatusColor = (statusCode: number | null) => {
-    if (statusCode === null) return 'text-gray-500'
-    if (statusCode >= 200 && statusCode < 300) return 'text-green-600'
-    if (statusCode >= 300 && statusCode < 400) return 'text-yellow-600'
-    return 'text-red-600'
-  }
+    if (statusCode === null) return 'text-gray-500';
+    if (statusCode >= 200 && statusCode < 300) return 'text-green-600';
+    if (statusCode >= 300 && statusCode < 400) return 'text-yellow-600';
+    return 'text-red-600';
+  };
 
   // Loading and authentication states
   if (status === 'loading' || !session) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <div className='flex min-h-screen items-center justify-center'>
+        <div className='text-center'>
+          <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600'></div>
           <p>Chargement de l'interface d'administration...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className='min-h-screen bg-gray-50'>
+      <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
         {/* Page Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+        <div className='mb-8 text-center'>
+          <h1 className='mb-2 text-4xl font-bold text-gray-900'>
             🔍 Health Check & Screenshots
           </h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Vérifiez le statut HTTP de vos outils et capturez automatiquement des screenshots
+          <p className='mx-auto max-w-3xl text-lg text-gray-600'>
+            Vérifiez le statut HTTP de vos outils et capturez automatiquement des
+            screenshots
           </p>
         </div>
 
         {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="tools">📊 Outils ({totalTools})</TabsTrigger>
-            <TabsTrigger value="results">📈 Résultats ({results.length})</TabsTrigger>
-            <TabsTrigger value="logs">📋 Logs ({logs.length})</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
+          <TabsList className='grid w-full grid-cols-3'>
+            <TabsTrigger value='tools'>📊 Outils ({totalTools})</TabsTrigger>
+            <TabsTrigger value='results'>📈 Résultats ({results.length})</TabsTrigger>
+            <TabsTrigger value='logs'>📋 Logs ({logs.length})</TabsTrigger>
           </TabsList>
 
           {/* Tools Tab */}
-          <TabsContent value="tools" className="space-y-6">
+          <TabsContent value='tools' className='space-y-6'>
             {/* Control Panel */}
             <Card>
               <CardHeader>
@@ -438,73 +487,77 @@ export default function AdminImageHttpPage() {
                   Sélectionnez les outils à vérifier et lancez le processus
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className='space-y-6'>
                 {/* Statistics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{totalTools}</div>
-                    <div className="text-sm text-blue-600">Total</div>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                  <div className='rounded-lg bg-blue-50 p-4 text-center'>
+                    <div className='text-2xl font-bold text-blue-600'>{totalTools}</div>
+                    <div className='text-sm text-blue-600'>Total</div>
                   </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
+                  <div className='rounded-lg bg-green-50 p-4 text-center'>
+                    <div className='text-2xl font-bold text-green-600'>
                       {tools.filter(t => t.isActive).length}
                     </div>
-                    <div className="text-sm text-green-600">Actifs</div>
+                    <div className='text-sm text-green-600'>Actifs</div>
                   </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">
+                  <div className='rounded-lg bg-red-50 p-4 text-center'>
+                    <div className='text-2xl font-bold text-red-600'>
                       {tools.filter(t => !t.isActive).length}
                     </div>
-                    <div className="text-sm text-red-600">Inactifs</div>
+                    <div className='text-sm text-red-600'>Inactifs</div>
                   </div>
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{selectedTools.length}</div>
-                    <div className="text-sm text-purple-600">Sélectionnés</div>
+                  <div className='rounded-lg bg-purple-50 p-4 text-center'>
+                    <div className='text-2xl font-bold text-purple-600'>
+                      {selectedTools.length}
+                    </div>
+                    <div className='text-sm text-purple-600'>Sélectionnés</div>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-4 justify-center">
+                <div className='flex flex-wrap justify-center gap-4'>
                   {!processing ? (
-                    <Button 
+                    <Button
                       onClick={startHealthCheck}
                       disabled={tools.length === 0}
-                      size="lg"
-                      className="bg-green-600 hover:bg-green-700"
+                      size='lg'
+                      className='bg-green-600 hover:bg-green-700'
                     >
-                      <PlayIcon className="h-5 w-5 mr-2" />
+                      <PlayIcon className='mr-2 h-5 w-5' />
                       Lancer le Health Check
                     </Button>
                   ) : (
-                    <Button 
-                      onClick={stopHealthCheck}
-                      size="lg"
-                      variant="destructive"
-                    >
-                      <StopIcon className="h-5 w-5 mr-2" />
+                    <Button onClick={stopHealthCheck} size='lg' variant='destructive'>
+                      <StopIcon className='mr-2 h-5 w-5' />
                       Arrêter
                     </Button>
                   )}
-                  
-                  <Button 
+
+                  <Button
                     onClick={loadTools}
                     disabled={processing}
-                    variant="outline"
-                    size="lg"
+                    variant='outline'
+                    size='lg'
                   >
-                    <ArrowPathIcon className="h-5 w-5 mr-2" />
+                    <ArrowPathIcon className='mr-2 h-5 w-5' />
                     Actualiser
                   </Button>
                 </div>
 
                 {/* Progress Bar */}
                 {processing && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+                  <div className='space-y-2'>
+                    <div className='flex justify-between text-sm'>
                       <span>Progression</span>
-                      <span>{currentProgress}/{totalTools} ({Math.round((currentProgress / totalTools) * 100)}%)</span>
+                      <span>
+                        {currentProgress}/{totalTools} (
+                        {Math.round((currentProgress / totalTools) * 100)}%)
+                      </span>
                     </div>
-                    <Progress value={(currentProgress / totalTools) * 100} className="h-3" />
+                    <Progress
+                      value={(currentProgress / totalTools) * 100}
+                      className='h-3'
+                    />
                   </div>
                 )}
               </CardContent>
@@ -519,53 +572,65 @@ export default function AdminImageHttpPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                   <div>
-                    <label className="text-sm font-medium">Recherche</label>
+                    <label className='text-sm font-medium'>Recherche</label>
                     <Input
-                      placeholder="Nom ou URL..."
+                      placeholder='Nom ou URL...'
                       value={filters.search}
-                      onChange={(e) => handleFilterChange('search', e.target.value)}
-                      className="mt-1"
+                      onChange={e => handleFilterChange('search', e.target.value)}
+                      className='mt-1'
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="text-sm font-medium">Catégorie</label>
-                    <Select value={filters.category} onValueChange={(value) => handleFilterChange('category', value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Toutes" />
+                    <label className='text-sm font-medium'>Catégorie</label>
+                    <Select
+                      value={filters.category}
+                      onValueChange={value => handleFilterChange('category', value)}
+                    >
+                      <SelectTrigger className='mt-1'>
+                        <SelectValue placeholder='Toutes' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Toutes</SelectItem>
+                        <SelectItem value=''>Toutes</SelectItem>
                         {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
-                    <label className="text-sm font-medium">Statut</label>
-                    <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Tous" />
+                    <label className='text-sm font-medium'>Statut</label>
+                    <Select
+                      value={filters.status}
+                      onValueChange={value => handleFilterChange('status', value)}
+                    >
+                      <SelectTrigger className='mt-1'>
+                        <SelectValue placeholder='Tous' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
-                        <SelectItem value="active">Actifs</SelectItem>
-                        <SelectItem value="inactive">Inactifs</SelectItem>
+                        <SelectItem value=''>Tous</SelectItem>
+                        <SelectItem value='active'>Actifs</SelectItem>
+                        <SelectItem value='inactive'>Inactifs</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  
-                  <div className="flex items-center space-x-2 mt-6">
+
+                  <div className='mt-6 flex items-center space-x-2'>
                     <Checkbox
-                      id="featured"
+                      id='featured'
                       checked={filters.featured}
-                      onCheckedChange={(checked) => handleFilterChange('featured', checked as boolean)}
+                      onCheckedChange={checked =>
+                        handleFilterChange('featured', checked as boolean)
+                      }
                     />
-                    <label htmlFor="featured" className="text-sm">En vedette uniquement</label>
+                    <label htmlFor='featured' className='text-sm'>
+                      En vedette uniquement
+                    </label>
                   </div>
                 </div>
               </CardContent>
@@ -574,40 +639,38 @@ export default function AdminImageHttpPage() {
             {/* Tools Table */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className='flex items-center justify-between'>
                   <div>
                     <CardTitle>📋 Liste des Outils</CardTitle>
                     <CardDescription>
-                      {filteredTools.length} outils trouvés • Page {currentPage} sur {totalPages}
+                      {filteredTools.length} outils trouvés • Page {currentPage} sur{' '}
+                      {totalPages}
                     </CardDescription>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button 
-                      onClick={selectAllTools}
-                      variant="outline"
-                      size="sm"
-                    >
+                  <div className='flex space-x-2'>
+                    <Button onClick={selectAllTools} variant='outline' size='sm'>
                       Tout sélectionner
                     </Button>
-                    <Button 
-                      onClick={deselectAllTools}
-                      variant="outline"
-                      size="sm"
-                    >
+                    <Button onClick={deselectAllTools} variant='outline' size='sm'>
                       Tout désélectionner
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md border">
+                <div className='rounded-md border'>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-12">
+                        <TableHead className='w-12'>
                           <Checkbox
-                            checked={selectedTools.length === getPaginatedTools().length && getPaginatedTools().length > 0}
-                            onCheckedChange={(checked) => checked ? selectAllTools() : deselectAllTools()}
+                            checked={
+                              selectedTools.length === getPaginatedTools().length &&
+                              getPaginatedTools().length > 0
+                            }
+                            onCheckedChange={checked =>
+                              checked ? selectAllTools() : deselectAllTools()
+                            }
                           />
                         </TableHead>
                         <TableHead>Outil</TableHead>
@@ -619,7 +682,7 @@ export default function AdminImageHttpPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {getPaginatedTools().map((tool) => (
+                      {getPaginatedTools().map(tool => (
                         <TableRow key={tool.id}>
                           <TableCell>
                             <Checkbox
@@ -629,37 +692,39 @@ export default function AdminImageHttpPage() {
                           </TableCell>
                           <TableCell>
                             <div>
-                              <div className="font-medium">{tool.toolName}</div>
-                              <div className="text-sm text-gray-500 truncate max-w-xs">
+                              <div className='font-medium'>{tool.toolName}</div>
+                              <div className='max-w-xs truncate text-sm text-gray-500'>
                                 {tool.toolLink}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">{tool.toolCategory || 'N/A'}</Badge>
+                            <Badge variant='outline'>
+                              {tool.toolCategory || 'N/A'}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             {getStatusBadge(tool.httpStatusCode, tool.isActive)}
                           </TableCell>
                           <TableCell>
-                            <span className={`font-mono ${getStatusColor(tool.httpStatusCode)}`}>
+                            <span
+                              className={`font-mono ${getStatusColor(tool.httpStatusCode)}`}
+                            >
                               {tool.httpStatusCode || 'N/A'}
                             </span>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm text-gray-500">
-                              {tool.lastCheckedAt 
+                            <div className='text-sm text-gray-500'>
+                              {tool.lastCheckedAt
                                 ? new Date(tool.lastCheckedAt).toLocaleDateString()
-                                : 'Jamais'
-                              }
+                                : 'Jamais'}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm text-gray-500">
-                              {tool.last_optimized_at 
+                            <div className='text-sm text-gray-500'>
+                              {tool.last_optimized_at
                                 ? new Date(tool.last_optimized_at).toLocaleDateString()
-                                : 'Jamais'
-                              }
+                                : 'Jamais'}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -670,26 +735,30 @@ export default function AdminImageHttpPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="text-sm text-gray-700">
-                      Affichage de {((currentPage - 1) * pageSize) + 1} à {Math.min(currentPage * pageSize, filteredTools.length)} sur {filteredTools.length} résultats
+                  <div className='mt-4 flex items-center justify-between'>
+                    <div className='text-sm text-gray-700'>
+                      Affichage de {(currentPage - 1) * pageSize + 1} à{' '}
+                      {Math.min(currentPage * pageSize, filteredTools.length)} sur{' '}
+                      {filteredTools.length} résultats
                     </div>
-                    <div className="flex space-x-2">
+                    <div className='flex space-x-2'>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant='outline'
+                        size='sm'
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                         disabled={currentPage === 1}
                       >
                         Précédent
                       </Button>
-                      <span className="flex items-center px-3 py-2 text-sm">
+                      <span className='flex items-center px-3 py-2 text-sm'>
                         Page {currentPage} sur {totalPages}
                       </span>
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        variant='outline'
+                        size='sm'
+                        onClick={() =>
+                          setCurrentPage(prev => Math.min(totalPages, prev + 1))
+                        }
                         disabled={currentPage === totalPages}
                       >
                         Suivant
@@ -702,21 +771,20 @@ export default function AdminImageHttpPage() {
           </TabsContent>
 
           {/* Results Tab */}
-          <TabsContent value="results" className="space-y-6">
+          <TabsContent value='results' className='space-y-6'>
             <Card>
               <CardHeader>
                 <CardTitle>📊 Résultats du Health Check</CardTitle>
-                <CardDescription>
-                  Détails des vérifications effectuées
-                </CardDescription>
+                <CardDescription>Détails des vérifications effectuées</CardDescription>
               </CardHeader>
               <CardContent>
                 {results.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    Aucun résultat disponible. Lancez un health check pour voir les résultats.
+                  <div className='py-8 text-center text-gray-500'>
+                    Aucun résultat disponible. Lancez un health check pour voir les
+                    résultats.
                   </div>
                 ) : (
-                  <div className="rounded-md border">
+                  <div className='rounded-md border'>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -729,45 +797,53 @@ export default function AdminImageHttpPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {results.map((result) => (
+                        {results.map(result => (
                           <TableRow key={result.toolId}>
                             <TableCell>
                               <div>
-                                <div className="font-medium">{result.toolName}</div>
-                                <div className="text-sm text-gray-500 truncate max-w-xs">
+                                <div className='font-medium'>{result.toolName}</div>
+                                <div className='max-w-xs truncate text-sm text-gray-500'>
                                   {result.toolLink}
                                 </div>
                                 {result.error && (
-                                  <div className="text-xs text-red-600 mt-1">
+                                  <div className='mt-1 text-xs text-red-600'>
                                     Erreur: {result.error}
                                   </div>
                                 )}
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline">{result.toolCategory || 'N/A'}</Badge>
+                              <Badge variant='outline'>
+                                {result.toolCategory || 'N/A'}
+                              </Badge>
                             </TableCell>
                             <TableCell>
                               {getStatusBadge(result.httpStatusCode, result.isActive)}
                             </TableCell>
                             <TableCell>
-                              <span className={`font-mono ${getStatusColor(result.httpStatusCode)}`}>
+                              <span
+                                className={`font-mono ${getStatusColor(result.httpStatusCode)}`}
+                              >
                                 {result.httpStatusCode || 'N/A'}
                               </span>
                             </TableCell>
                             <TableCell>
                               {result.screenshotUrl ? (
-                                <Button variant="outline" size="sm" asChild>
-                                  <a href={result.screenshotUrl} target="_blank" rel="noopener noreferrer">
+                                <Button variant='outline' size='sm' asChild>
+                                  <a
+                                    href={result.screenshotUrl}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                  >
                                     📸 Voir
                                   </a>
                                 </Button>
                               ) : (
-                                <Badge variant="secondary">❌ Échec</Badge>
+                                <Badge variant='secondary'>❌ Échec</Badge>
                               )}
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm text-gray-500">
+                              <span className='text-sm text-gray-500'>
                                 {result.processingTime}ms
                               </span>
                             </TableCell>
@@ -782,48 +858,55 @@ export default function AdminImageHttpPage() {
           </TabsContent>
 
           {/* Logs Tab */}
-          <TabsContent value="logs" className="space-y-6">
+          <TabsContent value='logs' className='space-y-6'>
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className='flex items-center justify-between'>
                   <div>
                     <CardTitle>📋 Logs en temps réel</CardTitle>
                     <CardDescription>
                       Historique détaillé des opérations
                     </CardDescription>
                   </div>
-                  <Button 
-                    onClick={() => setLogs([])}
-                    variant="outline"
-                    size="sm"
-                  >
+                  <Button onClick={() => setLogs([])} variant='outline' size='sm'>
                     🗑️ Vider les logs
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-900 rounded-lg p-4 h-96 overflow-y-auto font-mono text-sm">
+                <div className='h-96 overflow-y-auto rounded-lg bg-gray-900 p-4 font-mono text-sm'>
                   {logs.length === 0 ? (
-                    <div className="text-gray-500 text-center py-8">
-                      Aucun log disponible. Lancez un health check pour voir les logs en temps réel.
+                    <div className='py-8 text-center text-gray-500'>
+                      Aucun log disponible. Lancez un health check pour voir les logs en
+                      temps réel.
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      {logs.map((log) => (
-                        <div key={log.id} className="flex items-start space-x-3">
-                          <span className="text-gray-500 text-xs mt-1">{log.timestamp}</span>
-                          <span className={`${
-                            log.type === 'info' ? 'text-blue-400' :
-                            log.type === 'success' ? 'text-green-400' :
-                            log.type === 'warning' ? 'text-yellow-400' :
-                            'text-red-400'
-                          }`}>
-                            {log.type === 'info' ? 'ℹ️' :
-                             log.type === 'success' ? '✅' :
-                             log.type === 'warning' ? '⚠️' :
-                             '❌'}
+                    <div className='space-y-2'>
+                      {logs.map(log => (
+                        <div key={log.id} className='flex items-start space-x-3'>
+                          <span className='mt-1 text-xs text-gray-500'>
+                            {log.timestamp}
                           </span>
-                          <span className="text-gray-300 flex-1">{log.message}</span>
+                          <span
+                            className={`${
+                              log.type === 'info'
+                                ? 'text-blue-400'
+                                : log.type === 'success'
+                                  ? 'text-green-400'
+                                  : log.type === 'warning'
+                                    ? 'text-yellow-400'
+                                    : 'text-red-400'
+                            }`}
+                          >
+                            {log.type === 'info'
+                              ? 'ℹ️'
+                              : log.type === 'success'
+                                ? '✅'
+                                : log.type === 'warning'
+                                  ? '⚠️'
+                                  : '❌'}
+                          </span>
+                          <span className='flex-1 text-gray-300'>{log.message}</span>
                         </div>
                       ))}
                       <div ref={logsEndRef} />
@@ -836,5 +919,5 @@ export default function AdminImageHttpPage() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import { SupportedLanguage } from '@/src/lib/i18n/types'
-import GlobalBreadcrumb from '@/src/components/common/GlobalBreadcrumb'
+import { SupportedLanguage } from '@/src/lib/i18n/types';
+import GlobalBreadcrumb from '@/src/components/common/GlobalBreadcrumb';
 
 interface BreadcrumbWrapperProps {
-  lang: SupportedLanguage
-  toolName?: string
-  categoryName?: string
-  className?: string
-  showOnMobile?: boolean
+  lang: SupportedLanguage;
+  toolName?: string;
+  categoryName?: string;
+  className?: string;
+  showOnMobile?: boolean;
 }
 
 /**
@@ -19,21 +19,15 @@ export default function BreadcrumbWrapper({
   toolName,
   categoryName,
   className = '',
-  showOnMobile = false
+  showOnMobile = false,
 }: BreadcrumbWrapperProps) {
   return (
-    <div className={`
-      w-full bg-muted/30 border-b border-border/50
-      ${showOnMobile ? '' : 'hidden sm:block'}
-      ${className}
-    `}>
-      <div className="container mx-auto px-4 py-3">
-        <GlobalBreadcrumb
-          lang={lang}
-          toolName={toolName}
-          categoryName={categoryName}
-        />
+    <div
+      className={`w-full border-b border-border/50 bg-muted/30 ${showOnMobile ? '' : 'hidden sm:block'} ${className} `}
+    >
+      <div className='container mx-auto px-4 py-3'>
+        <GlobalBreadcrumb lang={lang} toolName={toolName} categoryName={categoryName} />
       </div>
     </div>
-  )
+  );
 }

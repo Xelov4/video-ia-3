@@ -1,0 +1,47 @@
+{
+  "extends": ["./.eslintrc.json"],
+  "parserOptions": {
+    "project": ["./tsconfig.strict.json"]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/types/unified.ts",
+        "src/lib/adapters/**/*.ts",
+        "src/components/unified/**/*.{ts,tsx}",
+        "src/hooks/unified/**/*.{ts,tsx}"
+      ],
+      "rules": {
+        // Règles encore plus strictes pour les nouveaux fichiers
+        "@typescript-eslint/no-explicit-any": "error",
+        "@typescript-eslint/no-unused-vars": "error",
+        "@typescript-eslint/prefer-nullish-coalescing": "error",
+        "@typescript-eslint/prefer-optional-chain": "error",
+        "@typescript-eslint/no-unnecessary-condition": "error",
+        "@typescript-eslint/consistent-type-imports": "error",
+        
+        // React specific pour nouveaux composants
+        "react-hooks/exhaustive-deps": "error",
+        "react-hooks/rules-of-hooks": "error",
+        
+        // Préférer const
+        "prefer-const": "error",
+        
+        // Pas de console dans le nouveau code
+        "no-console": ["warn", { "allow": ["warn", "error"] }]
+      }
+    },
+    {
+      "files": [
+        "src/types/**/*.ts",
+        "src/lib/adapters/**/*.ts"
+      ],
+      "rules": {
+        // Pour les fichiers de types, être encore plus strict
+        "@typescript-eslint/no-explicit-any": "error",
+        "@typescript-eslint/explicit-function-return-type": "warn",
+        "@typescript-eslint/explicit-module-boundary-types": "warn"
+      }
+    }
+  ]
+}

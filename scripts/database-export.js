@@ -9,7 +9,7 @@ const dbConfig = {
   database: process.env.DB_NAME || 'video_ia_net',
   user: process.env.DB_USER || 'video_ia_user',
   password: process.env.DB_PASSWORD || 'video123',
-  ssl: false
+  ssl: false,
 };
 
 class DatabaseExporter {
@@ -20,9 +20,9 @@ class DatabaseExporter {
         exportDate: new Date().toISOString(),
         version: '1.0',
         databaseName: dbConfig.database,
-        tables: []
+        tables: [],
       },
-      data: {}
+      data: {},
     };
   }
 
@@ -69,7 +69,7 @@ class DatabaseExporter {
         default: row.column_default,
         maxLength: row.character_maximum_length,
         precision: row.numeric_precision,
-        scale: row.numeric_scale
+        scale: row.numeric_scale,
       });
     });
 
@@ -78,11 +78,13 @@ class DatabaseExporter {
 
   async exportTableData(tableName) {
     console.log(`📊 Export de la table: ${tableName}`);
-    
+
     // Obtenir le nombre total d'enregistrements
-    const countResult = await this.client.query(`SELECT COUNT(*) as count FROM ${tableName}`);
+    const countResult = await this.client.query(
+      `SELECT COUNT(*) as count FROM ${tableName}`
+    );
     const totalCount = parseInt(countResult.rows[0].count);
-    
+
     if (totalCount === 0) {
       console.log(`   ⚠️  Table vide: ${tableName}`);
       return [];
@@ -91,11 +93,11 @@ class DatabaseExporter {
     // Exporter par lots pour éviter les problèmes de mémoire
     const batchSize = 1000;
     const allData = [];
-    
+
     for (let offset = 0; offset < totalCount; offset += batchSize) {
       const query = `SELECT * FROM ${tableName} ORDER BY id LIMIT ${batchSize} OFFSET ${offset}`;
       const result = await this.client.query(query);
-      
+
       // Convertir les dates en ISO string pour la sérialisation JSON
       const processedData = result.rows.map(row => {
         const processedRow = {};
@@ -108,9 +110,11 @@ class DatabaseExporter {
         }
         return processedRow;
       });
-      
+
       allData.push(...processedData);
-      console.log(`   📦 Lot ${Math.floor(offset / batchSize) + 1}: ${processedData.length} enregistrements`);
+      console.log(
+        `   📦 Lot ${Math.floor(offset / batchSize) + 1}: ${processedData.length} enregistrements`
+      );
     }
 
     console.log(`   ✅ Export terminé: ${allData.length} enregistrements`);
@@ -119,28 +123,27 @@ class DatabaseExporter {
 
   async exportAllData() {
     try {
-      console.log('🚀 Début de l\'export de la base de données...');
-      
+      console.log("🚀 Début de l'export de la base de données...");
+
       // Obtenir la structure des tables
       const tableStructure = await this.getTableStructure();
       this.exportData.metadata.tables = Object.keys(tableStructure);
-      
+
       console.log('\n📋 Tables trouvées:', this.exportData.metadata.tables.join(', '));
-      
+
       // Exporter les données de chaque table
       for (const tableName of this.exportData.metadata.tables) {
         const tableData = await this.exportTableData(tableName);
         this.exportData.data[tableName] = {
           structure: tableStructure[tableName],
           records: tableData,
-          count: tableData.length
+          count: tableData.length,
         };
       }
-      
+
       console.log('\n✅ Export terminé avec succès !');
-      
     } catch (error) {
-      console.error('❌ Erreur lors de l\'export:', error.message);
+      console.error("❌ Erreur lors de l'export:", error.message);
       throw error;
     }
   }
@@ -150,16 +153,16 @@ class DatabaseExporter {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
       filename = `database-export-${timestamp}.json`;
     }
-    
+
     const exportPath = path.join(__dirname, '..', 'data', 'exports', filename);
-    
+
     // Créer le dossier exports s'il n'existe pas
     const exportsDir = path.dirname(exportPath);
     await fs.mkdir(exportsDir, { recursive: true });
-    
+
     // Sauvegarder l'export
     await fs.writeFile(exportPath, JSON.stringify(this.exportData, null, 2));
-    
+
     console.log(`💾 Export sauvegardé: ${exportPath}`);
     return exportPath;
   }
@@ -170,22 +173,22 @@ class DatabaseExporter {
         importDate: new Date().toISOString(),
         version: '1.0',
         source: 'database-export-template',
-        description: 'Template pour l\'import de données'
+        description: "Template pour l'import de données",
       },
       importConfig: {
         mode: 'insert', // 'insert', 'update', 'upsert', 'replace'
         skipExisting: true,
         validateData: true,
-        batchSize: 100
+        batchSize: 100,
       },
-      data: {}
+      data: {},
     };
 
     // Créer des templates vides pour chaque table
     for (const tableName of this.exportData.metadata.tables) {
       const tableStructure = this.exportData.data[tableName].structure;
       const sampleRecord = {};
-      
+
       tableStructure.forEach(column => {
         // Générer des valeurs d'exemple basées sur le type
         switch (column.type) {
@@ -216,13 +219,19 @@ class DatabaseExporter {
       template.data[tableName] = {
         structure: tableStructure,
         records: [sampleRecord],
-        count: 1
+        count: 1,
       };
     }
 
-    const templatePath = path.join(__dirname, '..', 'data', 'exports', 'import-template.json');
+    const templatePath = path.join(
+      __dirname,
+      '..',
+      'data',
+      'exports',
+      'import-template.json'
+    );
     await fs.writeFile(templatePath, JSON.stringify(template, null, 2));
-    
+
     console.log(`📝 Template d'import généré: ${templatePath}`);
     return templatePath;
   }
@@ -239,27 +248,26 @@ class DatabaseExporter {
 // Fonction principale
 async function main() {
   const exporter = new DatabaseExporter();
-  
+
   try {
     await exporter.connect();
     await exporter.exportAllData();
-    
+
     // Sauvegarder l'export complet
     const exportPath = await exporter.saveExport();
-    
+
     // Générer un template d'import
     const templatePath = await exporter.generateImportTemplate();
-    
-    console.log('\n📊 Résumé de l\'export:');
+
+    console.log("\n📊 Résumé de l'export:");
     console.log('========================');
     for (const [tableName, tableData] of Object.entries(exporter.exportData.data)) {
       console.log(`${tableName}: ${tableData.count} enregistrements`);
     }
-    
+
     console.log('\n📁 Fichiers générés:');
     console.log(`   Export complet: ${exportPath}`);
     console.log(`   Template import: ${templatePath}`);
-    
   } catch (error) {
     console.error('❌ Erreur:', error.message);
     process.exit(1);
@@ -273,4 +281,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = DatabaseExporter; 
+module.exports = DatabaseExporter;

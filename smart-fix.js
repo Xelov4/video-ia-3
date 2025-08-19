@@ -139,9 +139,7 @@ function smartReport() {
     const errorCount = lines.filter(line => line.includes('Error:')).length;
     const warningCount = lines.filter(line => line.includes('Warning:')).length;
 
-    console.log(
-      `📊 Rapport final: ${errorCount} erreurs, ${warningCount} warnings`
-    );
+    console.log(`📊 Rapport final: ${errorCount} erreurs, ${warningCount} warnings`);
 
     if (errorCount === 0) {
       console.log('🎯 SUCCÈS ! Aucune erreur critique restante !');

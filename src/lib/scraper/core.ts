@@ -15,26 +15,28 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
   try {
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     const page = await browser.newPage();
-    
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-    
-    await page.goto(url, { 
+
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    );
+
+    await page.goto(url, {
       waitUntil: 'networkidle2',
-      timeout: 30000 
+      timeout: 30000,
     });
 
     await page.waitForSelector('body', { timeout: 3000 }).catch(() => {});
     await page.setViewport({ width: 1920, height: 1080 });
-    
+
     const screenshot = await page.screenshot({
       fullPage: false,
       type: 'webp',
       quality: 85,
-      optimizeForSpeed: true
+      optimizeForSpeed: true,
     });
 
     const screenshotUrl = await saveScreenshot(Buffer.from(screenshot), url);
@@ -44,15 +46,16 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
       const scripts = document.querySelectorAll('script, style, nav, footer, header');
       scripts.forEach(el => el.remove());
 
-      const mainContent = document.querySelector('main') || 
-                         document.querySelector('#main') || 
-                         document.querySelector('.main') ||
-                         document.body;
+      const mainContent =
+        document.querySelector('main') ||
+        document.querySelector('#main') ||
+        document.querySelector('.main') ||
+        document.body;
 
       return {
         title: document.title,
         content: mainContent.innerText,
-        html: mainContent.innerHTML
+        html: mainContent.innerHTML,
       };
     });
 
@@ -75,9 +78,8 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
       pricing: pricing.slice(0, 10),
       features: features.slice(0, 20),
       screenshotUrl,
-      logoUrl
+      logoUrl,
     };
-
   } catch (error) {
     console.error('Scraping error:', error);
     throw new Error(`Failed to scrape website: ${error}`);
@@ -86,16 +88,26 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
 
 async function extractMetadata(page: any) {
   return await page.evaluate(() => {
-    const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
-    const metaKeywords = document.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
-    const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content') || '';
-    const ogDescription = document.querySelector('meta[property="og:description"]')?.getAttribute('content') || '';
+    const metaDescription =
+      document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+    const metaKeywords =
+      document.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
+    const ogTitle =
+      document.querySelector('meta[property="og:title"]')?.getAttribute('content') ||
+      '';
+    const ogDescription =
+      document
+        .querySelector('meta[property="og:description"]')
+        ?.getAttribute('content') || '';
 
     return {
       description: metaDescription,
-      keywords: metaKeywords.split(',').map(k => k.trim()).filter(k => k),
+      keywords: metaKeywords
+        .split(',')
+        .map(k => k.trim())
+        .filter(k => k),
       ogTitle,
-      ogDescription
+      ogDescription,
     };
   });
 }
@@ -104,19 +116,22 @@ async function extractSocialLinks(page: any): Promise<SocialLinks> {
   return await page.evaluate(() => {
     const links = document.querySelectorAll('a[href]');
     const social: any = {};
-    
+
     links.forEach(link => {
       const href = link.getAttribute('href');
       if (!href) return;
 
       if (href.includes('linkedin.com')) social.linkedin = href;
       if (href.includes('twitter.com') || href.includes('x.com')) social.twitter = href;
-      if (href.includes('facebook.com') || href.includes('fb.com')) social.facebook = href;
+      if (href.includes('facebook.com') || href.includes('fb.com'))
+        social.facebook = href;
       if (href.includes('instagram.com')) social.instagram = href;
       if (href.includes('github.com')) social.github = href;
-      if (href.includes('youtube.com') || href.includes('youtu.be')) social.youtube = href;
+      if (href.includes('youtube.com') || href.includes('youtu.be'))
+        social.youtube = href;
       if (href.includes('tiktok.com')) social.tiktok = href;
-      if (href.includes('discord.gg') || href.includes('discord.com')) social.discord = href;
+      if (href.includes('discord.gg') || href.includes('discord.com'))
+        social.discord = href;
       if (href.includes('t.me')) social.telegram = href;
       if (href.includes('reddit.com')) social.reddit = href;
     });
@@ -128,12 +143,15 @@ async function extractSocialLinks(page: any): Promise<SocialLinks> {
 async function extractContactInfo(page: any): Promise<ContactInfo> {
   return await page.evaluate(() => {
     const contact: any = {};
-    
-    const contactLinks = document.querySelectorAll('a[href*="contact"], a[href*="support"], a[href*="help"]');
+
+    const contactLinks = document.querySelectorAll(
+      'a[href*="contact"], a[href*="support"], a[href*="help"]'
+    );
     contactLinks.forEach(link => {
       const href = link.getAttribute('href');
       if (href?.includes('contact')) contact.contactFormUrl = href;
-      if (href?.includes('support') || href?.includes('help')) contact.supportUrl = href;
+      if (href?.includes('support') || href?.includes('help'))
+        contact.supportUrl = href;
     });
 
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
@@ -156,10 +174,13 @@ async function extractPricing(page: any): Promise<string[]> {
   return await page.evaluate(() => {
     const pricingElements = document.querySelectorAll('*');
     const pricing: string[] = [];
-    
+
     pricingElements.forEach(el => {
       const text = el.textContent?.trim() || '';
-      if (text.length < 100 && (text.includes('$') || text.toLowerCase().includes('pricing'))) {
+      if (
+        text.length < 100 &&
+        (text.includes('$') || text.toLowerCase().includes('pricing'))
+      ) {
         pricing.push(text);
       }
     });
@@ -171,12 +192,17 @@ async function extractPricing(page: any): Promise<string[]> {
 async function extractFeatures(page: any): Promise<string[]> {
   return await page.evaluate(() => {
     const features: string[] = [];
-    
+
     const elements = document.querySelectorAll('li, p, div');
     elements.forEach(el => {
       const text = el.textContent?.trim() || '';
-      if (text.length > 10 && text.length < 200 && 
-          (text.includes('feature') || text.includes('function') || text.includes('capability'))) {
+      if (
+        text.length > 10 &&
+        text.length < 200 &&
+        (text.includes('feature') ||
+          text.includes('function') ||
+          text.includes('capability'))
+      ) {
         features.push(text);
       }
     });
@@ -222,7 +248,7 @@ async function extractLogo(page: any, url: string): Promise<string> {
       'link[rel="icon"][sizes="16x16"]',
       'link[rel="apple-touch-icon"]',
       'link[rel="shortcut icon"]',
-      'link[rel="icon"]'
+      'link[rel="icon"]',
     ];
 
     let logoUrl = '';
@@ -244,13 +270,19 @@ async function extractLogo(page: any, url: string): Promise<string> {
 
     if (!logoUrl) {
       logoUrl = await page.evaluate(() => {
-        const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content');
+        const ogImage = document
+          .querySelector('meta[property="og:image"]')
+          ?.getAttribute('content');
         if (ogImage) return ogImage;
 
-        const twitterImage = document.querySelector('meta[name="twitter:image"]')?.getAttribute('content');
+        const twitterImage = document
+          .querySelector('meta[name="twitter:image"]')
+          ?.getAttribute('content');
         if (twitterImage) return twitterImage;
 
-        const favicon = document.querySelector('link[rel="icon"]')?.getAttribute('href');
+        const favicon = document
+          .querySelector('link[rel="icon"]')
+          ?.getAttribute('href');
         if (favicon) return favicon;
 
         return '';
@@ -272,7 +304,7 @@ async function extractLogo(page: any, url: string): Promise<string> {
       const response = await fetch(logoUrl);
       if (response.ok) {
         const logoBuffer = Buffer.from(await response.arrayBuffer());
-        
+
         const logosDir = path.join(process.cwd(), 'public', 'logos');
         if (!fs.existsSync(logosDir)) {
           fs.mkdirSync(logosDir, { recursive: true });

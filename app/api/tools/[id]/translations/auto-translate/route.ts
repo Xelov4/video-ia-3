@@ -3,12 +3,12 @@
  * Provides AI-powered translation functionality for tool content
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/src/lib/auth/auth-options'
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/src/lib/auth/auth-options';
 
 interface RouteContext {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 /**
@@ -18,37 +18,43 @@ interface RouteContext {
 export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Next.js 15 requires awaiting params
-    const { id } = await params
-    const toolId = parseInt(id)
+    const { id } = await params;
+    const toolId = parseInt(id);
     if (isNaN(toolId)) {
-      return NextResponse.json({ error: 'Invalid tool ID' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid tool ID' }, { status: 400 });
     }
 
-    const body = await request.json()
-    const { targetLanguage, baseData } = body
+    const body = await request.json();
+    const { targetLanguage, baseData } = body;
 
     if (!targetLanguage || !baseData) {
-      return NextResponse.json({ 
-        error: 'Target language and base data are required' 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Target language and base data are required',
+        },
+        { status: 400 }
+      );
     }
 
     // Validate target language
-    const supportedLanguages = ['fr', 'it', 'es', 'de', 'nl', 'pt']
+    const supportedLanguages = ['fr', 'it', 'es', 'de', 'nl', 'pt'];
     if (!supportedLanguages.includes(targetLanguage)) {
-      return NextResponse.json({ 
-        error: 'Unsupported target language' 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Unsupported target language',
+        },
+        { status: 400 }
+      );
     }
 
     // Generate translation using AI (mock implementation for now)
-    const translatedContent = await generateTranslation(baseData, targetLanguage)
+    const translatedContent = await generateTranslation(baseData, targetLanguage);
 
     // Create or update translation in database
     const translation = await upsertTranslation({
@@ -61,21 +67,20 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       metaDescription: translatedContent.metaDescription,
       translationSource: 'ai',
       qualityScore: translatedContent.qualityScore,
-      humanReviewed: false
-    })
+      humanReviewed: false,
+    });
 
     return NextResponse.json({
       success: true,
       translation,
-      message: `Translation generated successfully for ${targetLanguage.toUpperCase()}`
-    })
-
+      message: `Translation generated successfully for ${targetLanguage.toUpperCase()}`,
+    });
   } catch (error: any) {
-    console.error('Error generating automatic translation:', error)
+    console.error('Error generating automatic translation:', error);
     return NextResponse.json(
       { error: 'Translation generation failed' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -87,68 +92,74 @@ async function generateTranslation(baseData: any, targetLanguage: string) {
   // Mock translation logic
   // In production, this would integrate with services like:
   // - Google Translate API
-  // - DeepL API  
+  // - DeepL API
   // - OpenAI API
   // - Azure Translator
-  
-  const languageMap: Record<string, string> = {
-    'fr': 'French',
-    'it': 'Italian', 
-    'es': 'Spanish',
-    'de': 'German',
-    'nl': 'Dutch',
-    'pt': 'Portuguese'
-  }
 
-  const languageName = languageMap[targetLanguage] || targetLanguage
+  const languageMap: Record<string, string> = {
+    fr: 'French',
+    it: 'Italian',
+    es: 'Spanish',
+    de: 'German',
+    nl: 'Dutch',
+    pt: 'Portuguese',
+  };
+
+  const languageName = languageMap[targetLanguage] || targetLanguage;
 
   // Simple mock translation (add language suffix)
   const mockTranslation = {
     name: `${baseData.name} (${languageName})`,
-    overview: baseData.overview ? `${baseData.overview} [Traduit automatiquement en ${languageName}]` : '',
-    description: baseData.description ? `${baseData.description} [Version ${languageName} générée automatiquement]` : '',
+    overview: baseData.overview
+      ? `${baseData.overview} [Traduit automatiquement en ${languageName}]`
+      : '',
+    description: baseData.description
+      ? `${baseData.description} [Version ${languageName} générée automatiquement]`
+      : '',
     metaTitle: baseData.metaTitle ? `${baseData.metaTitle} - ${languageName}` : '',
-    metaDescription: baseData.metaDescription ? `${baseData.metaDescription} (${languageName})` : '',
-    qualityScore: 7.5 // AI translations get a decent score
-  }
+    metaDescription: baseData.metaDescription
+      ? `${baseData.metaDescription} (${languageName})`
+      : '',
+    qualityScore: 7.5, // AI translations get a decent score
+  };
 
   // In a real implementation, you would:
   // 1. Call translation API with proper prompts
   // 2. Handle rate limiting and errors
   // 3. Implement quality scoring based on confidence
   // 4. Add context-aware translation for technical terms
-  
+
   // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  return mockTranslation
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  return mockTranslation;
 }
 
 /**
  * Create or update translation (upsert)
  */
 async function upsertTranslation(data: {
-  toolId: number
-  languageCode: string
-  name: string
-  overview: string
-  description: string
-  metaTitle: string
-  metaDescription: string
-  translationSource: string
-  qualityScore: number
-  humanReviewed: boolean
+  toolId: number;
+  languageCode: string;
+  name: string;
+  overview: string;
+  description: string;
+  metaTitle: string;
+  metaDescription: string;
+  translationSource: string;
+  qualityScore: number;
+  humanReviewed: boolean;
 }) {
-  const { getPool } = await import('@/src/lib/database/postgres')
-  const pool = getPool()
-  
+  const { getPool } = await import('@/src/lib/database/postgres');
+  const pool = getPool();
+
   // Check if translation already exists
   const existingQuery = `
     SELECT id FROM tool_translations 
     WHERE tool_id = $1 AND language_code = $2
-  `
-  const existing = await pool.query(existingQuery, [data.toolId, data.languageCode])
-  
+  `;
+  const existing = await pool.query(existingQuery, [data.toolId, data.languageCode]);
+
   if (existing.rows.length > 0) {
     // Update existing translation
     const updateQuery = `
@@ -177,8 +188,8 @@ async function upsertTranslation(data: {
         human_reviewed as "humanReviewed",
         created_at as "createdAt",
         updated_at as "updatedAt"
-    `
-    
+    `;
+
     const values = [
       data.toolId,
       data.languageCode,
@@ -189,12 +200,11 @@ async function upsertTranslation(data: {
       data.metaDescription,
       data.translationSource,
       data.qualityScore,
-      data.humanReviewed
-    ]
-    
-    const result = await pool.query(updateQuery, values)
-    return result.rows[0]
-    
+      data.humanReviewed,
+    ];
+
+    const result = await pool.query(updateQuery, values);
+    return result.rows[0];
   } else {
     // Create new translation
     const insertQuery = `
@@ -224,8 +234,8 @@ async function upsertTranslation(data: {
         human_reviewed as "humanReviewed",
         created_at as "createdAt",
         updated_at as "updatedAt"
-    `
-    
+    `;
+
     const values = [
       data.toolId,
       data.languageCode,
@@ -236,10 +246,10 @@ async function upsertTranslation(data: {
       data.metaDescription,
       data.translationSource,
       data.qualityScore,
-      data.humanReviewed
-    ]
-    
-    const result = await pool.query(insertQuery, values)
-    return result.rows[0]
+      data.humanReviewed,
+    ];
+
+    const result = await pool.query(insertQuery, values);
+    return result.rows[0];
   }
 }

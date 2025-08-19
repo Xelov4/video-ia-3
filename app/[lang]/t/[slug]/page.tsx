@@ -1,20 +1,20 @@
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { SupportedLanguage } from '@/src/lib/i18n/types'
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools'
-import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers'
-import ToolDetailClient from './ToolDetailClient'
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { SupportedLanguage } from '@/src/lib/i18n/types';
+import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
+import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
+import ToolDetailClient from './ToolDetailClient';
 
 interface ToolPageProps {
-  params: Promise<{ lang: SupportedLanguage; slug: string }>
+  params: Promise<{ lang: SupportedLanguage; slug: string }>;
 }
 
 export async function generateMetadata({ params }: ToolPageProps): Promise<Metadata> {
-  const { lang, slug } = await params
-  
-  const tool = await multilingualToolsService.getToolBySlug(slug, lang)
+  const { lang, slug } = await params;
+
+  const tool = await multilingualToolsService.getToolBySlug(slug, lang);
   if (!tool) {
-    return { title: 'Tool Not Found' }
+    return { title: 'Tool Not Found' };
   }
 
   const titles = {
@@ -24,8 +24,8 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
     de: `${tool.displayName} - KI-Tool Bewertung & Informationen`,
     it: `${tool.displayName} - Recensione e Informazioni Strumento IA`,
     nl: `${tool.displayName} - AI-tool Beoordeling & Informatie`,
-    pt: `${tool.displayName} - Avaliação e Informações da Ferramenta IA`
-  }
+    pt: `${tool.displayName} - Avaliação e Informações da Ferramenta IA`,
+  };
 
   const descriptions = {
     en: `${tool.displayDescription}. Discover features, pricing, and user reviews for this AI tool.`,
@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
     de: `${tool.displayDescription}. Entdecken Sie Funktionen, Preise und Benutzerbewertungen für dieses KI-Tool.`,
     it: `${tool.displayDescription}. Scopri caratteristiche, prezzi e recensioni degli utenti per questo strumento IA.`,
     nl: `${tool.displayDescription}. Ontdek functies, prijzen en gebruikersbeoordelingen voor dit AI-tool.`,
-    pt: `${tool.displayDescription}. Descubra recursos, preços e avaliações de usuários para esta ferramenta de IA.`
-  }
+    pt: `${tool.displayDescription}. Descubra recursos, preços e avaliações de usuários para esta ferramenta de IA.`,
+  };
 
   return {
     title: titles[lang] || titles.en,
@@ -49,51 +49,51 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
         de: `https://video-ia.net/de/t/${slug}`,
         it: `https://video-ia.net/it/t/${slug}`,
         nl: `https://video-ia.net/nl/t/${slug}`,
-        pt: `https://video-ia.net/pt/t/${slug}`
-      }
-    }
-  }
+        pt: `https://video-ia.net/pt/t/${slug}`,
+      },
+    },
+  };
 }
 
 export default async function ToolPage({ params }: ToolPageProps) {
-  const { lang, slug } = await params
-  
-  const tool = await multilingualToolsService.getToolBySlug(slug, lang)
+  const { lang, slug } = await params;
+
+  const tool = await multilingualToolsService.getToolBySlug(slug, lang);
   if (!tool) {
-    notFound()
+    notFound();
   }
 
-  const serializedTool = serializePrismaObject(tool)
+  const serializedTool = serializePrismaObject(tool);
 
   // Fetch related tools (same category)
-  let relatedTools: any[] = []
+  let relatedTools: any[] = [];
   try {
     if (tool.tool_category) {
       const relatedResult = await multilingualToolsService.searchTools({
         language: lang,
         category: tool.tool_category,
-        limit: 6
-      })
-      relatedTools = relatedResult.tools.filter(t => t.id !== tool.id).slice(0, 5)
+        limit: 6,
+      });
+      relatedTools = relatedResult.tools.filter(t => t.id !== tool.id).slice(0, 5);
     }
   } catch (error) {
-    console.error('Error fetching related tools:', error)
+    console.error('Error fetching related tools:', error);
   }
 
   // Fetch similar tools (featured or high quality)
-  let similarTools: any[] = []
+  let similarTools: any[] = [];
   try {
     const similarResult = await multilingualToolsService.searchTools({
       language: lang,
       filters: {
         minQualityScore: 70,
-        featured: true
+        featured: true,
       },
-      limit: 6
-    })
-    similarTools = similarResult.tools.filter(t => t.id !== tool.id).slice(0, 5)
+      limit: 6,
+    });
+    similarTools = similarResult.tools.filter(t => t.id !== tool.id).slice(0, 5);
   } catch (error) {
-    console.error('Error fetching similar tools:', error)
+    console.error('Error fetching similar tools:', error);
   }
 
   return (
@@ -103,5 +103,5 @@ export default async function ToolPage({ params }: ToolPageProps) {
       relatedTools={relatedTools}
       similarTools={similarTools}
     />
-  )
+  );
 }

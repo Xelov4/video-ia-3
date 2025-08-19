@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useEditor, EditorContent, Editor } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import Image from '@tiptap/extension-image'
-import Link from '@tiptap/extension-link'
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
 import {
   Bold,
   Italic,
@@ -15,116 +15,118 @@ import {
   List,
   ListOrdered,
   Link as LinkIcon,
-  ImageIcon
-} from 'lucide-react'
+  ImageIcon,
+} from 'lucide-react';
 
 interface RichTextEditorProps {
-  content: string
-  onChange: (content: string) => void
-  className?: string
+  content: string;
+  onChange: (content: string) => void;
+  className?: string;
 }
 
 const Toolbar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
-    return null
+    return null;
   }
-  
+
   const addImage = () => {
-    const url = window.prompt('URL')
+    const url = window.prompt('URL');
 
     if (url) {
-      editor.chain().focus().setImage({ src: url }).run()
+      editor.chain().focus().setImage({ src: url }).run();
     }
-  }
+  };
 
   const setLink = () => {
-    const previousUrl = editor.getAttributes('link').href
-    const url = window.prompt('URL', previousUrl)
+    const previousUrl = editor.getAttributes('link').href;
+    const url = window.prompt('URL', previousUrl);
 
     // cancelled
     if (url === null) {
-      return
+      return;
     }
 
     // empty
     if (url === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run()
-      return
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      return;
     }
 
     // update link
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-  }
-
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+  };
 
   return (
-    <div className="flex items-center gap-2 p-2 border-b flex-wrap">
+    <div className='flex flex-wrap items-center gap-2 border-b p-2'>
       <button
         onClick={() => editor.chain().focus().toggleBold().run()}
         disabled={!editor.can().chain().focus().toggleBold().run()}
         className={editor.isActive('bold') ? 'is-active' : ''}
       >
-        <Bold className="w-4 h-4" />
+        <Bold className='h-4 w-4' />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleItalic().run()}
         disabled={!editor.can().chain().focus().toggleItalic().run()}
         className={editor.isActive('italic') ? 'is-active' : ''}
       >
-        <Italic className="w-4 h-4" />
+        <Italic className='h-4 w-4' />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleStrike().run()}
         disabled={!editor.can().chain().focus().toggleStrike().run()}
         className={editor.isActive('strike') ? 'is-active' : ''}
       >
-        <Strikethrough className="w-4 h-4" />
+        <Strikethrough className='h-4 w-4' />
       </button>
-      <div className="border-l h-6 mx-2" />
+      <div className='mx-2 h-6 border-l' />
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
         className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}
       >
-        <Heading1 className="w-4 h-4" />
+        <Heading1 className='h-4 w-4' />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
       >
-        <Heading2 className="w-4 h-4" />
+        <Heading2 className='h-4 w-4' />
       </button>
-       <button
+      <button
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}
       >
-        <Heading3 className="w-4 h-4" />
+        <Heading3 className='h-4 w-4' />
       </button>
-      <div className="border-l h-6 mx-2" />
+      <div className='mx-2 h-6 border-l' />
       <button
         onClick={() => editor.chain().focus().toggleBulletList().run()}
         className={editor.isActive('bulletList') ? 'is-active' : ''}
       >
-        <List className="w-4 h-4" />
+        <List className='h-4 w-4' />
       </button>
       <button
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
         className={editor.isActive('orderedList') ? 'is-active' : ''}
       >
-        <ListOrdered className="w-4 h-4" />
+        <ListOrdered className='h-4 w-4' />
       </button>
-       <div className="border-l h-6 mx-2" />
+      <div className='mx-2 h-6 border-l' />
       <button onClick={addImage}>
-        <ImageIcon className="w-4 h-4" />
+        <ImageIcon className='h-4 w-4' />
       </button>
       <button onClick={setLink} className={editor.isActive('link') ? 'is-active' : ''}>
-        <LinkIcon className="w-4 h-4" />
+        <LinkIcon className='h-4 w-4' />
       </button>
     </div>
-  )
-}
+  );
+};
 
-
-export const RichTextEditor = ({ content, onChange, className }: RichTextEditorProps) => {
+export const RichTextEditor = ({
+  content,
+  onChange,
+  className,
+}: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -148,19 +150,20 @@ export const RichTextEditor = ({ content, onChange, className }: RichTextEditorP
     content: content,
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl m-5 focus:outline-none min-h-[150px]',
+        class:
+          'prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl m-5 focus:outline-none min-h-[150px]',
       },
     },
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      onChange(editor.getHTML());
     },
     immediatelyRender: false,
-  })
+  });
 
   return (
-    <div className={`border rounded-md ${className}`}>
+    <div className={`rounded-md border ${className}`}>
       <Toolbar editor={editor} />
       <EditorContent editor={editor} />
     </div>
-  )
-}
+  );
+};

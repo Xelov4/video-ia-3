@@ -14,25 +14,25 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'video_ia_net',
   user: process.env.DB_USER || 'video_ia_user',
   password: process.env.DB_PASSWORD || 'video123',
-  ssl: false
+  ssl: false,
 });
 
 async function resetAdminPassword() {
   const password = process.argv[2] || 'admin123';
-  
+
   try {
     console.log('🔐 Resetting admin password...');
-    
+
     // Hash the password
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-    
+
     // Update the admin user
     const result = await pool.query(
       'UPDATE admin_users SET password_hash = $1, updated_at = NOW() WHERE email = $2',
       [hashedPassword, 'admin@video-ia.net']
     );
-    
+
     if (result.rowCount > 0) {
       console.log('✅ Admin password reset successfully!');
       console.log('📧 Email: admin@video-ia.net');

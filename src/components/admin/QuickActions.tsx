@@ -3,16 +3,16 @@
  * Quick action buttons for common admin tasks
  */
 
-'use client'
+'use client';
 
-import Link from 'next/link'
+import Link from 'next/link';
 import {
   PlusIcon,
   WrenchScrewdriverIcon,
   FolderPlusIcon,
   DocumentPlusIcon,
-  ComputerDesktopIcon
-} from '@heroicons/react/24/outline'
+  ComputerDesktopIcon,
+} from '@heroicons/react/24/outline';
 
 const actions = [
   {
@@ -20,73 +20,64 @@ const actions = [
     description: 'Ajouter un nouvel outil IA',
     href: '/admin/tools/new',
     icon: PlusIcon,
-    color: 'bg-blue-500 hover:bg-blue-600'
+    color: 'bg-blue-500 hover:bg-blue-600',
   },
   {
     name: 'Gérer les outils',
     description: 'Modifier les outils existants',
     href: '/admin/tools',
     icon: WrenchScrewdriverIcon,
-    color: 'bg-green-500 hover:bg-green-600'
+    color: 'bg-green-500 hover:bg-green-600',
   },
   {
     name: 'Nouvelle catégorie',
     description: 'Créer une catégorie',
     href: '/admin/categories/new',
     icon: FolderPlusIcon,
-    color: 'bg-purple-500 hover:bg-purple-600'
+    color: 'bg-purple-500 hover:bg-purple-600',
   },
   {
     name: 'Nouvel article',
     description: 'Rédiger un article',
     href: '/admin/articles/new',
     icon: DocumentPlusIcon,
-    color: 'bg-orange-500 hover:bg-orange-600'
+    color: 'bg-orange-500 hover:bg-orange-600',
   },
   {
     name: 'Lancer le scraper',
     description: 'Analyser de nouveaux outils',
     href: '/admin/scraper',
     icon: ComputerDesktopIcon,
-    color: 'bg-indigo-500 hover:bg-indigo-600'
+    color: 'bg-indigo-500 hover:bg-indigo-600',
   },
   {
     name: 'Health Check',
     description: 'Vérifier le statut HTTP des outils',
     href: '/admin/image-http',
     icon: ComputerDesktopIcon,
-    color: 'bg-red-500 hover:bg-red-600'
-  }
-]
+    color: 'bg-red-500 hover:bg-red-600',
+  },
+];
 
 export const QuickActions = () => {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Actions rapides
-      </h3>
-      <div className="space-y-3">
-        {actions.map((action) => (
+    <div className='rounded-lg border border-gray-200 bg-white p-6'>
+      <h3 className='mb-4 text-lg font-semibold text-gray-900'>Actions rapides</h3>
+      <div className='space-y-3'>
+        {actions.map(action => (
           <Link
             key={action.name}
             href={action.href}
-            className={`
-              flex items-center p-3 rounded-lg text-white transition-colors
-              ${action.color}
-            `}
+            className={`flex items-center rounded-lg p-3 text-white transition-colors ${action.color} `}
           >
-            <action.icon className="w-5 h-5 mr-3 flex-shrink-0" />
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium">
-                {action.name}
-              </div>
-              <div className="text-xs opacity-90">
-                {action.description}
-              </div>
+            <action.icon className='mr-3 h-5 w-5 flex-shrink-0' />
+            <div className='min-w-0 flex-1'>
+              <div className='text-sm font-medium'>{action.name}</div>
+              <div className='text-xs opacity-90'>{action.description}</div>
             </div>
           </Link>
         ))}
       </div>
     </div>
-  )
-}
+  );
+};

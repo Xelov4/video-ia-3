@@ -15,37 +15,46 @@ export function generateSlug(toolName: string): string {
 
 export function generatePricingSummary(pricingDetails: PricingDetails): string {
   const { model, plans, freeTier, paidPlans, enterpriseAvailable } = pricingDetails;
-  
+
   let summary = `${model} pricing model. `;
-  
+
   if (freeTier) {
-    summary += "Free tier available. ";
+    summary += 'Free tier available. ';
   }
-  
+
   if (paidPlans && plans.length > 0) {
     const prices = plans.map(p => p.price).filter(p => p && p !== 'Free');
     if (prices.length > 0) {
       summary += `Paid plans start from ${prices[0]}. `;
     }
   }
-  
+
   if (enterpriseAvailable) {
-    summary += "Enterprise plans available. ";
+    summary += 'Enterprise plans available. ';
   }
-  
-  summary += "💡 Tip: Start with the free tier to test features, then upgrade based on your needs.";
-  
+
+  summary +=
+    '💡 Tip: Start with the free tier to test features, then upgrade based on your needs.';
+
   return summary;
 }
 
-export function generateSEODescription(toolName: string, category: string, features: string[], pricingModel: string): string {
+export function generateSEODescription(
+  toolName: string,
+  category: string,
+  features: string[],
+  pricingModel: string
+): string {
   return `
 <h2>What is ${toolName}?</h2>
 <p>${toolName} is a cutting-edge AI-powered ${category.toLowerCase()} tool designed to revolutionize how professionals and creators work. This innovative platform leverages advanced artificial intelligence to deliver exceptional results, making it the go-to solution for anyone looking to enhance their ${category.toLowerCase()} capabilities.</p>
 
 <h3>Key Features & Capabilities</h3>
 <ul>
-${features.slice(0, 5).map(feature => `<li>${feature}</li>`).join('\n')}
+${features
+  .slice(0, 5)
+  .map(feature => `<li>${feature}</li>`)
+  .join('\n')}
 <li>Advanced AI Algorithms: Superior results through machine learning</li>
 <li>User-Friendly Interface: Seamless workflow for all skill levels</li>
 <li>Real-Time Processing: Instant feedback and results</li>

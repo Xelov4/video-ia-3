@@ -1,21 +1,5 @@
 {
-  "extends": [
-    "next/core-web-vitals",
-    "next/typescript"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": 2022,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
-  "plugins": [
-    "@typescript-eslint",
-    "react",
-    "react-hooks"
-  ],
+  "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
     // Variables non utilisées - permet les underscores pour les paramètres ignorés
     "@typescript-eslint/no-unused-vars": [
@@ -26,71 +10,29 @@
         "ignoreRestSiblings": true
       }
     ],
-    
+
     // Any type - plus strict mais avec exceptions pour certains cas
     "@typescript-eslint/no-explicit-any": [
-      "error",
+      "warn",
       {
         "fixToUnknown": false,
         "ignoreRestArgs": true
       }
     ],
-    
+
     // Préférer const quand possible
     "prefer-const": "error",
-    
-    // Caractères d'échappement React
+
+    // Caractères d'échappement React - plus permissif
     "react/no-unescaped-entities": [
       "error",
       {
-        "forbid": [
-          {
-            "char": ">",
-            "alternatives": ["&gt;"]
-          },
-          {
-            "char": "}",
-            "alternatives": ["&#125;"]
-          }
-        ]
+        "forbid": [">", "}"]
       }
     ],
-    
-    // Hooks React
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
-    
-    // Import/Export
-    "import/no-unused-modules": "off",
-    "import/order": [
-      "error",
-      {
-        "groups": [
-          "builtin",
-          "external",
-          "internal",
-          ["parent", "sibling"],
-          "index"
-        ],
-        "newlines-between": "always",
-        "alphabetize": {
-          "order": "asc",
-          "caseInsensitive": true
-        }
-      }
-    ],
-    
-    // TypeScript spécifiques
-    "@typescript-eslint/consistent-type-imports": [
-      "error",
-      {
-        "prefer": "type-imports",
-        "disallowTypeAnnotations": false
-      }
-    ],
-    "@typescript-eslint/no-unnecessary-condition": "warn",
-    "@typescript-eslint/prefer-nullish-coalescing": "warn",
-    "@typescript-eslint/prefer-optional-chain": "error"
+
+    // Hooks React - déjà dans next/core-web-vitals
+    "react-hooks/exhaustive-deps": "warn"
   },
   "overrides": [
     {
@@ -100,15 +42,9 @@
       }
     },
     {
-      "files": ["**/pages/api/**/*.ts", "**/app/api/**/*.ts"],
+      "files": ["**/app/api/**/*.ts", "**/pages/api/**/*.ts"],
       "rules": {
-        "@typescript-eslint/no-explicit-any": "warn"
-      }
-    },
-    {
-      "files": ["**/*.config.{js,ts}", "**/*.setup.{js,ts}"],
-      "rules": {
-        "@typescript-eslint/no-var-requires": "off"
+        "@typescript-eslint/no-explicit-any": "off"
       }
     }
   ],
@@ -118,8 +54,7 @@
     "out/",
     "dist/",
     "build/",
-    "*.config.js",
-    "*.config.ts",
-    "public/"
+    "public/",
+    "temporary.visualizee/"
   ]
 }

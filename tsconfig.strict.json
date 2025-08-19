@@ -1,0 +1,44 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Mode encore plus strict pour les nouveaux fichiers
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+    
+    // Règles supplémentaires pour nouveaux développements
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false
+  },
+  "include": [
+    // Inclure seulement les nouveaux fichiers/dossiers
+    "src/types/unified.ts",
+    "src/lib/adapters/**/*",
+    "src/components/unified/**/*",
+    "src/hooks/unified/**/*"
+  ],
+  "exclude": [
+    // Exclure les fichiers existants pour éviter la cascade d'erreurs
+    "node_modules",
+    ".next",
+    "out",
+    "dist",
+    "build",
+    "scripts/**/*",
+    "tests/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
+  ]
+}

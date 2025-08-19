@@ -6,8 +6,8 @@ const prisma = new PrismaClient();
 
 async function exportDatabase() {
   try {
-    console.log('🔄 Début de l\'exportation de la base de données...');
-    
+    console.log("🔄 Début de l'exportation de la base de données...");
+
     // Créer le dossier d'export s'il n'existe pas
     const exportDir = path.join(__dirname, '../data-exports');
     if (!fs.existsSync(exportDir)) {
@@ -21,7 +21,7 @@ async function exportDatabase() {
     const data = {
       exportDate: new Date().toISOString(),
       database: 'video-ia.net',
-      tables: {}
+      tables: {},
     };
 
     console.log('📊 Récupération des langues...');
@@ -29,8 +29,8 @@ async function exportDatabase() {
       include: {
         toolTranslations: true,
         categoryTranslations: true,
-        fallbackFor: true
-      }
+        fallbackFor: true,
+      },
     });
     data.tables.languages = languages;
 
@@ -39,10 +39,10 @@ async function exportDatabase() {
       include: {
         translations: {
           include: {
-            language: true
-          }
-        }
-      }
+            language: true,
+          },
+        },
+      },
     });
     data.tables.categories = categories;
 
@@ -55,19 +55,19 @@ async function exportDatabase() {
       include: {
         translations: {
           include: {
-            language: true
-          }
-        }
-      }
+            language: true,
+          },
+        },
+      },
     });
     data.tables.tools = tools;
 
-    console.log('📊 Récupération des traductions d\'outils...');
+    console.log("📊 Récupération des traductions d'outils...");
     const toolTranslations = await prisma.toolTranslation.findMany({
       include: {
         tool: true,
-        language: true
-      }
+        language: true,
+      },
     });
     data.tables.toolTranslations = toolTranslations;
 
@@ -75,8 +75,8 @@ async function exportDatabase() {
     const categoryTranslations = await prisma.categoryTranslation.findMany({
       include: {
         category: true,
-        language: true
-      }
+        language: true,
+      },
     });
     data.tables.categoryTranslations = categoryTranslations;
 
@@ -95,9 +95,8 @@ async function exportDatabase() {
 
     // Créer aussi un fichier SQL pour la restauration
     await createSQLBackup(exportPath.replace('.json', '.sql'));
-
   } catch (error) {
-    console.error('❌ Erreur lors de l\'exportation:', error);
+    console.error("❌ Erreur lors de l'exportation:", error);
   } finally {
     await prisma.$disconnect();
   }
@@ -105,7 +104,7 @@ async function exportDatabase() {
 
 async function createSQLBackup(sqlFilePath) {
   console.log('🔄 Création du fichier SQL de sauvegarde...');
-  
+
   try {
     // Récupérer les données pour créer les INSERT statements
     const languages = await prisma.language.findMany();
@@ -195,11 +194,10 @@ SELECT setval('category_translations_id_seq', (SELECT MAX(id) FROM category_tran
 
     fs.writeFileSync(sqlFilePath, sqlContent, 'utf8');
     console.log(`✅ Fichier SQL créé: ${sqlFilePath}`);
-
   } catch (error) {
     console.error('❌ Erreur lors de la création du fichier SQL:', error);
   }
 }
 
 // Exécuter l'exportation
-exportDatabase(); 
+exportDatabase();

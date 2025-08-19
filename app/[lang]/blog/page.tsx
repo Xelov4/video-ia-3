@@ -1,67 +1,74 @@
 /**
  * Blog Main Page - Liste des articles du blog
- * 
+ *
  * Page principale du blog affichant la liste des articles publiés.
- * 
+ *
  * @author Video-IA.net Development Team
  */
 
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
-import { CalendarIcon, ClockIcon, EyeIcon, ChatBubbleLeftIcon, UserIcon, TagIcon } from '@heroicons/react/24/outline'
-import { SupportedLocale, supportedLocales } from '@/middleware'
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import {
+  CalendarIcon,
+  ClockIcon,
+  EyeIcon,
+  ChatBubbleLeftIcon,
+  UserIcon,
+  TagIcon,
+} from '@heroicons/react/24/outline';
+import { SupportedLocale, supportedLocales } from '@/middleware';
 
 interface BlogPost {
-  id: number
-  slug: string
-  status: string
-  postType: string
-  featuredImageUrl?: string
-  isFeatured: boolean
-  allowComments: boolean
-  viewCount: number
-  readingTimeMinutes?: number
-  publishedAt: string
-  createdAt: string
-  updatedAt: string
+  id: number;
+  slug: string;
+  status: string;
+  postType: string;
+  featuredImageUrl?: string;
+  isFeatured: boolean;
+  allowComments: boolean;
+  viewCount: number;
+  readingTimeMinutes?: number;
+  publishedAt: string;
+  createdAt: string;
+  updatedAt: string;
   author: {
-    id: number
-    name: string
-    email: string
-  }
+    id: number;
+    name: string;
+    email: string;
+  };
   translation: {
-    title: string
-    content: string
-    excerpt?: string
-    metaTitle?: string
-    metaDescription?: string
-  }
+    title: string;
+    content: string;
+    excerpt?: string;
+    metaTitle?: string;
+    metaDescription?: string;
+  };
   postCategories: Array<{
     category: {
-      id: number
-      name: string
-      slug: string
-    }
-  }>
+      id: number;
+      name: string;
+      slug: string;
+    };
+  }>;
   postTags: Array<{
     tag: {
-      id: number
-      name: string
-      slug: string
-    }
-  }>
+      id: number;
+      name: string;
+      slug: string;
+    };
+  }>;
   _count: {
-    comments: number
-  }
+    comments: number;
+  };
 }
 
 interface BlogPageProps {
   params: Promise<{
-    lang: SupportedLocale
-  }>
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+    lang: SupportedLocale;
+  }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 /**
@@ -69,55 +76,62 @@ interface BlogPageProps {
  */
 function validateLanguageParam(lang: string): SupportedLocale {
   if (!supportedLocales.includes(lang as SupportedLocale)) {
-    notFound()
+    notFound();
   }
-  return lang as SupportedLocale
+  return lang as SupportedLocale;
 }
 
 /**
  * Métadonnées SEO multilingues
  */
-export async function generateMetadata({ 
-  params 
+export async function generateMetadata({
+  params,
 }: {
-  params: Promise<{ lang: string }>
+  params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
-  const { lang } = await params
-  const validatedLang = validateLanguageParam(lang)
-  
+  const { lang } = await params;
+  const validatedLang = validateLanguageParam(lang);
+
   const seoContent = {
-    'en': {
+    en: {
       title: 'Blog | Video-IA.net - AI Tools & Technology Articles',
-      description: 'Discover the latest articles about artificial intelligence, video tools and emerging technologies.',
+      description:
+        'Discover the latest articles about artificial intelligence, video tools and emerging technologies.',
     },
-    'fr': {
-      title: 'Blog | Video-IA.net - Articles sur l\'IA et les Technologies',
-      description: 'Découvrez les derniers articles sur l\'intelligence artificielle, les outils vidéo et les technologies émergentes.',
+    fr: {
+      title: "Blog | Video-IA.net - Articles sur l'IA et les Technologies",
+      description:
+        "Découvrez les derniers articles sur l'intelligence artificielle, les outils vidéo et les technologies émergentes.",
     },
-    'es': {
+    es: {
       title: 'Blog | Video-IA.net - Artículos sobre IA y Tecnología',
-      description: 'Descubre los últimos artículos sobre inteligencia artificial, herramientas de video y tecnologías emergentes.',
+      description:
+        'Descubre los últimos artículos sobre inteligencia artificial, herramientas de video y tecnologías emergentes.',
     },
-    'it': {
+    it: {
       title: 'Blog | Video-IA.net - Articoli su IA e Tecnologia',
-      description: 'Scopri gli ultimi articoli sull\'intelligenza artificiale, strumenti video e tecnologie emergenti.',
+      description:
+        "Scopri gli ultimi articoli sull'intelligenza artificiale, strumenti video e tecnologie emergenti.",
     },
-    'de': {
+    de: {
       title: 'Blog | Video-IA.net - Artikel über KI und Technologie',
-      description: 'Entdecken Sie die neuesten Artikel über künstliche Intelligenz, Video-Tools und neue Technologien.',
+      description:
+        'Entdecken Sie die neuesten Artikel über künstliche Intelligenz, Video-Tools und neue Technologien.',
     },
-    'nl': {
+    nl: {
       title: 'Blog | Video-IA.net - Artikelen over AI en Technologie',
-      description: 'Ontdek de nieuwste artikelen over kunstmatige intelligentie, video-tools en opkomende technologieën.',
+      description:
+        'Ontdek de nieuwste artikelen over kunstmatige intelligentie, video-tools en opkomende technologieën.',
     },
-    'pt': {
+    pt: {
       title: 'Blog | Video-IA.net - Artigos sobre IA e Tecnologia',
-      description: 'Descubra os últimos artigos sobre inteligência artificial, ferramentas de vídeo e tecnologias emergentes.',
-    }
-  }
-  
-  const content = seoContent[validatedLang] || seoContent['en']
-  
+      description:
+        'Descubra os últimos artigos sobre inteligência artificial, ferramentas de vídeo e tecnologias emergentes.',
+    },
+  };
+
+  const content = seoContent[validatedLang] || seoContent['en'];
+
   return {
     title: content.title,
     description: content.description,
@@ -125,97 +139,109 @@ export async function generateMetadata({
       title: content.title,
       description: content.description,
       type: 'website',
-    }
-  }
+    },
+  };
 }
 
-async function getPosts(searchParams: { [key: string]: string | string[] | undefined }, language: string) {
-  const params = new URLSearchParams()
-  
-  if (searchParams.page) params.set('page', String(searchParams.page))
-  if (searchParams.category) params.set('category', String(searchParams.category))
-  if (searchParams.tag) params.set('tag', String(searchParams.tag))
-  if (searchParams.search) params.set('search', String(searchParams.search))
-  if (searchParams.featured) params.set('featured', String(searchParams.featured))
-  
-  params.set('lang', language)
-  params.set('limit', '12')
+async function getPosts(
+  searchParams: { [key: string]: string | string[] | undefined },
+  language: string
+) {
+  const params = new URLSearchParams();
+
+  if (searchParams.page) params.set('page', String(searchParams.page));
+  if (searchParams.category) params.set('category', String(searchParams.category));
+  if (searchParams.tag) params.set('tag', String(searchParams.tag));
+  if (searchParams.search) params.set('search', String(searchParams.search));
+  if (searchParams.featured) params.set('featured', String(searchParams.featured));
+
+  params.set('lang', language);
+  params.set('limit', '12');
 
   try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3002'
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3002';
     const response = await fetch(`${baseUrl}/api/blog/posts?${params}`, {
-      cache: 'no-store' // Pas de cache pour les données fraîches
-    })
-    
+      cache: 'no-store', // Pas de cache pour les données fraîches
+    });
+
     if (!response.ok) {
-      throw new Error('Failed to fetch posts')
+      throw new Error('Failed to fetch posts');
     }
-    
-    return await response.json()
+
+    return await response.json();
   } catch (error) {
-    console.error('Error fetching posts:', error)
-    return { success: false, data: [], pagination: { page: 1, limit: 12, total: 0, totalPages: 0 } }
+    console.error('Error fetching posts:', error);
+    return {
+      success: false,
+      data: [],
+      pagination: { page: 1, limit: 12, total: 0, totalPages: 0 },
+    };
   }
 }
 
 function formatDate(dateString: string) {
-  const date = new Date(dateString)
+  const date = new Date(dateString);
   return date.toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
-  })
+    year: 'numeric',
+  });
 }
 
 function truncateContent(content: string, maxLength: number = 150) {
   // Supprimer les balises HTML
-  const textContent = content.replace(/<[^>]*>/g, '')
-  if (textContent.length <= maxLength) return textContent
-  return textContent.substring(0, maxLength) + '...'
+  const textContent = content.replace(/<[^>]*>/g, '');
+  if (textContent.length <= maxLength) return textContent;
+  return textContent.substring(0, maxLength) + '...';
 }
 
 export default async function BlogPage({ params, searchParams }: BlogPageProps) {
-  const { lang } = await params
-  const validatedLang = validateLanguageParam(lang)
-  const resolvedSearchParams = await searchParams
-  
-  const result = await getPosts(resolvedSearchParams, validatedLang)
-  const posts: BlogPost[] = result.data || []
-  const pagination = result.pagination || { page: 1, limit: 12, total: 0, totalPages: 0 }
-  
-  const currentPage = pagination.page
-  const totalPages = pagination.totalPages
-  const hasPrevious = currentPage > 1
-  const hasNext = currentPage < totalPages
+  const { lang } = await params;
+  const validatedLang = validateLanguageParam(lang);
+  const resolvedSearchParams = await searchParams;
+
+  const result = await getPosts(resolvedSearchParams, validatedLang);
+  const posts: BlogPost[] = result.data || [];
+  const pagination = result.pagination || {
+    page: 1,
+    limit: 12,
+    total: 0,
+    totalPages: 0,
+  };
+
+  const currentPage = pagination.page;
+  const totalPages = pagination.totalPages;
+  const hasPrevious = currentPage > 1;
+  const hasNext = currentPage < totalPages;
 
   // Séparer les articles en vedette des autres
-  const featuredPosts = posts.filter(post => post.isFeatured)
-  const regularPosts = posts.filter(post => !post.isFeatured)
+  const featuredPosts = posts.filter(post => post.isFeatured);
+  const regularPosts = posts.filter(post => !post.isFeatured);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className='min-h-screen bg-gray-50'>
       {/* Header du blog */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Blog Video-IA.net
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Découvrez les derniers articles sur l'intelligence artificielle, 
-              les outils vidéo et les technologies émergentes
+      <div className='border-b bg-white shadow-sm'>
+        <div className='mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8'>
+          <div className='text-center'>
+            <h1 className='mb-4 text-4xl font-bold text-gray-900'>Blog Video-IA.net</h1>
+            <p className='mx-auto max-w-3xl text-xl text-gray-600'>
+              Découvrez les derniers articles sur l'intelligence artificielle, les
+              outils vidéo et les technologies émergentes
             </p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
         {/* Articles en vedette */}
         {featuredPosts.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Articles en vedette</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              {featuredPosts.slice(0, 2).map((post) => (
+          <div className='mb-12'>
+            <h2 className='mb-6 text-2xl font-bold text-gray-900'>
+              Articles en vedette
+            </h2>
+            <div className='mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2'>
+              {featuredPosts.slice(0, 2).map(post => (
                 <FeaturedPostCard key={post.id} post={post} lang={validatedLang} />
               ))}
             </div>
@@ -225,12 +251,12 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
         {/* Liste des articles */}
         {posts.length > 0 ? (
           <>
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <div className='mb-8'>
+              <h2 className='mb-6 text-2xl font-bold text-gray-900'>
                 {featuredPosts.length > 0 ? 'Tous les articles' : 'Derniers articles'}
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {(featuredPosts.length > 0 ? regularPosts : posts).map((post) => (
+              <div className='grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3'>
+                {(featuredPosts.length > 0 ? regularPosts : posts).map(post => (
                   <PostCard key={post.id} post={post} lang={validatedLang} />
                 ))}
               </div>
@@ -238,24 +264,24 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-12">
+              <div className='mt-12 flex items-center justify-center space-x-2'>
                 {hasPrevious && (
-                  <Link 
+                  <Link
                     href={`/blog?page=${currentPage - 1}`}
-                    className="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className='rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50'
                   >
                     Précédent
                   </Link>
                 )}
-                
-                <span className="px-4 py-2 text-gray-700">
+
+                <span className='px-4 py-2 text-gray-700'>
                   Page {currentPage} sur {totalPages}
                 </span>
-                
+
                 {hasNext && (
-                  <Link 
+                  <Link
                     href={`/blog?page=${currentPage + 1}`}
-                    className="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    className='rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:bg-gray-50'
                   >
                     Suivant
                   </Link>
@@ -264,69 +290,73 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
             )}
           </>
         ) : (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Aucun article trouvé</h2>
-            <p className="text-gray-600">Il n'y a pas encore d'articles publiés sur le blog.</p>
+          <div className='py-12 text-center'>
+            <h2 className='mb-4 text-2xl font-bold text-gray-900'>
+              Aucun article trouvé
+            </h2>
+            <p className='text-gray-600'>
+              Il n'y a pas encore d'articles publiés sur le blog.
+            </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // Composant pour les articles en vedette
 function FeaturedPostCard({ post, lang }: { post: BlogPost; lang: string }) {
   return (
-    <Link href={`/${lang}/blog/${post.slug}`} className="group">
-      <article className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+    <Link href={`/${lang}/blog/${post.slug}`} className='group'>
+      <article className='overflow-hidden rounded-lg bg-white shadow-md transition-shadow duration-300 hover:shadow-lg'>
         {post.featuredImageUrl && (
-          <div className="relative h-64 w-full">
+          <div className='relative h-64 w-full'>
             <Image
               src={post.featuredImageUrl}
               alt={post.translation.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className='object-cover transition-transform duration-300 group-hover:scale-105'
             />
           </div>
         )}
-        <div className="p-6">
-          <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
-            <div className="flex items-center">
-              <CalendarIcon className="w-4 h-4 mr-1" />
+        <div className='p-6'>
+          <div className='mb-3 flex items-center space-x-4 text-sm text-gray-500'>
+            <div className='flex items-center'>
+              <CalendarIcon className='mr-1 h-4 w-4' />
               {formatDate(post.publishedAt)}
             </div>
             {post.readingTimeMinutes && (
-              <div className="flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
+              <div className='flex items-center'>
+                <ClockIcon className='mr-1 h-4 w-4' />
                 {post.readingTimeMinutes} min
               </div>
             )}
-            <div className="flex items-center">
-              <EyeIcon className="w-4 h-4 mr-1" />
+            <div className='flex items-center'>
+              <EyeIcon className='mr-1 h-4 w-4' />
               {post.viewCount}
             </div>
           </div>
-          
-          <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600">
+
+          <h2 className='mb-3 text-xl font-bold text-gray-900 group-hover:text-blue-600'>
             {post.translation.title}
           </h2>
-          
-          <p className="text-gray-600 mb-4">
+
+          <p className='mb-4 text-gray-600'>
             {post.translation.excerpt || truncateContent(post.translation.content, 200)}
           </p>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-sm text-gray-500">
-              <UserIcon className="w-4 h-4 mr-1" />
+
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center text-sm text-gray-500'>
+              <UserIcon className='mr-1 h-4 w-4' />
               {post.author.name}
             </div>
-            
+
             {post.postCategories.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className='flex flex-wrap gap-2'>
                 {post.postCategories.slice(0, 2).map(({ category }) => (
-                  <span 
+                  <span
                     key={category.id}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                    className='rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800'
                   >
                     {category.name}
                   </span>
@@ -337,63 +367,63 @@ function FeaturedPostCard({ post, lang }: { post: BlogPost; lang: string }) {
         </div>
       </article>
     </Link>
-  )
+  );
 }
 
 // Composant pour les articles normaux
 function PostCard({ post, lang }: { post: BlogPost; lang: string }) {
   return (
-    <Link href={`/${lang}/blog/${post.slug}`} className="group">
-      <article className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden h-full flex flex-col">
+    <Link href={`/${lang}/blog/${post.slug}`} className='group'>
+      <article className='flex h-full flex-col overflow-hidden rounded-lg bg-white shadow-md transition-shadow duration-300 hover:shadow-lg'>
         {post.featuredImageUrl && (
-          <div className="relative h-48 w-full">
+          <div className='relative h-48 w-full'>
             <Image
               src={post.featuredImageUrl}
               alt={post.translation.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className='object-cover transition-transform duration-300 group-hover:scale-105'
             />
           </div>
         )}
-        <div className="p-6 flex-1 flex flex-col">
-          <div className="flex items-center space-x-3 text-sm text-gray-500 mb-3">
-            <div className="flex items-center">
-              <CalendarIcon className="w-4 h-4 mr-1" />
+        <div className='flex flex-1 flex-col p-6'>
+          <div className='mb-3 flex items-center space-x-3 text-sm text-gray-500'>
+            <div className='flex items-center'>
+              <CalendarIcon className='mr-1 h-4 w-4' />
               {formatDate(post.publishedAt)}
             </div>
             {post.readingTimeMinutes && (
-              <div className="flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
+              <div className='flex items-center'>
+                <ClockIcon className='mr-1 h-4 w-4' />
                 {post.readingTimeMinutes} min
               </div>
             )}
           </div>
-          
-          <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 line-clamp-2">
+
+          <h3 className='mb-3 line-clamp-2 text-lg font-bold text-gray-900 group-hover:text-blue-600'>
             {post.translation.title}
           </h3>
-          
-          <p className="text-gray-600 mb-4 flex-1 line-clamp-3">
+
+          <p className='mb-4 line-clamp-3 flex-1 text-gray-600'>
             {post.translation.excerpt || truncateContent(post.translation.content, 120)}
           </p>
-          
-          <div className="flex items-center justify-between text-sm text-gray-500">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <EyeIcon className="w-4 h-4 mr-1" />
+
+          <div className='flex items-center justify-between text-sm text-gray-500'>
+            <div className='flex items-center space-x-4'>
+              <div className='flex items-center'>
+                <EyeIcon className='mr-1 h-4 w-4' />
                 {post.viewCount}
               </div>
               {post.allowComments && post._count.comments > 0 && (
-                <div className="flex items-center">
-                  <ChatBubbleLeftIcon className="w-4 h-4 mr-1" />
+                <div className='flex items-center'>
+                  <ChatBubbleLeftIcon className='mr-1 h-4 w-4' />
                   {post._count.comments}
                 </div>
               )}
             </div>
-            
+
             {post.postTags.length > 0 && (
-              <div className="flex items-center">
-                <TagIcon className="w-4 h-4 mr-1" />
+              <div className='flex items-center'>
+                <TagIcon className='mr-1 h-4 w-4' />
                 <span>{post.postTags.length}</span>
               </div>
             )}
@@ -401,5 +431,5 @@ function PostCard({ post, lang }: { post: BlogPost; lang: string }) {
         </div>
       </article>
     </Link>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/src/lib/database/client'
-import { getServerSession } from 'next-auth'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/src/lib/database/client';
+import { getServerSession } from 'next-auth';
+import { z } from 'zod';
 
 const translationSchema = z.object({
   languageCode: z.string(),
@@ -12,31 +12,30 @@ const translationSchema = z.object({
   metaDescription: z.string().optional(),
   translationSource: z.string(),
   qualityScore: z.number(),
-  humanReviewed: z.boolean()
-})
+  humanReviewed: z.boolean(),
+});
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const translations = await prisma.toolTranslation.findMany({
-      where: { tool_id: parseInt(params.id) }
-    })
+      where: { tool_id: parseInt(params.id) },
+    });
 
-    return NextResponse.json({ success: true, translations })
-
+    return NextResponse.json({ success: true, translations });
   } catch (error) {
-    console.error('Error fetching translations:', error)
+    console.error('Error fetching translations:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des traductions' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -45,13 +44,13 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const body = await request.json()
-    const validatedData = translationSchema.parse(body)
+    const body = await request.json();
+    const validatedData = translationSchema.parse(body);
 
     const translation = await prisma.toolTranslation.create({
       data: {
@@ -64,23 +63,22 @@ export async function POST(
         meta_description: validatedData.metaDescription,
         translation_source: validatedData.translationSource,
         quality_score: validatedData.qualityScore,
-        human_reviewed: validatedData.humanReviewed
-      }
-    })
+        human_reviewed: validatedData.humanReviewed,
+      },
+    });
 
-    return NextResponse.json({ success: true, translation })
-
+    return NextResponse.json({ success: true, translation });
   } catch (error) {
-    console.error('Error creating translation:', error)
+    console.error('Error creating translation:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.flatten() },
         { status: 400 }
-      )
+      );
     }
     return NextResponse.json(
       { error: 'Erreur lors de la création de la traduction' },
       { status: 500 }
-    )
+    );
   }
 }

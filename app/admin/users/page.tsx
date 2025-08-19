@@ -1,35 +1,35 @@
-'use client'
+'use client';
 
-import { useSession } from 'next-auth/react'
-import { redirect } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 interface AdminUser {
-  id: number
-  email: string
-  name: string
-  role: string
-  is_active: boolean
-  created_at: string
-  last_login_at: string | null
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+  last_login_at: string | null;
 }
 
 export default function AdminUsersPage() {
-  const { data: session, status } = useSession()
-  const [users, setUsers] = useState<AdminUser[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: session, status } = useSession();
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      redirect('/admin/login')
+      redirect('/admin/login');
     }
-  }, [status])
+  }, [status]);
 
   useEffect(() => {
     if (session) {
-      fetchUsers()
+      fetchUsers();
     }
-  }, [session])
+  }, [session]);
 
   const fetchUsers = async () => {
     try {
@@ -43,89 +43,96 @@ export default function AdminUsersPage() {
           role: 'super_admin',
           is_active: true,
           created_at: new Date().toISOString(),
-          last_login_at: new Date().toISOString()
-        }
-      ])
+          last_login_at: new Date().toISOString(),
+        },
+      ]);
     } catch (error) {
-      console.error('Error fetching users:', error)
+      console.error('Error fetching users:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (status === 'loading') {
-    return <div className="flex items-center justify-center min-h-screen">Chargement...</div>
+    return (
+      <div className='flex min-h-screen items-center justify-center'>Chargement...</div>
+    );
   }
 
   if (!session) {
-    return null
+    return null;
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Utilisateurs</h1>
-        <p className="text-gray-600">Gérez les utilisateurs administrateurs</p>
+    <div className='container mx-auto px-6 py-8'>
+      <div className='mb-8'>
+        <h1 className='mb-2 text-3xl font-bold text-gray-900'>
+          Gestion des Utilisateurs
+        </h1>
+        <p className='text-gray-600'>Gérez les utilisateurs administrateurs</p>
       </div>
 
       {loading ? (
-        <div className="text-center py-12">Chargement des utilisateurs...</div>
+        <div className='py-12 text-center'>Chargement des utilisateurs...</div>
       ) : (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Utilisateurs Administrateurs</h2>
+        <div className='rounded-lg bg-white shadow'>
+          <div className='border-b border-gray-200 px-6 py-4'>
+            <h2 className='text-lg font-medium text-gray-900'>
+              Utilisateurs Administrateurs
+            </h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className='overflow-x-auto'>
+            <table className='min-w-full divide-y divide-gray-200'>
+              <thead className='bg-gray-50'>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                     Nom
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                     Rôle
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                     Statut
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                     Dernière connexion
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
+              <tbody className='divide-y divide-gray-200 bg-white'>
+                {users.map(user => (
                   <tr key={user.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
+                    <td className='whitespace-nowrap px-6 py-4'>
+                      <div className='text-sm font-medium text-gray-900'>
                         {user.name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className='whitespace-nowrap px-6 py-4 text-sm text-gray-500'>
                       {user.email}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    <td className='whitespace-nowrap px-6 py-4'>
+                      <span className='inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-800'>
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                    <td className='whitespace-nowrap px-6 py-4'>
+                      <span
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                          user.is_active
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
                         {user.is_active ? 'Actif' : 'Inactif'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.last_login_at 
+                    <td className='whitespace-nowrap px-6 py-4 text-sm text-gray-500'>
+                      {user.last_login_at
                         ? new Date(user.last_login_at).toLocaleDateString('fr-FR')
-                        : 'Jamais'
-                      }
+                        : 'Jamais'}
                     </td>
                   </tr>
                 ))}
@@ -135,5 +142,5 @@ export default function AdminUsersPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

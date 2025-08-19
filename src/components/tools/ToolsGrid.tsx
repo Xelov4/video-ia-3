@@ -3,51 +3,51 @@
  * Professional grid display for tools with filtering and pagination
  */
 
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools'
-import { ToolCard } from './ToolCard'
-import { formatNumber } from '@/src/lib/utils/formatNumbers'
-import { 
+import { useState } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools';
+import { ToolCard } from './ToolCard';
+import { formatNumber } from '@/src/lib/utils/formatNumbers';
+import {
   FunnelIcon,
   Squares2X2Icon,
   ListBulletIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
-} from '@heroicons/react/24/outline'
+  ChevronRightIcon,
+} from '@heroicons/react/24/outline';
 
 interface ToolsGridProps {
-  tools: ToolWithTranslation[]
-  totalCount: number
-  currentPage: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPreviousPage: boolean
-  showCategory?: boolean
-  lang?: string
+  tools: ToolWithTranslation[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  showCategory?: boolean;
+  lang?: string;
 }
 
-export const ToolsGrid = ({ 
-  tools, 
-  totalCount, 
-  currentPage, 
-  totalPages, 
-  hasNextPage, 
+export const ToolsGrid = ({
+  tools,
+  totalCount,
+  currentPage,
+  totalPages,
+  hasNextPage,
   hasPreviousPage,
   showCategory = true,
-  lang = 'en'
+  lang = 'en',
 }: ToolsGridProps) => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [showFilters, setShowFilters] = useState(false)
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const pathname = usePathname()
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Multilingual messages
   const messages = {
-    'en': {
+    en: {
       toolsFound: 'tools found',
       page: 'Page',
       of: 'of',
@@ -63,9 +63,9 @@ export const ToolsGrid = ({
       correct: '4+ (Correct)',
       clearFilters: 'Clear filters',
       previous: 'Previous',
-      next: 'Next'
+      next: 'Next',
     },
-    'fr': {
+    fr: {
       toolsFound: 'outils trouvés',
       page: 'Page',
       of: 'sur',
@@ -81,9 +81,9 @@ export const ToolsGrid = ({
       correct: '4+ (Correct)',
       clearFilters: 'Effacer les filtres',
       previous: 'Précédent',
-      next: 'Suivant'
+      next: 'Suivant',
     },
-    'de': {
+    de: {
       toolsFound: 'Tools gefunden',
       page: 'Seite',
       of: 'von',
@@ -99,9 +99,9 @@ export const ToolsGrid = ({
       correct: '4+ (Korrekt)',
       clearFilters: 'Filter löschen',
       previous: 'Zurück',
-      next: 'Weiter'
+      next: 'Weiter',
     },
-    'nl': {
+    nl: {
       toolsFound: 'tools gevonden',
       page: 'Pagina',
       of: 'van',
@@ -117,9 +117,9 @@ export const ToolsGrid = ({
       correct: '4+ (Correct)',
       clearFilters: 'Filters wissen',
       previous: 'Vorige',
-      next: 'Volgende'
+      next: 'Volgende',
     },
-    'es': {
+    es: {
       toolsFound: 'herramientas encontradas',
       page: 'Página',
       of: 'de',
@@ -135,9 +135,9 @@ export const ToolsGrid = ({
       correct: '4+ (Correcto)',
       clearFilters: 'Limpiar filtros',
       previous: 'Anterior',
-      next: 'Siguiente'
+      next: 'Siguiente',
     },
-    'it': {
+    it: {
       toolsFound: 'strumenti trovati',
       page: 'Pagina',
       of: 'di',
@@ -153,9 +153,9 @@ export const ToolsGrid = ({
       correct: '4+ (Corretto)',
       clearFilters: 'Cancella filtri',
       previous: 'Precedente',
-      next: 'Successivo'
+      next: 'Successivo',
     },
-    'pt': {
+    pt: {
       toolsFound: 'ferramentas encontradas',
       page: 'Página',
       of: 'de',
@@ -171,160 +171,159 @@ export const ToolsGrid = ({
       correct: '4+ (Correto)',
       clearFilters: 'Limpar filtros',
       previous: 'Anterior',
-      next: 'Próximo'
-    }
-  }
+      next: 'Próximo',
+    },
+  };
 
-  const t = messages[lang as keyof typeof messages] || messages['en']
+  const t = messages[lang as keyof typeof messages] || messages['en'];
 
   const createQueryString = (params: Record<string, string | null>) => {
-    const newSearchParams = new URLSearchParams(searchParams)
-    
+    const newSearchParams = new URLSearchParams(searchParams);
+
     Object.entries(params).forEach(([key, value]) => {
       if (value === null) {
-        newSearchParams.delete(key)
+        newSearchParams.delete(key);
       } else {
-        newSearchParams.set(key, value)
+        newSearchParams.set(key, value);
       }
-    })
-    
-    return newSearchParams.toString()
-  }
+    });
+
+    return newSearchParams.toString();
+  };
 
   const handlePageChange = (page: number) => {
-    const queryString = createQueryString({ page: page.toString() })
-    router.push(`${pathname}?${queryString}`)
-  }
+    const queryString = createQueryString({ page: page.toString() });
+    router.push(`${pathname}?${queryString}`);
+  };
 
   const handleSortChange = (sortBy: string, sortOrder: string) => {
-    const queryString = createQueryString({ 
-      sort: sortBy, 
+    const queryString = createQueryString({
+      sort: sortBy,
       order: sortOrder,
-      page: '1' // Reset to first page
-    })
-    router.push(`${pathname}?${queryString}`)
-  }
+      page: '1', // Reset to first page
+    });
+    router.push(`${pathname}?${queryString}`);
+  };
 
   const handleFeaturedFilter = (featured: string | null) => {
-    const queryString = createQueryString({ 
+    const queryString = createQueryString({
       featured,
-      page: '1' // Reset to first page
-    })
-    router.push(`${pathname}?${queryString}`)
-  }
+      page: '1', // Reset to first page
+    });
+    router.push(`${pathname}?${queryString}`);
+  };
 
-  const currentSort = searchParams.get('sort') || 'created_at'
-  const currentOrder = searchParams.get('order') || 'desc'
-  const currentFeatured = searchParams.get('featured')
+  const currentSort = searchParams.get('sort') || 'created_at';
+  const currentOrder = searchParams.get('order') || 'desc';
+  const currentFeatured = searchParams.get('featured');
 
   return (
-    <div className="space-y-8">
+    <div className='space-y-8'>
       {/* Toolbar */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
         {/* Results Info */}
-        <div className="text-gray-300">
-          <span className="font-semibold text-white">{formatNumber(totalCount)}</span> {t.toolsFound}
+        <div className='text-gray-300'>
+          <span className='font-semibold text-white'>{formatNumber(totalCount)}</span>{' '}
+          {t.toolsFound}
           {currentPage > 1 && (
-            <span className="ml-2">
+            <span className='ml-2'>
               • {t.page} {currentPage} {t.of} {totalPages}
             </span>
           )}
         </div>
 
         {/* Controls */}
-        <div className="flex items-center space-x-4">
+        <div className='flex items-center space-x-4'>
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg p-1">
+          <div className='flex items-center rounded-lg border border-white/20 bg-white/10 p-1 backdrop-blur-lg'>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'grid' 
-                  ? 'bg-purple-600 text-white' 
+              className={`rounded-md p-2 transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-purple-600 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              <Squares2X2Icon className="w-4 h-4" />
+              <Squares2X2Icon className='h-4 w-4' />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'list' 
-                  ? 'bg-purple-600 text-white' 
+              className={`rounded-md p-2 transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-purple-600 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              <ListBulletIcon className="w-4 h-4" />
+              <ListBulletIcon className='h-4 w-4' />
             </button>
           </div>
 
           {/* Filters Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center px-4 py-2 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors"
+            className='flex items-center rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white backdrop-blur-lg transition-colors hover:bg-white/20'
           >
-            <FunnelIcon className="w-4 h-4 mr-2" />
+            <FunnelIcon className='mr-2 h-4 w-4' />
             {t.filters}
           </button>
 
           {/* Sort Dropdown */}
           <select
             value={`${currentSort}-${currentOrder}`}
-            onChange={(e) => {
-              const [sort, order] = e.target.value.split('-')
-              handleSortChange(sort, order)
+            onChange={e => {
+              const [sort, order] = e.target.value.split('-');
+              handleSortChange(sort, order);
             }}
-            className="px-4 py-2 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+            className='rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white backdrop-blur-lg focus:ring-2 focus:ring-purple-500'
           >
-            <option value="created_at-desc">Plus récents</option>
-            <option value="created_at-asc">Plus anciens</option>
-            <option value="view_count-desc">Plus populaires</option>
-            <option value="quality_score-desc">Meilleur score</option>
-            <option value="tool_name-asc">A-Z</option>
-            <option value="tool_name-desc">Z-A</option>
+            <option value='created_at-desc'>Plus récents</option>
+            <option value='created_at-asc'>Plus anciens</option>
+            <option value='view_count-desc'>Plus populaires</option>
+            <option value='quality_score-desc'>Meilleur score</option>
+            <option value='tool_name-asc'>A-Z</option>
+            <option value='tool_name-desc'>Z-A</option>
           </select>
         </div>
       </div>
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className='rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-lg'>
+          <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
             {/* Featured Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className='mb-2 block text-sm font-medium text-gray-300'>
                 {t.featured}
               </label>
               <select
                 value={currentFeatured || ''}
-                onChange={(e) => handleFeaturedFilter(e.target.value || null)}
-                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
+                onChange={e => handleFeaturedFilter(e.target.value || null)}
+                className='w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white focus:ring-2 focus:ring-purple-500'
               >
-                <option value="">{t.allTools}</option>
-                <option value="true">{t.featuredOnly}</option>
-                <option value="false">{t.notFeatured}</option>
+                <option value=''>{t.allTools}</option>
+                <option value='true'>{t.featuredOnly}</option>
+                <option value='false'>{t.notFeatured}</option>
               </select>
             </div>
 
             {/* Quality Score Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className='mb-2 block text-sm font-medium text-gray-300'>
                 {t.qualityScore}
               </label>
-              <select
-                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">{t.allScores}</option>
-                <option value="8">{t.premium}</option>
-                <option value="6">{t.good}</option>
-                <option value="4">{t.correct}</option>
+              <select className='w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white focus:ring-2 focus:ring-purple-500'>
+                <option value=''>{t.allScores}</option>
+                <option value='8'>{t.premium}</option>
+                <option value='6'>{t.good}</option>
+                <option value='4'>{t.correct}</option>
               </select>
             </div>
 
             {/* Clear Filters */}
-            <div className="flex items-end">
+            <div className='flex items-end'>
               <button
                 onClick={() => router.push(pathname)}
-                className="w-full px-4 py-2 border border-white/30 text-white rounded-lg hover:bg-white/10 transition-colors"
+                className='w-full rounded-lg border border-white/30 px-4 py-2 text-white transition-colors hover:bg-white/10'
               >
                 {t.clearFilters}
               </button>
@@ -336,15 +335,17 @@ export const ToolsGrid = ({
       {/* Tools Grid/List */}
       {tools.length > 0 ? (
         <>
-          <div className={`grid gap-6 ${
-            viewMode === 'grid' 
-              ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
-              : 'grid-cols-1'
-          }`}>
-            {tools.map((tool) => (
-              <ToolCard 
-                key={tool.id} 
-                tool={tool} 
+          <div
+            className={`grid gap-6 ${
+              viewMode === 'grid'
+                ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+                : 'grid-cols-1'
+            }`}
+          >
+            {tools.map(tool => (
+              <ToolCard
+                key={tool.id}
+                tool={tool}
                 showCategory={showCategory}
                 size={viewMode === 'list' ? 'small' : 'medium'}
                 lang={lang}
@@ -354,39 +355,39 @@ export const ToolsGrid = ({
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center space-x-2 pt-8">
+            <div className='flex items-center justify-center space-x-2 pt-8'>
               {/* Previous Button */}
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={!hasPreviousPage}
-                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center rounded-lg px-4 py-2 transition-colors ${
                   hasPreviousPage
                     ? 'bg-white/10 text-white hover:bg-white/20'
-                    : 'bg-gray-600/50 text-gray-500 cursor-not-allowed'
+                    : 'cursor-not-allowed bg-gray-600/50 text-gray-500'
                 }`}
               >
-                <ChevronLeftIcon className="w-4 h-4 mr-1" />
+                <ChevronLeftIcon className='mr-1 h-4 w-4' />
                 {t.previous}
               </button>
 
               {/* Page Numbers */}
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum
+                let pageNum;
                 if (totalPages <= 5) {
-                  pageNum = i + 1
+                  pageNum = i + 1;
                 } else if (currentPage <= 3) {
-                  pageNum = i + 1
+                  pageNum = i + 1;
                 } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i
+                  pageNum = totalPages - 4 + i;
                 } else {
-                  pageNum = currentPage - 2 + i
+                  pageNum = currentPage - 2 + i;
                 }
 
                 return (
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`rounded-lg px-4 py-2 transition-colors ${
                       pageNum === currentPage
                         ? 'bg-purple-600 text-white'
                         : 'bg-white/10 text-white hover:bg-white/20'
@@ -394,38 +395,36 @@ export const ToolsGrid = ({
                   >
                     {pageNum}
                   </button>
-                )
+                );
               })}
 
               {/* Next Button */}
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={!hasNextPage}
-                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                className={`flex items-center rounded-lg px-4 py-2 transition-colors ${
                   hasNextPage
                     ? 'bg-white/10 text-white hover:bg-white/20'
-                    : 'bg-gray-600/50 text-gray-500 cursor-not-allowed'
+                    : 'cursor-not-allowed bg-gray-600/50 text-gray-500'
                 }`}
               >
                 {t.next}
-                <ChevronRightIcon className="w-4 h-4 ml-1" />
+                <ChevronRightIcon className='ml-1 h-4 w-4' />
               </button>
             </div>
           )}
         </>
       ) : (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <Squares2X2Icon className="w-16 h-16 mx-auto" />
+        <div className='py-12 text-center'>
+          <div className='mb-4 text-gray-400'>
+            <Squares2X2Icon className='mx-auto h-16 w-16' />
           </div>
-          <h3 className="text-lg font-medium text-white mb-2">
-            Aucun outil trouvé
-          </h3>
-          <p className="text-gray-300">
+          <h3 className='mb-2 text-lg font-medium text-white'>Aucun outil trouvé</h3>
+          <p className='text-gray-300'>
             Essayez de modifier vos critères de recherche ou supprimez certains filtres.
           </p>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
