@@ -2,5 +2,124 @@
   "extends": [
     "next/core-web-vitals",
     "next/typescript"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "react",
+    "react-hooks"
+  ],
+  "rules": {
+    // Variables non utilisées - permet les underscores pour les paramètres ignorés
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+    
+    // Any type - plus strict mais avec exceptions pour certains cas
+    "@typescript-eslint/no-explicit-any": [
+      "error",
+      {
+        "fixToUnknown": false,
+        "ignoreRestArgs": true
+      }
+    ],
+    
+    // Préférer const quand possible
+    "prefer-const": "error",
+    
+    // Caractères d'échappement React
+    "react/no-unescaped-entities": [
+      "error",
+      {
+        "forbid": [
+          {
+            "char": ">",
+            "alternatives": ["&gt;"]
+          },
+          {
+            "char": "}",
+            "alternatives": ["&#125;"]
+          }
+        ]
+      }
+    ],
+    
+    // Hooks React
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    
+    // Import/Export
+    "import/no-unused-modules": "off",
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          ["parent", "sibling"],
+          "index"
+        ],
+        "newlines-between": "always",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    
+    // TypeScript spécifiques
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "disallowTypeAnnotations": false
+      }
+    ],
+    "@typescript-eslint/no-unnecessary-condition": "warn",
+    "@typescript-eslint/prefer-nullish-coalescing": "warn",
+    "@typescript-eslint/prefer-optional-chain": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.d.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["**/pages/api/**/*.ts", "**/app/api/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "warn"
+      }
+    },
+    {
+      "files": ["**/*.config.{js,ts}", "**/*.setup.{js,ts}"],
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    ".next/",
+    "out/",
+    "dist/",
+    "build/",
+    "*.config.js",
+    "*.config.ts",
+    "public/"
   ]
 }

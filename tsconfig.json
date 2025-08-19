@@ -1,18 +1,23 @@
 {
   "compilerOptions": {
-    "target": "es2015",
-    "lib": ["dom", "dom.iterable", "es6", "es2015"],
+    "target": "es2022",
+    "lib": ["dom", "dom.iterable", "es2022", "es2023"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": false,
     "plugins": [
       {
         "name": "next"
@@ -23,9 +28,35 @@
       "@/*": ["./*"],
       "@/src/*": ["./src/*"],
       "@/app/*": ["./app/*"],
-      "@/public/*": ["./public/*"]
-    }
+      "@/public/*": ["./public/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/utils/*": ["./src/utils/*"]
+    },
+    "types": ["node", "react", "react-dom"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "scripts/**/*", "src/components/ui/ResultsDisplay.tsx", "tests/**/*", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "src/lib/monitoring/**/*", "src/lib/performance/**/*"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "dist",
+    "build",
+    "scripts/**/*",
+    "tests/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "coverage/**/*",
+    "playwright-report/**/*",
+    "test-results/**/*"
+  ]
 } 
