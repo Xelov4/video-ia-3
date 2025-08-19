@@ -153,7 +153,7 @@ function generateMainPagesEntries(): SitemapEntry[] {
 /**
  * Génération des entrées catégories multilingues
  */
-function generateCategoryEntries(categories: any[]): SitemapEntry[] {
+function generateCategoryEntries(categories: Array<{ name: string; slug?: string; toolCount?: number }>): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
   const currentDate = new Date();
 
@@ -178,7 +178,7 @@ function generateCategoryEntries(categories: any[]): SitemapEntry[] {
 /**
  * Génération des entrées outils multilingues
  */
-function generateToolEntries(tools: any[]): SitemapEntry[] {
+function generateToolEntries(tools: Array<{ id: number; toolName: string; slug?: string; updatedAt?: string; isActive?: boolean }>): SitemapEntry[] {
   const entries: SitemapEntry[] = [];
   const currentDate = new Date();
 

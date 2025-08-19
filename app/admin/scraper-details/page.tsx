@@ -100,7 +100,15 @@ const ScraperDetailsPage = () => {
     instructions: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<{ 
+    success: boolean; 
+    data?: { 
+      confidence: number; 
+      analysis: Record<string, unknown>; 
+      suggestions: string[]; 
+    }; 
+    error?: string; 
+  } | null>(null);
 
   const handleSearch = async (query: string) => {
     if (query.length < 2) {

@@ -26,20 +26,25 @@ interface CategoriesPageProps {
 /**
  * Validation paramètres
  */
-async function validateAndParseParams(params: any, searchParams: any) {
+async function validateAndParseParams(
+  params: Promise<{ lang: string }>,
+  searchParams: Promise<{ sort?: string; order?: string; view?: string }>
+) {
   const { lang } = await params;
   if (!supportedLocales.includes(lang as SupportedLocale)) {
     notFound();
   }
 
   const { sort, order, view } = await searchParams;
-  const sortBy = ['name', 'count'].includes(sort)
+  const sortBy = ['name', 'count'].includes(sort || '')
     ? (sort as 'name' | 'count')
     : 'count';
-  const sortOrder = ['asc', 'desc'].includes(order)
+  const sortOrder = ['asc', 'desc'].includes(order || '')
     ? (order as 'asc' | 'desc')
     : 'desc';
-  const viewMode = ['grid', 'list'].includes(view) ? (view as 'grid' | 'list') : 'grid';
+  const viewMode = ['grid', 'list'].includes(view || '')
+    ? (view as 'grid' | 'list')
+    : 'grid';
 
   return {
     lang: lang as SupportedLocale,
@@ -154,22 +159,11 @@ export default async function CategoriesPage({
     // Gestion compatible avec les deux formats de retour possibles
     const categories = Array.isArray(categoriesData)
       ? categoriesData
-      : categoriesData && typeof categoriesData === 'object' && 'categories' in categoriesData
-        ? (categoriesData as { categories: any[] }).categories
+      : categoriesData &&
+          typeof categoriesData === 'object' &&
+          'categories' in categoriesData
+        ? (categoriesData as { categories: unknown[] }).categories
         : [];
-
-    // Tri des catégories selon les paramètres
-    const sortedCategories = [...categories].sort((a, b) => {
-      if (sortBy === 'name') {
-        const comparison = a.displayName.localeCompare(b.displayName);
-        return sortOrder === 'asc' ? comparison : -comparison;
-      } else {
-        const aCount = a.actualToolCount || 0;
-        const bCount = b.actualToolCount || 0;
-        const comparison = aCount - bCount;
-        return sortOrder === 'asc' ? comparison : -comparison;
-      }
-    });
 
     return (
       <CategoriesPageClient

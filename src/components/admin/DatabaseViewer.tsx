@@ -5,11 +5,10 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Database,
   Table as TableIcon,
-  Activity,
   AlertCircle,
   CheckCircle,
   Zap,
@@ -20,7 +19,6 @@ import {
   Download,
   Upload,
   Search,
-  Filter,
 } from 'lucide-react';
 import { AdminTable } from '@/src/components/admin/AdminTable';
 import {
@@ -148,7 +146,7 @@ export const DatabaseViewer = () => {
       key: 'table',
       label: 'Table',
       sortable: true,
-      render: (value: any, row: TableStats) => (
+      render: (_value: unknown, row: TableStats) => (
         <div className='flex items-center space-x-3'>
           <TableIcon className='h-4 w-4 text-muted-foreground' />
           <div>
@@ -164,14 +162,14 @@ export const DatabaseViewer = () => {
       key: 'size',
       label: 'Taille',
       sortable: true,
-      render: (value: any, row: TableStats) => (
+      render: (_value: unknown, row: TableStats) => (
         <Badge variant='outline'>{row.size}</Badge>
       ),
     },
     {
       key: 'status',
       label: 'Statut',
-      render: (value: any, row: TableStats) => (
+      render: (_value: unknown, row: TableStats) => (
         <div className='flex items-center space-x-2'>
           {row.status === 'healthy' && (
             <CheckCircle className='h-4 w-4 text-green-500' />
@@ -187,7 +185,7 @@ export const DatabaseViewer = () => {
     {
       key: 'activity',
       label: 'Activité',
-      render: (value: any, row: TableStats) => (
+      render: (_value: unknown, row: TableStats) => (
         <div className='space-y-1'>
           <div className='text-sm'>{row.lastUpdate}</div>
           <div className='text-xs text-muted-foreground'>{row.growth}</div>
@@ -197,7 +195,7 @@ export const DatabaseViewer = () => {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: TableStats) => (
+      render: (_value: unknown, _row: TableStats) => (
         <div className='flex space-x-2'>
           <Button variant='outline' size='sm'>
             <Search className='mr-1 h-3 w-3' />

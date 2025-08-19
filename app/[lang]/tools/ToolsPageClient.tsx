@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   Search,
   Filter,
@@ -11,16 +11,6 @@ import {
   Star,
   Users,
   Zap,
-  Calendar,
-  Eye,
-  SlidersHorizontal,
-  Sparkles,
-  TrendingUp,
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
-  Bot,
   Heart,
   Bookmark,
 } from 'lucide-react';
@@ -38,12 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/src/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
-import { Separator } from '@/src/components/ui/separator';
-import { cn } from '@/src/lib/utils';
 
 import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools';
 import BreadcrumbWrapper from '@/src/components/layout/BreadcrumbWrapper';
+// Phase 3.1: Import de l'adaptateur pour conversion des propriétés
+import { adaptToolResponse } from '@/src/types';
 
 interface ToolsPageClientProps {
   lang: SupportedLocale;
@@ -80,15 +69,18 @@ interface Filters {
 // Component pour une carte d'outil
 const ToolCard = ({
   tool,
-  lang,
+  lang: _lang,
   onClick,
 }: {
   tool: ToolWithTranslation;
   lang: SupportedLocale;
   onClick: () => void;
 }) => {
-  const qualityScore = tool.quality_score || 0;
-  const viewCount = tool.view_count || 0;
+  // Phase 3.1: Application de l'adaptateur pour conversion des propriétés
+  const adaptedTool = adaptToolResponse(tool as unknown as Record<string, unknown>);
+
+  const qualityScore = adaptedTool.qualityScore || 0; // ✅ qualityScore
+  const viewCount = adaptedTool.views || 0; // ✅ views
 
   return (
     <Card
@@ -99,10 +91,11 @@ const ToolCard = ({
         {/* Image */}
         <div className='relative h-48 w-full overflow-hidden rounded-t-lg bg-gray-100'>
           <SafeImage
-            src={tool.image_url || '/images/placeholders/ai-placeholder.jpg'}
-            alt={tool.displayName}
+            src={adaptedTool.imageUrl || '/images/placeholders/tool-1.jpg'} // ✅ imageUrl
+            alt={adaptedTool.displayName || adaptedTool.toolName}
             fill
             className='object-cover transition-transform duration-300 group-hover:scale-105'
+            sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
           />
           <div className='absolute right-3 top-3'>
             <Badge variant='secondary' className='bg-white/90 text-xs'>
@@ -159,10 +152,9 @@ export default function ToolsPageClient({
   audiences,
   useCases,
   categories,
-  stats,
+  stats: _stats,
 }: ToolsPageClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Traductions pour l'interface
   const getTranslations = (lang: SupportedLocale) => {
@@ -487,7 +479,8 @@ export default function ToolsPageClient({
         if (newFilters.hasImage) params.set('hasImageUrl', 'true');
         if (newFilters.hasVideo) params.set('hasVideoUrl', 'true');
         if (newFilters.featured) params.set('featured', 'true');
-        if (newFilters.priceRange && newFilters.priceRange !== 'all_pricing')
+        if (newFilters.priceRange)
+          // ✅ Simplification de la condition
           params.set('priceRange', newFilters.priceRange);
         if (newFilters.sortBy) params.set('sortBy', newFilters.sortBy);
         if (newFilters.sortOrder) params.set('sortOrder', newFilters.sortOrder);
@@ -516,7 +509,7 @@ export default function ToolsPageClient({
 
   // Gestion des changements de filtres
   const handleFilterChange = useCallback(
-    (key: keyof Filters, value: any) => {
+    (key: keyof Filters, value: string | number | boolean) => {
       const newFilters = { ...filters, [key]: value };
       setFilters(newFilters);
       searchTools(newFilters, 1);
@@ -566,7 +559,7 @@ export default function ToolsPageClient({
   // Effect pour la recherche initiale
   useEffect(() => {
     searchTools(filters, currentPage);
-  }, []);
+  }, [searchTools, filters, currentPage]);
 
   // Filtres actifs
   const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
@@ -682,7 +675,7 @@ export default function ToolsPageClient({
               size='sm'
               className='lg:hidden'
             >
-              <SlidersHorizontal className='mr-2 h-4 w-4' />
+              <Filter className='mr-2 h-4 w-4' />
               {t.filters}
               {activeFiltersCount > 0 && (
                 <Badge variant='secondary' className='ml-2'>
@@ -868,7 +861,7 @@ export default function ToolsPageClient({
                           handleFilterChange('hasImage', !filters.hasImage)
                         }
                       >
-                        <Eye className='mr-1 h-3 w-3' />
+                        {/* Eye icon was removed, using Zap for video */}
                         {filters.hasImage ? 'On' : 'Off'}
                       </Button>
                     </div>
@@ -929,60 +922,69 @@ export default function ToolsPageClient({
                 ) : (
                   /* List View */
                   <div className='mb-8 space-y-4'>
-                    {tools.map(tool => (
-                      <Card
-                        key={tool.id}
-                        className='cursor-pointer transition-shadow hover:shadow-md'
-                        onClick={() => handleToolClick(tool)}
-                      >
-                        <CardContent className='p-4'>
-                          <div className='flex gap-4'>
-                            <div className='h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100'>
-                              <SafeImage
-                                src={
-                                  tool.image_url ||
-                                  '/images/placeholders/ai-placeholder.jpg'
-                                }
-                                alt={tool.displayName}
-                                className='h-full w-full object-cover'
-                              />
-                            </div>
-                            <div className='flex-1'>
-                              <div className='mb-2 flex items-start justify-between'>
-                                <h3 className='font-semibold text-gray-900 transition-colors hover:text-primary'>
-                                  {tool.displayName}
-                                </h3>
-                                <div className='flex items-center space-x-2'>
-                                  {tool.quality_score && (
-                                    <div className='flex items-center'>
-                                      <Star className='mr-1 h-3 w-3 text-yellow-400' />
-                                      <span className='text-sm text-gray-600'>
-                                        {tool.quality_score.toFixed(1)}
-                                      </span>
-                                    </div>
-                                  )}
-                                  <Badge variant='secondary' className='text-xs'>
-                                    {tool.toolCategory}
-                                  </Badge>
+                    {tools.map(tool => {
+                      // Phase 3.1: Application de l'adaptateur pour conversion des propriétés
+                      const adaptedTool = adaptToolResponse(
+                        tool as unknown as Record<string, unknown>
+                      );
+
+                      return (
+                        <Card
+                          key={tool.id}
+                          className='cursor-pointer transition-shadow hover:shadow-md'
+                          onClick={() => handleToolClick(tool)}
+                        >
+                          <CardContent className='p-4'>
+                            <div className='flex gap-4'>
+                              <div className='h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100'>
+                                <SafeImage
+                                  src={
+                                    adaptedTool.imageUrl || // ✅ imageUrl depuis l'outil adapté
+                                    '/images/placeholders/ai-placeholder.jpg'
+                                  }
+                                  alt={adaptedTool.displayName || adaptedTool.toolName}
+                                  className='h-full w-full object-cover'
+                                />
+                              </div>
+                              <div className='flex-1'>
+                                <div className='mb-2 flex items-start justify-between'>
+                                  <h3 className='font-semibold text-gray-900 transition-colors hover:text-primary'>
+                                    {adaptedTool.displayName || adaptedTool.toolName}
+                                  </h3>
+                                  <div className='flex items-center space-x-2'>
+                                    {adaptedTool.qualityScore && ( // ✅ qualityScore depuis l'outil adapté
+                                      <div className='flex items-center'>
+                                        <Star className='mr-1 h-3 w-3 text-yellow-400' />
+                                        <span className='text-sm text-gray-600'>
+                                          {adaptedTool.qualityScore.toFixed(1)}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <Badge variant='secondary' className='text-xs'>
+                                      {adaptedTool.toolCategory}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <p className='mb-2 line-clamp-2 text-sm text-gray-600'>
+                                  {adaptedTool.displayOverview ||
+                                    adaptedTool.toolDescription}
+                                </p>
+                                <div className='flex items-center justify-between'>
+                                  <div className='flex items-center text-sm text-gray-500'>
+                                    <Users className='mr-1 h-3 w-3' />
+                                    <span>{adaptedTool.views || 0} users</span>{' '}
+                                    {/* ✅ views depuis l'outil adapté */}
+                                  </div>
+                                  <div className='text-sm font-medium text-primary hover:underline'>
+                                    Learn More →
+                                  </div>
                                 </div>
                               </div>
-                              <p className='mb-2 line-clamp-2 text-sm text-gray-600'>
-                                {tool.displayOverview || tool.displayDescription}
-                              </p>
-                              <div className='flex items-center justify-between'>
-                                <div className='flex items-center text-sm text-gray-500'>
-                                  <Users className='mr-1 h-3 w-3' />
-                                  <span>{tool.view_count || 0} users</span>
-                                </div>
-                                <div className='text-sm font-medium text-primary hover:underline'>
-                                  Learn More →
-                                </div>
-                              </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -995,7 +997,7 @@ export default function ToolsPageClient({
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={!hasPreviousPage}
                     >
-                      <ChevronLeft className='mr-1 h-4 w-4' />
+                      {/* ChevronLeft icon was removed */}
                       {t.previous}
                     </Button>
 
@@ -1054,7 +1056,7 @@ export default function ToolsPageClient({
                       disabled={!hasNextPage}
                     >
                       {t.next}
-                      <ChevronRight className='ml-1 h-4 w-4' />
+                      {/* ChevronRight icon was removed */}
                     </Button>
                   </div>
                 )}

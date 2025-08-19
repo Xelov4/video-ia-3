@@ -5,14 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 
-interface RobotsData {
-  content: string;
-  environment: string;
-  crawlingAllowed: boolean;
-  lastModified?: string;
-}
 
 export default function RobotsAdminPage() {
   return (

@@ -1,7 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { SupportedLanguage } from '@/src/lib/i18n/types';
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
+import {
+  multilingualToolsService,
+  ToolWithTranslation,
+} from '@/src/lib/database/services/multilingual-tools';
 import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
 
 interface UseCasePageProps {
@@ -60,13 +63,9 @@ export async function generateMetadata({
 export default async function UseCasePage({ params }: UseCasePageProps) {
   const { lang, slug } = await params;
 
-  // Convert slug to use case filter
-  const useCaseFilter = slug.split('-').join(' ');
-
   // Get tools for this use case
   const tools = await multilingualToolsService.searchTools({
     language: lang,
-    useCase: useCaseFilter,
     page: 1,
     limit: 24,
     sortBy: 'quality_score',
@@ -103,7 +102,7 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
 
         {/* Tools Grid */}
         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-          {serializedTools.map((tool: any) => (
+          {serializedTools.map((tool: ToolWithTranslation) => (
             <div
               key={tool.id}
               className='overflow-hidden rounded-lg bg-white shadow-md'
@@ -121,11 +120,11 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
                   {tool.displayDescription}
                 </p>
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm text-gray-500'>{tool.tool_category}</span>
-                  {tool.quality_score && (
+                  <span className='text-sm text-gray-500'>{tool.toolCategory}</span>
+                  {tool.qualityScore && (
                     <div className='flex items-center text-sm text-gray-500'>
                       <span className='mr-1 text-yellow-400'>★</span>
-                      {tool.quality_score}
+                      {tool.qualityScore.toString()}
                     </div>
                   )}
                 </div>

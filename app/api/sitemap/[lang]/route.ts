@@ -30,7 +30,7 @@ interface SitemapEntry {
  * Génération XML sitemap
  */
 function generateSitemapXML(entries: SitemapEntry[]): string {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net';
+  const _baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://video-ia.net';
 
   const urlEntries = entries
     .map(entry => {

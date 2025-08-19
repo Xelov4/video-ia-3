@@ -3,7 +3,6 @@
 import * as React from 'react';
 import {
   Search,
-  Filter,
   X,
   Star,
   Zap,
@@ -23,7 +22,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/ca
 import { Checkbox } from '@/src/components/ui/checkbox';
 import { Slider } from '@/src/components/ui/slider';
 import { Switch } from '@/src/components/ui/switch';
-import { Separator } from '@/src/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import {
   Select,

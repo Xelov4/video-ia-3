@@ -184,13 +184,13 @@ const getTranslations = (lang: SupportedLocale) => {
 // Component pour une carte de catégorie
 const CategoryCard = ({
   category,
-  lang,
+  lang: _lang,
   t,
   onClick,
 }: {
   category: Category;
   lang: SupportedLocale;
-  t: any;
+  t: Record<string, string>;
   onClick: () => void;
 }) => {
   const toolCount = category.actualToolCount || category.toolCount || 0;
@@ -238,7 +238,7 @@ const TopCategoriesCarousel = ({
 }: {
   categories: Category[];
   lang: SupportedLocale;
-  t: any;
+  t: Record<string, string>;
   onCategoryClick: (category: Category) => void;
 }) => {
   const topCategories = categories

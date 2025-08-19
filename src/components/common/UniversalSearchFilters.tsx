@@ -5,20 +5,17 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
   XMarkIcon,
-  AdjustmentsHorizontalIcon,
   ChevronDownIcon,
-  CheckIcon,
 } from '@heroicons/react/24/outline';
 import { useSearchFilters } from '@/src/hooks/useSearchFilters';
 import type {
   SearchFiltersConfig,
   FilterOption,
-  FilterState,
 } from '@/src/types/search';
 
 interface UniversalSearchFiltersProps {
@@ -30,7 +27,7 @@ interface UniversalSearchFiltersProps {
 export function UniversalSearchFilters({
   config,
   className = '',
-  compact = false,
+  compact: _compact = false,
 }: UniversalSearchFiltersProps) {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
@@ -43,7 +40,7 @@ export function UniversalSearchFilters({
     loading,
     error,
     updateFilter,
-    updateFilters,
+    updateFilters: _updateFilters,
     resetFilters,
     activeFiltersCount,
   } = useSearchFilters({
@@ -100,7 +97,7 @@ export function UniversalSearchFilters({
     options: FilterOption[],
     label: string,
     placeholder: string,
-    multiple: boolean = false
+    _multiple: boolean = false
   ) => {
     const currentValue = filters[key as keyof typeof filters];
     const isExpanded = expandedSections.has(key);
@@ -131,7 +128,7 @@ export function UniversalSearchFilters({
         <div className={`${isExpanded ? 'block' : 'hidden lg:block'}`}>
           <select
             value={Array.isArray(currentValue) ? '' : currentValue}
-            onChange={e => updateFilter(key as any, e.target.value)}
+            onChange={e => updateFilter(key as keyof FilterState, e.target.value)}
             className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm transition-all duration-200 hover:border-gray-400 focus:border-transparent focus:ring-2 focus:ring-blue-500'
           >
             <option value=''>{placeholder}</option>

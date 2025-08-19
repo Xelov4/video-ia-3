@@ -28,7 +28,6 @@ import {
   type Language,
   type TranslationStatus,
 } from '@/src/components/admin/LanguageTabs';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import {
   Card,
   CardContent,
@@ -209,7 +208,7 @@ export default function EditArticlePage({ params }: PageProps) {
 
       // Convertir les traductions en format form
       const translationsMap: Record<string, PostTranslationFormData> = {};
-      data.post.translations.forEach((t: any) => {
+      data.post.translations.forEach((t: { id: string; languageCode: string; title?: string; content?: string; slug?: string; metaTitle?: string; metaDescription?: string; excerpt?: string; status?: string }) => {
         translationsMap[t.languageCode] = {
           id: t.id,
           languageCode: t.languageCode,
@@ -601,7 +600,7 @@ export default function EditArticlePage({ params }: PageProps) {
                 <label className='font-medium'>Statut</label>
                 <Select
                   value={post.status}
-                  onValueChange={value => handlePostChange({ status: value as any })}
+                  onValueChange={value => handlePostChange({ status: value as 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'TRASHED' })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -618,7 +617,7 @@ export default function EditArticlePage({ params }: PageProps) {
                 <label className='font-medium'>Type</label>
                 <Select
                   value={post.postType}
-                  onValueChange={value => handlePostChange({ postType: value as any })}
+                  onValueChange={value => handlePostChange({ postType: value as 'ARTICLE' | 'PAGE' | 'TUTORIAL' | 'REVIEW' })}
                 >
                   <SelectTrigger>
                     <SelectValue />

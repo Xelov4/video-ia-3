@@ -129,7 +129,7 @@ export default function AdminSettingsPage() {
             <div className='flex justify-between'>
               <span className='font-medium'>Rôle:</span>
               <span className='rounded bg-blue-100 px-2 py-1 text-sm text-blue-800'>
-                {(session.user as any)?.role || 'Admin'}
+                {(session.user as { role?: string })?.role || 'Admin'}
               </span>
             </div>
           </div>

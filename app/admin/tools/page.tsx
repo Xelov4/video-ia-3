@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -16,7 +16,6 @@ import {
   Trash2,
   ExternalLink,
   Star,
-  Users,
   Calendar,
 } from 'lucide-react';
 import {
@@ -26,12 +25,6 @@ import {
 import { AdvancedFilters } from '@/src/components/admin/AdvancedFilters';
 import { Button } from '@/src/components/ui/button';
 import { Badge } from '@/src/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/src/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
@@ -101,7 +94,7 @@ interface ToolsPageState {
   pageSize: number;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
-  filters: Record<string, any>;
+  filters: Record<string, unknown>;
 }
 
 export default function AdminToolsPage() {
@@ -168,7 +161,7 @@ export default function AdminToolsPage() {
       label: 'ID',
       sortable: true,
       width: '80px',
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='font-mono text-sm'>{row.id}</div>
       ),
     },
@@ -176,7 +169,7 @@ export default function AdminToolsPage() {
       key: 'tool',
       label: 'Outil',
       sortable: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='flex items-center space-x-3'>
           <Avatar className='h-10 w-10'>
             <AvatarImage src={row.imageUrl || ''} />
@@ -194,7 +187,7 @@ export default function AdminToolsPage() {
       label: 'Catégorie',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <Badge variant='outline'>{row.toolCategory}</Badge>
       ),
     },
@@ -203,7 +196,7 @@ export default function AdminToolsPage() {
       label: 'Slug',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='font-mono text-sm'>{row.slug}</div>
       ),
     },
@@ -211,7 +204,7 @@ export default function AdminToolsPage() {
       key: 'status',
       label: 'Statut',
       sortable: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='flex flex-col space-y-1'>
           <Badge variant={row.isActive ? 'default' : 'secondary'}>
             {row.isActive ? 'Actif' : 'Inactif'}
@@ -230,7 +223,7 @@ export default function AdminToolsPage() {
       label: 'Score qualité',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-center'>
           <Badge
             variant={
@@ -249,7 +242,7 @@ export default function AdminToolsPage() {
     {
       key: 'stats',
       label: 'Statistiques',
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='flex items-center space-x-4 text-sm'>
           <div className='flex items-center space-x-1'>
             <Eye className='h-4 w-4 text-muted-foreground' />
@@ -263,7 +256,7 @@ export default function AdminToolsPage() {
       label: 'Vues',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-center'>{row.viewCount?.toLocaleString() || 0}</div>
       ),
     },
@@ -272,7 +265,7 @@ export default function AdminToolsPage() {
       label: 'Clics',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-center'>{row.clickCount?.toLocaleString() || 0}</div>
       ),
     },
@@ -281,7 +274,7 @@ export default function AdminToolsPage() {
       label: 'Favoris',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-center'>{row.favoriteCount?.toLocaleString() || 0}</div>
       ),
     },
@@ -289,7 +282,7 @@ export default function AdminToolsPage() {
       key: 'overview',
       label: 'Aperçu',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='max-w-xs truncate text-sm'>{row.overview || '-'}</div>
       ),
     },
@@ -297,7 +290,7 @@ export default function AdminToolsPage() {
       key: 'toolDescription',
       label: 'Description',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='max-w-xs truncate text-sm'>{row.toolDescription || '-'}</div>
       ),
     },
@@ -305,7 +298,7 @@ export default function AdminToolsPage() {
       key: 'targetAudience',
       label: 'Audience',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='max-w-xs truncate text-sm'>{row.targetAudience || '-'}</div>
       ),
     },
@@ -313,7 +306,7 @@ export default function AdminToolsPage() {
       key: 'keyFeatures',
       label: 'Fonctionnalités',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='max-w-xs truncate text-sm'>{row.keyFeatures || '-'}</div>
       ),
     },
@@ -321,7 +314,7 @@ export default function AdminToolsPage() {
       key: 'useCases',
       label: "Cas d'usage",
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='max-w-xs truncate text-sm'>{row.useCases || '-'}</div>
       ),
     },
@@ -329,7 +322,7 @@ export default function AdminToolsPage() {
       key: 'tags',
       label: 'Tags',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='max-w-xs truncate text-sm'>{row.tags || '-'}</div>
       ),
     },
@@ -337,7 +330,7 @@ export default function AdminToolsPage() {
       key: 'metaTitle',
       label: 'Meta titre',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='max-w-xs truncate text-sm'>{row.metaTitle || '-'}</div>
       ),
     },
@@ -345,7 +338,7 @@ export default function AdminToolsPage() {
       key: 'metaDescription',
       label: 'Meta description',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='max-w-xs truncate text-sm'>{row.metaDescription || '-'}</div>
       ),
     },
@@ -354,7 +347,7 @@ export default function AdminToolsPage() {
       label: 'Tarification',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <Badge variant='outline'>{row.pricingModel || 'Non défini'}</Badge>
       ),
     },
@@ -363,7 +356,7 @@ export default function AdminToolsPage() {
       label: 'Status HTTP',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <Badge variant={row.httpStatusCode === 200 ? 'default' : 'destructive'}>
           {row.httpStatusCode || 'N/A'}
         </Badge>
@@ -373,7 +366,7 @@ export default function AdminToolsPage() {
       key: 'links',
       label: 'Liens',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='flex flex-col space-y-1 text-xs'>
           {row.toolLink && (
             <a
@@ -412,7 +405,7 @@ export default function AdminToolsPage() {
       key: 'socials',
       label: 'Réseaux sociaux',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='flex flex-col space-y-1 text-xs'>
           {row.socialGithub && (
             <a
@@ -451,7 +444,7 @@ export default function AdminToolsPage() {
       key: 'dates',
       label: 'Dates',
       sortable: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='space-y-1 text-sm'>
           <div className='flex items-center space-x-1'>
             <Calendar className='h-3 w-3 text-muted-foreground' />
@@ -472,7 +465,7 @@ export default function AdminToolsPage() {
       label: 'Date création',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-sm'>
           {new Date(row.createdAt).toLocaleDateString('fr-FR')}
         </div>
@@ -483,7 +476,7 @@ export default function AdminToolsPage() {
       label: 'Dernière modification',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-sm'>
           {new Date(row.updatedAt).toLocaleDateString('fr-FR')}
         </div>
@@ -494,7 +487,7 @@ export default function AdminToolsPage() {
       label: 'Dernière vérification',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-sm'>
           {row.lastCheckedAt
             ? new Date(row.lastCheckedAt).toLocaleDateString('fr-FR')
@@ -507,7 +500,7 @@ export default function AdminToolsPage() {
       label: 'Dernière optimisation',
       sortable: true,
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-sm'>
           {row.lastOptimizedAt
             ? new Date(row.lastOptimizedAt).toLocaleDateString('fr-FR')
@@ -519,7 +512,7 @@ export default function AdminToolsPage() {
       key: 'mailAddress',
       label: 'Email',
       hidden: true,
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <div className='text-sm'>
           {row.mailAddress ? (
             <a
@@ -537,7 +530,7 @@ export default function AdminToolsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: Tool) => (
+      render: (_value: unknown, row: Tool) => (
         <TooltipProvider>
           <div className='flex items-center space-x-1'>
             <Tooltip>
@@ -674,18 +667,10 @@ export default function AdminToolsPage() {
     if (session) loadTools();
   }, [
     session,
-    state.currentPage,
-    state.pageSize,
-    state.sortColumn,
-    state.sortDirection,
-    debouncedSearch,
-    state.filters.category,
-    state.filters.featured,
-    state.filters.active,
-    state.filters.minViews,
+    loadTools,
   ]);
 
-  const loadTools = async () => {
+  const loadTools = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
 
@@ -711,7 +696,7 @@ export default function AdminToolsPage() {
       }
       const data = await res.json();
 
-      const tools: Tool[] = (data.tools || []).map((t: any) => ({
+      const tools: Tool[] = (data.tools || []).map((t: { id: number; toolName?: string; tool_name?: string; toolCategory?: string; tool_category?: string; toolLink?: string; tool_link?: string; imageUrl?: string; image_url?: string; isActive?: boolean; isFeatured?: boolean; views?: number; qualityScore?: number; lastUpdated?: string; createdAt?: string; [key: string]: unknown }) => ({
         id: t.id,
         toolName: t.toolName || t.tool_name,
         toolCategory: t.toolCategory || t.tool_category,
@@ -764,7 +749,7 @@ export default function AdminToolsPage() {
         loading: false,
       }));
     }
-  };
+  }, [state.currentPage, state.pageSize, state.sortColumn, state.sortDirection, debouncedSearch, state.filters]);
 
   const handlePageChange = (page: number) => {
     setState(prev => ({ ...prev, currentPage: page }));
@@ -779,7 +764,7 @@ export default function AdminToolsPage() {
     }));
   };
 
-  const handleFiltersChange = (filters: Record<string, any>) => {
+  const handleFiltersChange = (filters: Record<string, unknown>) => {
     setState(prev => ({
       ...prev,
       filters,

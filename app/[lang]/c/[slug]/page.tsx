@@ -5,7 +5,7 @@ import { multilingualCategoriesService } from '@/src/lib/database/services/multi
 import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
 import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
 // Phase 2.2: Import des adaptateurs pour corriger tool_count/toolCount
-import { adaptCategoryResponse, adaptToolsArray, type Category, type Tool } from '@/src/types';
+import { adaptCategoryResponse, adaptToolsArray, type Tool } from '@/src/types';
 
 interface CategoryPageProps {
   params: Promise<{ lang: SupportedLanguage; slug: string }>;
@@ -22,7 +22,9 @@ export async function generateMetadata({
   }
 
   // Phase 2.2: Apply adapter to ensure consistent property access
-  const category = adaptCategoryResponse(rawCategory as unknown as Record<string, unknown>);
+  const category = adaptCategoryResponse(
+    rawCategory as unknown as Record<string, unknown>
+  );
 
   const titles = {
     en: `${category.displayName} - AI Tools Category`,
@@ -71,7 +73,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   }
 
   // Phase 2.2: Apply adapter for consistent property access
-  const category = adaptCategoryResponse(rawCategory as unknown as Record<string, unknown>);
+  const category = adaptCategoryResponse(
+    rawCategory as unknown as Record<string, unknown>
+  );
 
   // Get tools in this category
   const toolsResult = await multilingualToolsService.getToolsByCategory(slug, lang, {
@@ -83,7 +87,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   const serializedTools = serializePrismaObject(toolsResult.tools);
   // Phase 2.2: Apply adapters to ensure consistent tool properties
-  const adaptedTools = adaptToolsArray(serializedTools as unknown as Record<string, unknown>[]);
+  const adaptedTools = adaptToolsArray(
+    serializedTools as unknown as Record<string, unknown>[]
+  );
 
   return (
     <div className='min-h-screen bg-gray-50'>

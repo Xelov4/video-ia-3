@@ -34,7 +34,7 @@ import {
 export default function AdminDatabasePage() {
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  const systemHealth = {
+  const _systemHealth = {
     overall: 'healthy',
     database: 'connected',
     performance: 'optimal',

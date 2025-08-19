@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -16,7 +16,6 @@ import {
   Trash2,
   ExternalLink,
   Star,
-  Users,
   Calendar,
   FileText,
   MessageCircle,
@@ -89,7 +88,7 @@ interface ArticlesPageState {
   pageSize: number;
   sortColumn: string;
   sortDirection: 'asc' | 'desc';
-  filters: Record<string, any>;
+  filters: Record<string, unknown>;
 }
 
 export default function AdminArticlesPage() {
@@ -164,7 +163,7 @@ export default function AdminArticlesPage() {
       key: 'article',
       label: 'Article',
       sortable: true,
-      render: (value: any, row: Article) => (
+      render: (_value: unknown, row: Article) => (
         <div className='flex items-center space-x-3'>
           <Avatar className='h-10 w-10'>
             <AvatarImage src={row.featuredImageUrl || ''} />
@@ -182,7 +181,7 @@ export default function AdminArticlesPage() {
     {
       key: 'status',
       label: 'Statut',
-      render: (value: any, row: Article) => (
+      render: (_value: unknown, row: Article) => (
         <div className='flex flex-col space-y-1'>
           <Badge
             variant={
@@ -214,7 +213,7 @@ export default function AdminArticlesPage() {
     {
       key: 'stats',
       label: 'Statistiques',
-      render: (value: any, row: Article) => (
+      render: (_value: unknown, row: Article) => (
         <div className='flex items-center space-x-4 text-sm'>
           <div className='flex items-center space-x-1'>
             <Eye className='h-4 w-4 text-muted-foreground' />
@@ -237,7 +236,7 @@ export default function AdminArticlesPage() {
     {
       key: 'categories',
       label: 'Catégories',
-      render: (value: any, row: Article) => (
+      render: (_value: unknown, row: Article) => (
         <div className='flex flex-wrap gap-1'>
           {row.postCategories.slice(0, 2).map(({ category }) => (
             <Badge key={category.id} variant='outline' className='text-xs'>
@@ -255,7 +254,7 @@ export default function AdminArticlesPage() {
     {
       key: 'dates',
       label: 'Dates',
-      render: (value: any, row: Article) => (
+      render: (_value: unknown, row: Article) => (
         <div className='space-y-1 text-sm'>
           <div className='flex items-center space-x-1'>
             <Calendar className='h-3 w-3 text-muted-foreground' />
@@ -275,7 +274,7 @@ export default function AdminArticlesPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: Article) => (
+      render: (_value: unknown, row: Article) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' size='sm'>
@@ -398,19 +397,10 @@ export default function AdminArticlesPage() {
     if (session) loadArticles();
   }, [
     session,
-    state.currentPage,
-    state.pageSize,
-    state.sortColumn,
-    state.sortDirection,
-    debouncedSearch,
-    state.filters.status,
-    state.filters.postType,
-    state.filters.featured,
-    state.filters.hasComments,
-    state.filters.minViews,
+    loadArticles,
   ]);
 
-  const loadArticles = async () => {
+  const loadArticles = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
 
@@ -437,7 +427,7 @@ export default function AdminArticlesPage() {
       }
       const data = await res.json();
 
-      const articles: Article[] = (data.data?.posts || []).map((post: any) => ({
+      const articles: Article[] = (data.data?.posts || []).map((post: { id: number; slug: string; title: string; excerpt?: string; status: string; postType: string; authorId: string; publishedAt?: string; updatedAt: string; createdAt: string; viewsCount: number; featuredImage?: string; author?: { name: string; email: string; avatar?: string } }) => ({
         id: post.id,
         slug: post.slug,
         status: post.status,
@@ -473,7 +463,7 @@ export default function AdminArticlesPage() {
         loading: false,
       }));
     }
-  };
+  }, [state.currentPage, state.pageSize, state.sortColumn, state.sortDirection, debouncedSearch, state.filters]);
 
   const handlePageChange = (page: number) => {
     setState(prev => ({ ...prev, currentPage: page }));
@@ -488,7 +478,7 @@ export default function AdminArticlesPage() {
     }));
   };
 
-  const handleFiltersChange = (filters: Record<string, any>) => {
+  const handleFiltersChange = (filters: Record<string, unknown>) => {
     setState(prev => ({
       ...prev,
       filters,

@@ -8,11 +8,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   MagnifyingGlassIcon,
-  FunnelIcon,
   XMarkIcon,
   AdjustmentsHorizontalIcon,
   CheckIcon,
-  ChevronDownIcon,
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { useDebounce } from 'use-debounce';
@@ -72,7 +70,7 @@ export function AdminSearchFilters({
       .then(data => {
         if (data.categories) {
           setCategories(
-            data.categories.map((cat: any) => ({
+            data.categories.map((cat: { id: number; name: string; count?: number }) => ({
               id: cat.id,
               name: cat.name,
               count: cat.count || 0,
@@ -88,9 +86,9 @@ export function AdminSearchFilters({
     if (debouncedSearch !== filters.search) {
       onFiltersChange({ ...filters, search: debouncedSearch });
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, filters, onFiltersChange]);
 
-  const updateFilter = (key: keyof AdminFilterState, value: any) => {
+  const updateFilter = (key: keyof AdminFilterState, value: unknown) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 

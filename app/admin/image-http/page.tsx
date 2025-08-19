@@ -5,23 +5,13 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import {
   PlayIcon,
   StopIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
-  InformationCircleIcon,
-  SearchIcon,
-  FilterIcon,
   ArrowPathIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  ClockIcon,
-  GlobeIcon,
 } from '@heroicons/react/24/outline';
 
 // shadcn/ui components
@@ -53,17 +43,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/src/components/ui/table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/src/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 interface Tool {
@@ -115,7 +94,7 @@ export default function AdminImageHttpPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [filteredTools, setFilteredTools] = useState<Tool[]>([]);
   const [selectedTools, setSelectedTools] = useState<number[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [results, setResults] = useState<HealthCheckResult[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -154,7 +133,7 @@ export default function AdminImageHttpPage() {
   }, [logs]);
 
   // Load tools from database
-  const loadTools = async () => {
+  const loadTools = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/tools?limit=1000');
@@ -164,7 +143,7 @@ export default function AdminImageHttpPage() {
 
       const data = await response.json();
       if (data.success) {
-        const toolsData = data.tools.map((tool: any) => ({
+        const toolsData = data.tools.map((tool: { id: number; toolName: string; toolLink: string; toolCategory: string; statusCode?: number; isActive: boolean; lastHttpCheck?: string }) => ({
           id: tool.id,
           toolName: tool.toolName,
           toolLink: tool.toolLink,
@@ -196,10 +175,10 @@ export default function AdminImageHttpPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, applyFilters]);
 
   // Apply filters to tools
-  const applyFilters = (toolsToFilter: Tool[], currentFilters: FilterState) => {
+  const applyFilters = useCallback((toolsToFilter: Tool[], currentFilters: FilterState) => {
     let filtered = toolsToFilter;
 
     // Search filter
@@ -233,7 +212,7 @@ export default function AdminImageHttpPage() {
     setFilteredTools(filtered);
     setTotalPages(Math.ceil(filtered.length / pageSize));
     setCurrentPage(1);
-  };
+  }, [pageSize]);
 
   // Handle filter changes
   const handleFilterChange = (key: keyof FilterState, value: string | boolean) => {
@@ -254,7 +233,7 @@ export default function AdminImageHttpPage() {
     if (session) {
       loadTools();
     }
-  }, [session]);
+  }, [session, loadTools]);
 
   const addLog = (type: LogEntry['type'], message: string) => {
     const newLog: LogEntry = {
@@ -417,17 +396,8 @@ export default function AdminImageHttpPage() {
     toast.warning('Health check stopped');
   };
 
-  const getStatusIcon = (statusCode: number | null, isActive: boolean) => {
-    if (statusCode === null)
-      return <InformationCircleIcon className='h-5 w-5 text-gray-400' />;
-    if (statusCode >= 200 && statusCode < 300)
-      return <CheckCircleIcon className='h-5 w-5 text-green-500' />;
-    if (statusCode >= 300 && statusCode < 400)
-      return <ExclamationTriangleIcon className='h-5 w-5 text-yellow-500' />;
-    return <XCircleIcon className='h-5 w-5 text-red-500' />;
-  };
 
-  const getStatusBadge = (statusCode: number | null, isActive: boolean) => {
+  const getStatusBadge = (statusCode: number | null, _isActive: boolean) => {
     if (statusCode === null) return <Badge variant='secondary'>Non vérifié</Badge>;
     if (statusCode >= 200 && statusCode < 300)
       return <Badge className='bg-green-100 text-green-800'>Actif</Badge>;

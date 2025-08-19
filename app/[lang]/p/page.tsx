@@ -1,7 +1,9 @@
 import { Metadata } from 'next';
 import { SupportedLanguage } from '@/src/lib/i18n/types';
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
-import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
+import {
+  multilingualToolsService,
+  ToolWithTranslation,
+} from '@/src/lib/database/services/multilingual-tools';
 
 interface AudiencesPageProps {
   params: Promise<{ lang: SupportedLanguage }>;
@@ -63,9 +65,9 @@ export default async function AudiencesPage({ params }: AudiencesPageProps) {
   // Extract unique audiences
   const audiences = new Map<string, { name: string; count: number; slug: string }>();
 
-  tools.tools.forEach((tool: any) => {
-    if (tool.target_audience) {
-      const audienceName = tool.target_audience.trim();
+  tools.tools.forEach((tool: ToolWithTranslation) => {
+    if (tool.targetAudience) {
+      const audienceName = tool.targetAudience.trim();
       const slug = audienceName.toLowerCase().replace(/\s+/g, '-');
 
       if (audiences.has(audienceName)) {

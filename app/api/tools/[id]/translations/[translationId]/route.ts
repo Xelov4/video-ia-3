@@ -125,7 +125,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 /**
  * Helper function to update a translation
  */
-async function updateToolTranslation(
+async function _updateToolTranslation(
   translationId: number,
   data: {
     name: string;

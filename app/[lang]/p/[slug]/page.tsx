@@ -1,7 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { SupportedLanguage } from '@/src/lib/i18n/types';
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
+import {
+  multilingualToolsService,
+  ToolWithTranslation,
+} from '@/src/lib/database/services/multilingual-tools';
 import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
 
 interface AudiencePageProps {
@@ -60,9 +63,6 @@ export async function generateMetadata({
 export default async function AudiencePage({ params }: AudiencePageProps) {
   const { lang, slug } = await params;
 
-  // Convert slug to audience filter
-  const audienceFilter = slug.split('-').join(' ');
-
   // Get tools for this audience
   const tools = await multilingualToolsService.searchTools({
     language: lang,
@@ -103,7 +103,7 @@ export default async function AudiencePage({ params }: AudiencePageProps) {
 
         {/* Tools Grid */}
         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-          {serializedTools.map((tool: any) => (
+          {serializedTools.map((tool: ToolWithTranslation) => (
             <div
               key={tool.id}
               className='overflow-hidden rounded-lg bg-white shadow-md'
@@ -125,7 +125,7 @@ export default async function AudiencePage({ params }: AudiencePageProps) {
                   {tool.quality_score && (
                     <div className='flex items-center text-sm text-gray-500'>
                       <span className='mr-1 text-yellow-400'>★</span>
-                      {tool.quality_score}
+                      {tool.quality_score.toString()}
                     </div>
                   )}
                 </div>

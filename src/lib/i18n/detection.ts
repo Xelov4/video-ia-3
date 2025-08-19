@@ -463,7 +463,7 @@ export class LanguageDetector {
       },
     };
 
-    let bestMatch: 'en' = 'en';
+    let bestMatch = 'en' as const;
     let maxScore = 0;
 
     for (const [lang, data] of Object.entries(patterns) as [SupportedLocale, any][]) {

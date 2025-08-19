@@ -141,7 +141,7 @@ export async function PUT(
 
     console.log('✏️ Updating post:', postId, 'with data:', Object.keys(updateData));
 
-    const updatedPost = await PostsService.updatePost(postId, updateData);
+    const _updatedPost = await PostsService.updatePost(postId, updateData);
 
     // Récupérer le post complet avec les relations
     const fullPost = await PostsService.getPostById(postId);

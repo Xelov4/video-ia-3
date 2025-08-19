@@ -1,7 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { SupportedLanguage } from '@/src/lib/i18n/types';
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
+import {
+  multilingualToolsService,
+  ToolWithTranslation,
+} from '@/src/lib/database/services/multilingual-tools';
 import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
 import ToolDetailClient from './ToolDetailClient';
 
@@ -66,7 +69,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
   const serializedTool = serializePrismaObject(tool);
 
   // Fetch related tools (same category)
-  let relatedTools: any[] = [];
+  let relatedTools: ToolWithTranslation[] = [];
   try {
     if (tool.tool_category) {
       const relatedResult = await multilingualToolsService.searchTools({
@@ -81,7 +84,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
   }
 
   // Fetch similar tools (featured or high quality)
-  let similarTools: any[] = [];
+  let similarTools: ToolWithTranslation[] = [];
   try {
     const similarResult = await multilingualToolsService.searchTools({
       language: lang,

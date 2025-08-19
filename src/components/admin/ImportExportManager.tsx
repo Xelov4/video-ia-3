@@ -15,7 +15,6 @@ import {
   AlertCircle,
   Clock,
   Trash2,
-  Play,
   Pause,
   RotateCcw,
 } from 'lucide-react';

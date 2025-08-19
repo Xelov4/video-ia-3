@@ -8,7 +8,6 @@ import {
   Bold,
   Italic,
   Strikethrough,
-  Code,
   Heading1,
   Heading2,
   Heading3,

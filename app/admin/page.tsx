@@ -48,10 +48,10 @@ interface DashboardStats {
     totalCategories: number;
     activeCategories: number;
     averageToolsPerCategory: number;
-    topCategories: any[];
+    topCategories: Array<{ name: string; count: number; percentage: number }>;
   };
   recentTools: {
-    tools: any[];
+    tools: Array<{ id: number; toolName: string; toolCategory: string; createdAt: string; isActive: boolean }>;
   };
 }
 

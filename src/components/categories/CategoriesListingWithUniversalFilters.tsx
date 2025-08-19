@@ -31,10 +31,10 @@ interface CategoriesListingProps {
 
 export default function CategoriesListingWithUniversalFilters({
   initialCategories,
-  searchQuery,
+  searchQuery: _searchQuery,
 }: CategoriesListingProps) {
   // State
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [_categories, _setCategories] = useState<Category[]>(initialCategories);
   const [isLoading, setIsLoading] = useState(false);
   const [filteredCategories, setFilteredCategories] =
     useState<Category[]>(initialCategories);
@@ -118,7 +118,7 @@ export default function CategoriesListingWithUniversalFilters({
 
     // Sorting
     filtered.sort((a, b) => {
-      let aVal: any, bVal: any;
+      let aVal: unknown, bVal: unknown;
 
       switch (filters.sortBy) {
         case 'toolCount':

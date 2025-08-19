@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ToolAnalysis } from '@/src/types/analysis';
@@ -109,7 +109,7 @@ export default function AdminScraperPage() {
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [_totalPages, setTotalPages] = useState(1);
   const [batchFilter, setBatchFilter] = useState<
     'all' | 'never_optimized' | 'needs_update'
   >('never_optimized');
@@ -175,7 +175,7 @@ export default function AdminScraperPage() {
     } else if (activeTab === 'batch') {
       loadBatchTools(batchFilter, 1, searchTerm);
     }
-  }, [searchTerm, activeTab, batchFilter]);
+  }, [searchTerm, activeTab, batchFilter, loadBatchTools]);
 
   const handleScrape = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,7 +323,7 @@ export default function AdminScraperPage() {
   };
 
   // Batch processing functions
-  const loadBatchTools = async (
+  const loadBatchTools = useCallback(async (
     filter: typeof batchFilter,
     page: number = 1,
     search?: string
@@ -356,7 +356,7 @@ export default function AdminScraperPage() {
     } catch (error) {
       console.error('Error loading batch tools:', error);
     }
-  };
+  }, []);
 
   const toggleBatchToolSelection = (toolId: number) => {
     setBatchSelectedTools(prev =>
@@ -1084,15 +1084,15 @@ export default function AdminScraperPage() {
               </h2>
               <div className='flex items-center space-x-4 text-sm text-gray-600'>
                 <span>Confiance: {result.confidence}%</span>
-                {(result as any).qualityScore && (
-                  <span>Qualité: {(result as any).qualityScore}/10</span>
+                {(result as { qualityScore?: number }).qualityScore && (
+                  <span>Qualité: {(result as { qualityScore?: number }).qualityScore}/10</span>
                 )}
-                {(result as any).completenessScore && (
-                  <span>Complétude: {(result as any).completenessScore}%</span>
+                {(result as { completenessScore?: number }).completenessScore && (
+                  <span>Complétude: {(result as { completenessScore?: number }).completenessScore}%</span>
                 )}
-                {(result as any).processingMode && (
+                {(result as { processingMode?: string }).processingMode && (
                   <span className='rounded bg-blue-100 px-2 py-1 text-xs text-blue-800'>
-                    {(result as any).processingMode === 'professional' ? 'PRO' : 'STD'}
+                    {(result as { processingMode?: string }).processingMode === 'professional' ? 'PRO' : 'STD'}
                   </span>
                 )}
               </div>

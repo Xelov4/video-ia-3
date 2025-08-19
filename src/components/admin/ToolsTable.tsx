@@ -8,12 +8,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { DatabaseTool } from '@/src/lib/database/services/tools';
+import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools';
 import {
   PencilIcon,
   TrashIcon,
   EyeIcon,
-  StarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
@@ -21,7 +20,7 @@ import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import { formatNumber } from '@/src/lib/utils/formatNumbers';
 
 interface ToolsTableProps {
-  tools: DatabaseTool[];
+  tools: ToolWithTranslation[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -305,74 +304,57 @@ export const ToolsTable = ({ tools, pagination }: ToolsTableProps) => {
                     className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
                   />
                 </td>
-                <td className='px-6 py-4'>
+                <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-900'>
                   <div className='flex items-center'>
                     <div className='h-10 w-10 flex-shrink-0'>
-                      {tool.image_url ? (
-                        <Image
-                          src={tool.image_url}
-                          alt={tool.tool_name}
-                          width={40}
-                          height={40}
-                          className='rounded-lg object-cover'
-                        />
-                      ) : (
-                        <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600'>
-                          <span className='text-sm font-semibold text-white'>
-                            {tool.tool_name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
+                      <Image
+                        src={tool.imageUrl || '/images/placeholders/tool-1.jpg'}
+                        alt={tool.toolName}
+                        width={40}
+                        height={40}
+                        className='h-10 w-10 rounded-full object-cover'
+                      />
                     </div>
                     <div className='ml-4'>
-                      <div className='flex items-center'>
-                        <div className='text-sm font-medium text-gray-900'>
-                          {tool.tool_name}
-                        </div>
-                        {tool.featured && (
-                          <StarSolidIcon className='ml-2 h-4 w-4 text-yellow-400' />
-                        )}
-                      </div>
-                      <div className='max-w-xs truncate text-sm text-gray-500'>
-                        {tool.overview || 'Aucune description'}
-                      </div>
-                      {tool.tool_link && (
-                        <div className='mt-1 text-xs text-gray-400'>
-                          <a
-                            href={tool.tool_link}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className='hover:text-blue-600'
-                          >
-                            🔗 {tool.tool_link}
-                          </a>
-                        </div>
-                      )}
+                      <div className='font-medium text-gray-900'>{tool.toolName}</div>
+                      <div className='text-gray-500'>{tool.toolCategory}</div>
                     </div>
                   </div>
                 </td>
-                <td className='px-6 py-4'>
-                  <span className='inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800'>
-                    {tool.tool_category}
+                <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                  <a
+                    href={tool.toolLink || '#'}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-blue-600 hover:text-blue-800'
+                  >
+                    {tool.toolLink ? 'Voir' : 'N/A'}
+                  </a>
+                </td>
+                <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                  {tool.toolCategory || 'N/A'}
+                </td>
+                <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                  <span
+                    className={`inline-flex rounded-full px-2 text-xs font-semibold ${
+                      tool.isActive
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {tool.isActive ? 'Actif' : 'Inactif'}
                   </span>
                 </td>
-                <td className='px-6 py-4'>
-                  <div className='flex flex-col space-y-1'>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        tool.is_active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {tool.is_active ? 'Actif' : 'Inactif'}
-                    </span>
-                    {tool.featured && (
-                      <span className='inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800'>
-                        Vedette
-                      </span>
-                    )}
-                  </div>
+                <td className='whitespace-nowrap px-3 py-4 text-sm text-gray-500'>
+                  <span
+                    className={`inline-flex rounded-full px-2 text-xs font-semibold ${
+                      tool.isActive
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {tool.isActive ? 'Visible' : 'Masqué'}
+                  </span>
                 </td>
                 <td className='px-6 py-4 text-sm text-gray-900'>
                   <div className='space-y-1'>

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, Menu, Sparkles, Globe, Filter, Star, Zap, Bot } from 'lucide-react';
+import { Search, Menu, Sparkles, Filter, Star, Zap, Bot } from 'lucide-react';
 import { SupportedLocale } from '@/middleware';
 
 import { Button } from '@/src/components/ui/button';
@@ -39,15 +39,15 @@ export default function ShadcnHeader({
   totalTools = 16765,
 }: ShadcnHeaderProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [isScrolled, setIsScrolled] = React.useState(false);
+  const [_isScrolled, _setIsScrolled] = React.useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   React.useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    const handleScroll = () => _setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [_setIsScrolled]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

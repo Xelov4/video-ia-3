@@ -5,7 +5,6 @@
 
 'use client';
 
-import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -37,7 +36,7 @@ interface Column {
   key: string;
   label: string;
   sortable?: boolean;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: unknown, row: Record<string, unknown>) => React.ReactNode;
   className?: string;
 }
 
@@ -45,7 +44,7 @@ interface AdminTableProps {
   title: string;
   description?: string;
   columns: Column[];
-  data: any[];
+  data: Record<string, unknown>[];
   loading?: boolean;
   totalCount: number;
   pageSize: number;

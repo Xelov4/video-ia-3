@@ -18,7 +18,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { ChevronDownIcon, LanguageIcon } from '@heroicons/react/24/outline';
-import { SupportedLocale, supportedLocales, defaultLocale } from '@/middleware';
+import { SupportedLocale, supportedLocales } from '@/middleware';
 
 // Configuration des langues avec drapeaux et labels natifs
 interface LanguageConfig {
@@ -152,8 +152,8 @@ export default function LanguageSwitcher({
 
     try {
       // Analytics tracking
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'language_change', {
+      if (typeof window !== 'undefined' && (window as { gtag?: (...args: unknown[]) => void }).gtag) {
+        (window as { gtag: (...args: unknown[]) => void }).gtag('event', 'language_change', {
           from_language: currentLanguage,
           to_language: targetLang,
           page_path: pathname,

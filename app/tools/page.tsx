@@ -69,7 +69,7 @@ export default async function ToolsPage({ searchParams }: ToolsPageProps) {
 
   // Load data server-side
   const [toolsResult, categories] = await Promise.all([
-    toolsService.searchTools(searchParams_api).catch((error: any) => {
+    toolsService.searchTools(searchParams_api).catch((error: unknown) => {
       console.error('Failed to load tools:', error);
       return {
         tools: [],

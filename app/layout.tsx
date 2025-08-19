@@ -1,6 +1,14 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import Script from 'next/script';
+import { Roboto } from 'next/font/google';
 import { SessionProvider } from '@/src/components/auth/SessionProvider';
+
+const roboto = Roboto({
+  weight: ['300', '400', '500', '700', '900'],
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Video-IA.net - Répertoire de 16 763 Outils IA pour Créateurs',
@@ -45,29 +53,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang='fr' className='scroll-smooth' suppressHydrationWarning>
       <head>
         {/* Google tag (gtag.js) */}
-        <script
-          async
+        <Script
           src='https://www.googletagmanager.com/gtag/js?id=G-0W0WQY9CTF'
-        ></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
+          strategy='afterInteractive'
+        />
+        <Script id='google-analytics' strategy='afterInteractive'>
+          {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-0W0WQY9CTF');
-          `,
-          }}
-        />
+          `}
+        </Script>
         <link rel='preconnect' href='https://fonts.googleapis.com' />
         <link
           rel='preconnect'
           href='https://fonts.gstatic.com'
           crossOrigin='anonymous'
-        />
-        <link
-          href='https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap'
-          rel='stylesheet'
         />
         {/* Critical CSS */}
         <link rel='preconnect' href='https://fonts.googleapis.com' />
@@ -88,7 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel='manifest' href='/manifest.json' />
       </head>
       <body
-        className='min-h-screen bg-background text-foreground antialiased'
+        className={`min-h-screen bg-background text-foreground antialiased ${roboto.className}`}
         suppressHydrationWarning
       >
         <SessionProvider>{children}</SessionProvider>

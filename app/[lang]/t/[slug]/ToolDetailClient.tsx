@@ -2,20 +2,17 @@
 
 import * as React from 'react';
 // Phase 2.3: Import adapters for property consistency
-import { adaptToolResponse, type Tool } from '@/src/types';
-import { useState, useEffect } from 'react';
+import { adaptToolResponse } from '@/src/types';
+import { useState } from 'react';
 import {
   ExternalLink,
   Star,
   Users,
   Eye,
-  Calendar,
   Tag,
   Heart,
   Bookmark,
   Share2,
-  Download,
-  Play,
   CheckCircle,
   AlertCircle,
   Info,
@@ -34,7 +31,6 @@ import { Button } from '@/src/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/src/components/ui/card';
 import { Badge } from '@/src/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
-import { Separator } from '@/src/components/ui/separator';
 import { cn } from '@/src/lib/utils';
 
 import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools';
@@ -48,15 +44,17 @@ interface ToolDetailClientProps {
 }
 
 // Hero Stats Component
-const HeroStats = ({ tool, t }: { tool: ToolWithTranslation; t: any }) => {
+const HeroStats = ({ tool, t }: { tool: ToolWithTranslation; t: (key: string) => string }) => {
   // Phase 2.3: Apply adapter for consistent property access
   const adaptedTool = adaptToolResponse(tool as unknown as Record<string, unknown>);
-  
+
   const stats = [
     {
       icon: Star,
       label: t.qualityScore,
-      value: adaptedTool.qualityScore ? `${adaptedTool.qualityScore.toFixed(1)}/10` : 'N/A',
+      value: adaptedTool.qualityScore
+        ? `${adaptedTool.qualityScore.toFixed(1)}/10`
+        : 'N/A',
       color: 'text-yellow-500',
     },
     {
@@ -104,7 +102,7 @@ const FeatureCard = ({
   description,
   accent = false,
 }: {
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
   accent?: boolean;
@@ -129,7 +127,7 @@ const FeatureCard = ({
 // Tool Card Component for recommendations
 const ToolCard = ({
   tool,
-  lang,
+  lang: _lang,
   onClick,
 }: {
   tool: ToolWithTranslation;
@@ -138,47 +136,47 @@ const ToolCard = ({
 }) => {
   // Phase 2.3: Apply adapter for this component
   const adaptedTool = adaptToolResponse(tool as unknown as Record<string, unknown>);
-  
-  return (
-  <Card
-    className='group cursor-pointer border-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg'
-    onClick={onClick}
-  >
-    <CardContent className='p-0'>
-      <div className='relative h-32 w-full overflow-hidden rounded-t-lg bg-gray-100'>
-        <SafeImage
-          src={adaptedTool.imageUrl || '/images/placeholders/ai-placeholder.jpg'}
-          alt={tool.displayName}
-          fill
-          className='object-cover transition-transform duration-300 group-hover:scale-105'
-        />
-        <div className='absolute right-2 top-2'>
-          <Badge variant='secondary' className='bg-white/90 text-xs'>
-            {tool.toolCategory}
-          </Badge>
-        </div>
-      </div>
 
-      <div className='p-3'>
-        <h4 className='line-clamp-1 text-sm font-medium text-gray-900 transition-colors group-hover:text-primary'>
-          {tool.displayName}
-        </h4>
-        <p className='mt-1 line-clamp-2 text-xs text-gray-600'>
-          {tool.displayDescription}
-        </p>
-        <div className='mt-2 flex items-center justify-between'>
-          <div className='flex items-center text-xs text-gray-500'>
-            <Star className='mr-1 h-3 w-3 text-yellow-400' />
-            <span>{adaptedTool.qualityScore?.toFixed(1) || 'N/A'}</span>
-          </div>
-          <div className='flex items-center text-xs text-gray-500'>
-            <Users className='mr-1 h-3 w-3' />
-            <span>{adaptedTool.views || 0}</span>
+  return (
+    <Card
+      className='group cursor-pointer border-0 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg'
+      onClick={onClick}
+    >
+      <CardContent className='p-0'>
+        <div className='relative h-32 w-full overflow-hidden rounded-t-lg bg-gray-100'>
+          <SafeImage
+            src={adaptedTool.imageUrl || '/images/placeholders/ai-placeholder.jpg'}
+            alt={tool.displayName}
+            fill
+            className='object-cover transition-transform duration-300 group-hover:scale-105'
+          />
+          <div className='absolute right-2 top-2'>
+            <Badge variant='secondary' className='bg-white/90 text-xs'>
+              {tool.toolCategory}
+            </Badge>
           </div>
         </div>
-      </div>
-    </CardContent>
-  </Card>
+
+        <div className='p-3'>
+          <h4 className='line-clamp-1 text-sm font-medium text-gray-900 transition-colors group-hover:text-primary'>
+            {tool.displayName}
+          </h4>
+          <p className='mt-1 line-clamp-2 text-xs text-gray-600'>
+            {tool.displayDescription}
+          </p>
+          <div className='mt-2 flex items-center justify-between'>
+            <div className='flex items-center text-xs text-gray-500'>
+              <Star className='mr-1 h-3 w-3 text-yellow-400' />
+              <span>{adaptedTool.qualityScore?.toFixed(1) || 'N/A'}</span>
+            </div>
+            <div className='flex items-center text-xs text-gray-500'>
+              <Users className='mr-1 h-3 w-3' />
+              <span>{adaptedTool.views || 0}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -190,9 +188,7 @@ export default function ToolDetailClient({
 }: ToolDetailClientProps) {
   // Phase 2.3: Apply adapter for consistent property access throughout component
   const adaptedTool = adaptToolResponse(tool as unknown as Record<string, unknown>);
-  const adaptedRelatedTools = relatedTools.map(t => adaptToolResponse(t as unknown as Record<string, unknown>));
-  const adaptedSimilarTools = similarTools.map(t => adaptToolResponse(t as unknown as Record<string, unknown>));
-  
+
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
@@ -723,7 +719,8 @@ export default function ToolDetailClient({
                     <div className='relative h-64 w-full overflow-hidden rounded-xl bg-gray-100'>
                       <SafeImage
                         src={
-                          adaptedTool.imageUrl || '/images/placeholders/ai-placeholder.jpg'
+                          adaptedTool.imageUrl ||
+                          '/images/placeholders/ai-placeholder.jpg'
                         }
                         alt={tool.displayName}
                         fill
@@ -856,9 +853,7 @@ export default function ToolDetailClient({
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className='leading-relaxed text-muted-foreground'>
-                        {''}
-                      </p>
+                      <p className='leading-relaxed text-muted-foreground'>{''}</p>
                     </CardContent>
                   </Card>
                 )}
@@ -873,9 +868,7 @@ export default function ToolDetailClient({
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className='leading-relaxed text-muted-foreground'>
-                        {''}
-                      </p>
+                      <p className='leading-relaxed text-muted-foreground'>{''}</p>
                     </CardContent>
                   </Card>
                 )}
@@ -912,9 +905,7 @@ export default function ToolDetailClient({
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className='leading-relaxed text-muted-foreground'>
-                        {''}
-                      </p>
+                      <p className='leading-relaxed text-muted-foreground'>{''}</p>
                     </CardContent>
                   </Card>
                 ) : (

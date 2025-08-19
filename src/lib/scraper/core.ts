@@ -8,6 +8,10 @@ import fs from 'fs';
 import path from 'path';
 import { ScrapingResult, SocialLinks, ContactInfo } from '@/src/types/scraper';
 
+// Type basique pour la page Puppeteer
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PuppeteerPage = any;
+
 /**
  * Main scraping function
  */
@@ -86,7 +90,7 @@ export async function scrapeWebsite(url: string): Promise<ScrapingResult> {
   }
 }
 
-async function extractMetadata(page: any) {
+async function extractMetadata(page: PuppeteerPage) {
   return await page.evaluate(() => {
     const metaDescription =
       document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
@@ -112,10 +116,10 @@ async function extractMetadata(page: any) {
   });
 }
 
-async function extractSocialLinks(page: any): Promise<SocialLinks> {
+async function extractSocialLinks(page: PuppeteerPage): Promise<SocialLinks> {
   return await page.evaluate(() => {
     const links = document.querySelectorAll('a[href]');
-    const social: any = {};
+    const social: Record<string, string> = {};
 
     links.forEach(link => {
       const href = link.getAttribute('href');
@@ -140,9 +144,9 @@ async function extractSocialLinks(page: any): Promise<SocialLinks> {
   });
 }
 
-async function extractContactInfo(page: any): Promise<ContactInfo> {
+async function extractContactInfo(page: PuppeteerPage): Promise<ContactInfo> {
   return await page.evaluate(() => {
-    const contact: any = {};
+    const contact: Record<string, string | undefined> = {};
 
     const contactLinks = document.querySelectorAll(
       'a[href*="contact"], a[href*="support"], a[href*="help"]'
@@ -170,7 +174,7 @@ async function extractContactInfo(page: any): Promise<ContactInfo> {
   });
 }
 
-async function extractPricing(page: any): Promise<string[]> {
+async function extractPricing(page: PuppeteerPage): Promise<string[]> {
   return await page.evaluate(() => {
     const pricingElements = document.querySelectorAll('*');
     const pricing: string[] = [];
@@ -189,7 +193,7 @@ async function extractPricing(page: any): Promise<string[]> {
   });
 }
 
-async function extractFeatures(page: any): Promise<string[]> {
+async function extractFeatures(page: PuppeteerPage): Promise<string[]> {
   return await page.evaluate(() => {
     const features: string[] = [];
 
@@ -231,7 +235,7 @@ async function saveScreenshot(screenshot: Buffer, url: string): Promise<string> 
   }
 }
 
-async function extractLogo(page: any, url: string): Promise<string> {
+async function extractLogo(page: PuppeteerPage, url: string): Promise<string> {
   try {
     const logoSelectors = [
       'img[src*="logo"]',

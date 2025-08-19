@@ -15,7 +15,6 @@ import { Badge } from '@/src/components/ui/badge';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/src/components/ui/card';
@@ -137,7 +136,7 @@ export default function AdminCategoriesPage() {
       key: 'category',
       label: 'Catégorie',
       sortable: true,
-      render: (value: any, row: Category) => (
+      render: (_value: unknown, row: Category) => (
         <div className='flex items-center space-x-3'>
           <div className='text-2xl'>{row.emoji}</div>
           <div>
@@ -150,7 +149,7 @@ export default function AdminCategoriesPage() {
     {
       key: 'stats',
       label: 'Statistiques',
-      render: (value: any, row: Category) => (
+      render: (_value: unknown, row: Category) => (
         <div className='space-y-2'>
           <Badge variant='outline' className='bg-blue-50'>
             {row.toolCount} outils
@@ -162,7 +161,7 @@ export default function AdminCategoriesPage() {
     {
       key: 'status',
       label: 'Statut',
-      render: (value: any, row: Category) => (
+      render: (_value: unknown, row: Category) => (
         <Badge variant={row.isActive ? 'default' : 'secondary'}>
           {row.isActive ? 'Active' : 'Inactive'}
         </Badge>
@@ -171,7 +170,7 @@ export default function AdminCategoriesPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (value: any, row: Category) => (
+      render: (_value: unknown, row: Category) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' size='sm'>

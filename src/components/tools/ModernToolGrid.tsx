@@ -7,14 +7,12 @@ import {
   Star,
   ExternalLink,
   Zap,
-  Users,
   Crown,
   Bookmark,
   Heart,
   Eye,
   TrendingUp,
   Clock,
-  Badge as BadgeIcon,
 } from 'lucide-react';
 
 import { Button } from '@/src/components/ui/button';

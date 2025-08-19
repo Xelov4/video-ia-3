@@ -137,9 +137,9 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
     async function loadMegaMenuData() {
       try {
         // Chargement des données par défaut pour éviter les erreurs API
-        let audiencesData: any = [];
-        let categoriesData: any = [];
-        let useCasesData: any = [];
+        let audiencesData: unknown = [];
+        let categoriesData: unknown = [];
+        let useCasesData: unknown = [];
 
         try {
           const audiencesRes = await fetch(
@@ -149,8 +149,8 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
             const audiencesJson = await audiencesRes.json();
             audiencesData = audiencesJson.data || [];
           }
-        } catch (e) {
-          console.warn('Failed to load audiences data:', e);
+        } catch (_e) {
+          console.warn('Failed to load audiences data:', _e);
         }
 
         try {
@@ -161,8 +161,8 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
             const categoriesJson = await categoriesRes.json();
             categoriesData = categoriesJson.data || [];
           }
-        } catch (e) {
-          console.warn('Failed to load categories data:', e);
+        } catch (_e) {
+          console.warn('Failed to load categories data:', _e);
         }
 
         try {
@@ -173,12 +173,12 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
             const useCasesJson = await useCasesRes.json();
             useCasesData = useCasesJson.data || [];
           }
-        } catch (e) {
-          console.warn('Failed to load use cases data:', e);
+        } catch (_e) {
+          console.warn('Failed to load use cases data:', _e);
         }
 
         // Set fallback data if API fails
-        if (audiencesData.length === 0) {
+        if ((audiencesData as unknown[]).length === 0) {
           audiencesData = [
             { name: 'Developers', count: 938, slug: 'developers' },
             { name: 'Content Creators', count: 745, slug: 'content-creators' },
@@ -187,7 +187,7 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
           ];
         }
 
-        if (categoriesData.length === 0) {
+        if ((categoriesData as unknown[]).length === 0) {
           categoriesData = [
             { name: 'AI Assistant', count: 939, slug: 'ai-assistant' },
             { name: 'Content Creation', count: 775, slug: 'content-creation' },
@@ -196,7 +196,7 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
           ];
         }
 
-        if (useCasesData.length === 0) {
+        if ((useCasesData as unknown[]).length === 0) {
           useCasesData = [
             { name: 'Video Creation', count: 467, slug: 'video-creation' },
             { name: 'Content Writing', count: 432, slug: 'content-writing' },
@@ -206,9 +206,9 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
         }
 
         setMegaMenuData({
-          audiences: audiencesData,
-          categories: categoriesData,
-          useCases: useCasesData,
+          audiences: audiencesData as Array<{ name: string; count: number }>,
+          categories: categoriesData as Array<{ name: string; count: number }>,
+          useCases: useCasesData as Array<{ name: string; count: number }>,
         });
       } catch (error) {
         console.error('Failed to load mega menu data:', error);
@@ -232,9 +232,9 @@ export default function ModernHeader({ lang }: ModernHeaderProps) {
     return path === '/' ? `/${lang}` : `/${lang}${path}`;
   };
 
-  // New function for short URLs
-  const getShortUrl = (type: 'category' | 'audience' | 'usecase', slug: string) => {
-    const shortPath = `/${type === 'category' ? 'c' : type === 'audience' ? 'p' : 'u'}/${slug}`;
+  // New function for short URLs - prefixed with _ as currently unused
+  const _getShortUrl = (_type: 'category' | 'audience' | 'usecase', _slug: string) => {
+    const shortPath = `/${_type === 'category' ? 'c' : _type === 'audience' ? 'p' : 'u'}/${_slug}`;
     return getLocalizedHref(shortPath);
   };
 

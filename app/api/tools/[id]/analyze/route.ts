@@ -7,9 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { toolsService } from '@/src/lib/database/services/tools';
-import { ScraperService } from '@/src/services/scraper';
-
-const scraperService = new ScraperService();
+import { runFullAnalysis } from '@/src/services/scraper';
 
 /**
  * POST /api/tools/[id]/analyze
@@ -72,7 +70,7 @@ export async function POST(
     }
 
     // Perform AI analysis using professional mode by default
-    const analysis = await scraperService.analyzeProfessionalTool(tool.tool_link);
+    const analysis = await runFullAnalysis(tool.tool_link);
 
     // Prepare update data based on requested fields or use all fields if none specified
     const fieldsToUpdate =

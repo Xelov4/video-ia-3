@@ -4,23 +4,19 @@ import * as React from 'react';
 import {
   Filter,
   Grid3X3,
-  LayoutGrid,
   List,
   SlidersHorizontal,
-  X,
   Search,
   Sparkles,
   Bot,
   TrendingUp,
   Star,
-  Zap,
 } from 'lucide-react';
 
 import { Button } from '@/src/components/ui/button';
 import { Badge } from '@/src/components/ui/badge';
 import { Input } from '@/src/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import { cn } from '@/src/lib/utils';
 
 import AdvancedFilterSidebar from '@/src/components/search/AdvancedFilterSidebar';
@@ -125,7 +121,7 @@ const getHeroStats = (lang: string) => {
 // Catégories vedettes traduites (limitées à 6 pour un design plus propre)
 const getFeaturedCategories = (lang: string) => {
   // Utiliser les vrais noms de catégories de la DB
-  const dbCategories = [
+  const _dbCategories = [
     { dbName: 'AI Assistant', count: 939, emoji: '🤖' },
     { dbName: 'Content creation', count: 775, emoji: '✍️' },
     { dbName: 'Image generation', count: 598, emoji: '🎨' },
@@ -421,7 +417,7 @@ export default function ModernHomepage({
   tools = [],
   categories = [],
   audiences = [],
-  featuredTools = [],
+  featuredTools: _featuredTools = [],
   totalCount = 16765,
   lang = 'fr',
   hasMore = false,

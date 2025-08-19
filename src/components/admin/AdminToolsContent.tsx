@@ -140,7 +140,7 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
 
       // Sorting
       filtered.sort((a, b) => {
-        let aVal: any, bVal: any;
+        let aVal: unknown, bVal: unknown;
 
         switch (filters.sortBy) {
           case 'tool_name':
@@ -241,7 +241,7 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
         setLoading(false);
       }
     },
-    [performAdvancedSearch]
+    [performAdvancedSearch, updateURL]
   );
 
   // Update URL with current filters
@@ -365,7 +365,7 @@ export function AdminToolsContent({ searchParams }: AdminToolsContentProps) {
   // Load initial data
   useEffect(() => {
     loadToolsWithFilters(filters);
-  }, []); // Only run once on mount
+  }, [filters, loadToolsWithFilters]); // Include necessary dependencies
 
   // Enhanced mock data generator
   const generateMockTools = (): Tool[] => {

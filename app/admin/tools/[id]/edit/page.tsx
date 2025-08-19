@@ -16,16 +16,13 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   ArrowLeftIcon,
-  CheckIcon,
   TrashIcon,
   ExclamationTriangleIcon,
   CloudArrowUpIcon,
   EyeIcon,
-  GlobeAltIcon,
-  FolderIcon,
   LinkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -37,7 +34,6 @@ import {
 import {
   TranslationForm,
   type ToolTranslation,
-  type BaseToolData,
 } from '@/src/components/admin/TranslationForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import {
@@ -146,7 +142,7 @@ export default function AdminToolEditPage({ params }: PageProps) {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [translationStatus, setTranslationStatus] = useState<
@@ -203,7 +199,7 @@ export default function AdminToolEditPage({ params }: PageProps) {
         const data = await response.json();
         const translationsMap: Record<string, ToolTranslation> = {};
         if (data.translations && Array.isArray(data.translations)) {
-          data.translations.forEach((t: any) => {
+          data.translations.forEach((t: { languageCode: string; [key: string]: unknown }) => {
             translationsMap[t.languageCode] = { ...t };
           });
         }
@@ -362,7 +358,7 @@ export default function AdminToolEditPage({ params }: PageProps) {
     }
   };
 
-  const handleAutoTranslate = async (targetLanguage: string) => {
+  const handleAutoTranslate = async (_targetLanguage: string) => {
     // Implementation can be added here
   };
 

@@ -47,7 +47,6 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Settings,
   Columns,
 } from 'lucide-react';
 
@@ -55,7 +54,7 @@ export interface DataTableColumn {
   key: string;
   label: string;
   sortable?: boolean;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: unknown, row: Record<string, unknown>) => React.ReactNode;
   className?: string;
   width?: string;
   hidden?: boolean;
@@ -66,7 +65,7 @@ interface AdvancedDataTableProps {
   title: string;
   description?: string;
   columns: DataTableColumn[];
-  data: any[];
+  data: Record<string, unknown>[];
   loading?: boolean;
   totalCount: number;
   pageSize: number;

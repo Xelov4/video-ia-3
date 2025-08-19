@@ -14,6 +14,18 @@ export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
   'nl',
   'pt',
 ];
+
+export const ENABLED_LANGUAGES: SupportedLanguage[] = SUPPORTED_LANGUAGES;
+
+export const LANGUAGES_CONFIG = {
+  en: { name: 'English', nativeName: 'English', flag: '🇺🇸' },
+  fr: { name: 'French', nativeName: 'Français', flag: '🇫🇷' },
+  it: { name: 'Italian', nativeName: 'Italiano', flag: '🇮🇹' },
+  es: { name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
+  de: { name: 'German', nativeName: 'Deutsch', flag: '🇩🇪' },
+  nl: { name: 'Dutch', nativeName: 'Nederlands', flag: '🇳🇱' },
+  pt: { name: 'Portuguese', nativeName: 'Português', flag: '🇵🇹' },
+};
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
 
 // Headers pour informations i18n

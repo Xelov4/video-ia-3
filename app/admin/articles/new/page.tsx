@@ -17,10 +17,6 @@ import {
   CloudArrowUpIcon,
   DocumentTextIcon,
   GlobeAltIcon,
-  FolderIcon,
-  TagIcon,
-  EyeIcon,
-  CalendarIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import {
@@ -117,11 +113,11 @@ export default function NewArticlePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [_categories, setCategories] = useState<Category[]>([]);
+  const [_tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, _setError] = useState<string | null>(null);
 
   // Données du post
   const [postData, setPostData] = useState<PostFormData>({
@@ -413,7 +409,7 @@ export default function NewArticlePage() {
                       <Select
                         value={postData.postType}
                         onValueChange={value =>
-                          setPostData(prev => ({ ...prev, postType: value as any }))
+                          setPostData(prev => ({ ...prev, postType: value as 'ARTICLE' | 'PAGE' | 'TUTORIAL' | 'REVIEW' }))
                         }
                       >
                         <SelectTrigger>
@@ -431,7 +427,7 @@ export default function NewArticlePage() {
                       <Select
                         value={postData.status}
                         onValueChange={value =>
-                          setPostData(prev => ({ ...prev, status: value as any }))
+                          setPostData(prev => ({ ...prev, status: value as 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'TRASHED' }))
                         }
                       >
                         <SelectTrigger>

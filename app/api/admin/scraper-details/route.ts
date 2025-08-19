@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
     const analysisResults: any = {};
 
     // Process each requested module
-    for (const module of modules) {
-      if (module === 'seo') {
+    for (const moduleType of modules) {
+      if (moduleType === 'seo') {
         const seoData = await generateSeo({
           toolName: tool.toolName,
           primaryFunction: tool.toolDescription || '', // Assuming toolDescription as primary function
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         });
         analysisResults.seo = seoData;
       }
-      if (module === 'full_scrape') {
+      if (moduleType === 'full_scrape') {
         if (!tool.toolLink) {
           analysisResults.full_scrape = { error: "L'outil n'a pas d'URL associée." };
         } else {
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
           analysisResults.full_scrape = fullAnalysisData;
         }
       }
-      if (module === 'translate' && translateConfig) {
+      if (moduleType === 'translate' && translateConfig) {
         const translations = [];
         for (const targetLang of translateConfig.targetLangs) {
           const translationData = await translateContent(

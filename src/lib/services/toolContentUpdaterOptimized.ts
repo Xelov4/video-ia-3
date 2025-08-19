@@ -163,7 +163,7 @@ export class ToolContentUpdaterServiceOptimized {
             ? response.request.res?.responseUrl
             : undefined,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       // En cas d'erreur, marquer comme inactif
       const httpStatusCode = error.response?.status || 0;
       console.log(`❌ Erreur HTTP: ${error.message}, Code: ${httpStatusCode}`);
@@ -252,7 +252,7 @@ export class ToolContentUpdaterServiceOptimized {
 
       console.log(`✅ Screenshot sauvegardé: ${relativeScreenshotPath}`);
       return relativeScreenshotPath;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`❌ Erreur capture d'écran: ${error.message}`);
       return null;
     } finally {
@@ -370,7 +370,7 @@ export class ToolContentUpdaterServiceOptimized {
           newLinksFound += newLinks;
           console.log(`🔗 ${newLinks} nouveaux liens trouvés sur cette page`);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         errorCount++;
         console.error(`❌ Erreur lors du crawl de ${currentUrl}: ${error.message}`);
       }
@@ -436,7 +436,7 @@ export class ToolContentUpdaterServiceOptimized {
       socialTiktok: [/tiktok\.com\/@([^\/\s"']+)/gi],
     };
 
-    const socialLinks: any = {};
+    const socialLinks: Record<string, unknown> = {};
 
     // Créer des mots-clés de validation basés sur l'outil
     const validationKeywords = this.generateValidationKeywords(tool);
@@ -571,7 +571,7 @@ export class ToolContentUpdaterServiceOptimized {
     changelogLink?: string;
   }> {
     console.log('🔍 Extraction liens utiles avec logique regex optimisée...');
-    const usefulLinks: any = {};
+    const usefulLinks: Record<string, unknown> = {};
 
     // Patterns améliorés avec validation intégrée
     const patterns = {
@@ -762,7 +762,7 @@ Write the article now in markdown format with H2 titles:`;
 
       // Tentative avec les modèles Gemini (avec fallback)
       return await this.callGeminiWithFallback(prompt);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur génération contenu Gemini:', error.message);
       return this.generateFallbackContent(tool);
     }
@@ -844,7 +844,7 @@ Write the article now in markdown format with H2 titles:`;
           );
           console.log(`  📊 Tentative complète: ${attemptCount}/${maxAttempts}`);
           return text;
-        } catch (error: any) {
+        } catch (error: unknown) {
           lastError = error;
           console.log(`  ❌ Échec avec ${modelName}: ${error.message}`);
 
@@ -957,7 +957,7 @@ Overview:`;
         `✅ Overview généré avec succès (${cleanOverview.length} caractères)`
       );
       return cleanOverview;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur génération overview Gemini:', error.message);
       return this.generateFallbackOverview(tool);
     }
@@ -1024,7 +1024,7 @@ Key Features:`;
 
       console.log(`✅ Key features générées avec succès`);
       return cleanFeatures;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur génération key features Gemini:', error.message);
       return this.generateFallbackKeyFeatures(tool);
     }
@@ -1119,7 +1119,7 @@ DESCRIPTION: [max 160 chars with CTA]`;
           // SUCCÈS !
           console.log(`✅ Meta title validé avec Video-IA.net (tentative ${attempts})`);
           return { metaTitle, metaDescription };
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.log(`❌ Tentative ${attempts}: Erreur Gemini, retry...`);
           if (attempts === maxAttempts) throw error;
         }
@@ -1131,7 +1131,7 @@ DESCRIPTION: [max 160 chars with CTA]`;
       );
       const fallbackMeta = this.generateFallbackMeta(tool);
       return fallbackMeta;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur génération meta Gemini:', error.message);
       return this.generateFallbackMeta(tool);
     }
@@ -1228,7 +1228,7 @@ DESCRIPTION: [max 160 chars with CTA]`;
         `✅ Pricing model détecté via regex: ${detectedModel} (score: ${maxScore})`
       );
       return detectedModel;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur détection pricing model:', error.message);
       return this.generateFallbackPricingModel(tool);
     }
@@ -1296,7 +1296,7 @@ Use Cases:`;
 
       console.log(`✅ Use cases générés avec succès`);
       return cleanUseCases;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur génération use cases Gemini:', error.message);
       return this.generateFallbackUseCases(tool);
     }
@@ -1366,7 +1366,7 @@ Target Audience:`;
 
       console.log(`✅ Target audience généré avec succès`);
       return cleanAudience;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur génération target audience Gemini:', error.message);
       return this.generateFallbackTargetAudience(tool);
     }
@@ -1567,7 +1567,7 @@ Target Audience:`;
 
       // Langues à traduire (incluant anglais pour cohérence)
       const languagesToTranslate = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt'];
-      const translations: any = {};
+      const translations: Record<string, unknown> = {};
 
       console.log(
         `🌐 Génération des traductions pour ${languagesToTranslate.length} langues...`
@@ -1577,7 +1577,7 @@ Target Audience:`;
         console.log(`\n🔄 Traduction vers ${langCode.toUpperCase()}...`);
 
         try {
-          let translation: any;
+          let translation: unknown;
 
           if (langCode === 'en') {
             // Pour l'anglais, copie directe depuis le contenu généré (pas d'API)
@@ -1612,7 +1612,7 @@ Target Audience:`;
               `🧪 Mode test: Traduction ${langCode.toUpperCase()} non sauvegardée`
             );
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error(`❌ Erreur traduction ${langCode}: ${error.message}`);
           translations[langCode] = { error: error.message };
         }
@@ -1626,7 +1626,7 @@ Target Audience:`;
           lang => !translations[lang].error
         ).length,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur génération traductions:', error.message);
       throw error;
     }
@@ -1738,7 +1738,7 @@ Target Audience:`;
    */
   private static async generateSingleLanguageTranslation(
     tool: Tool,
-    content: any,
+    content: unknown,
     targetLang: string
   ): Promise<any> {
     const languageNames: { [key: string]: string } = {
@@ -1845,7 +1845,7 @@ Return the JSON now:`;
      * La réponse devrait être un JSON valide avec les 7 champs.
      * On applique un parsing robuste avec fallback en cas d'erreur.
      */
-    let parsedTranslation: any;
+    let parsedTranslation: unknown;
     try {
       // 🧹 NETTOYAGE ROBUSTE DE LA RÉPONSE
       let cleanJson = jsonResponse.trim();
@@ -1922,7 +1922,7 @@ Return the JSON now:`;
 
       console.log(`✅ JSON parsé avec succès pour ${langName.toUpperCase()}`);
       console.log(`📊 Champs détectés: ${Object.keys(parsedTranslation).join(', ')}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`❌ Erreur parsing JSON pour ${langName}:`, error.message);
       console.log(`📄 Réponse brute complète:`, jsonResponse);
       console.log(`🔍 Tentative de nettoyage échouée`);
@@ -2101,7 +2101,7 @@ Return the JSON now:`;
       }
 
       return extractedData;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log(`❌ Extraction partielle échouée: ${error.message}`);
       throw error;
     }
@@ -2357,7 +2357,7 @@ Return the JSON now:`;
           quality_score: languageCode === 'en' ? 9.5 : 8.5,
         },
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`❌ Erreur sauvegarde traduction ${languageCode}:`, error.message);
       throw error;
     }
@@ -2767,7 +2767,7 @@ En conclusion, ${tool.toolName} représente un excellent choix pour quiconque ch
       );
 
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       result.errors?.push(error.message || 'Erreur inconnue');
       console.error(`❌ Erreur lors de la mise à jour de l'outil ${toolId}:`, error);
       return result;
@@ -2990,7 +2990,7 @@ En conclusion, ${tool.toolName} représente un excellent choix pour quiconque ch
       );
 
       return finalResult;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erreur mise à jour multilangue:', error.message);
       return {
         toolId,

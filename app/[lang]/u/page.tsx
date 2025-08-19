@@ -1,7 +1,9 @@
 import { Metadata } from 'next';
 import { SupportedLanguage } from '@/src/lib/i18n/types';
-import { multilingualToolsService } from '@/src/lib/database/services/multilingual-tools';
-import { serializePrismaObject } from '@/src/lib/utils/prismaHelpers';
+import {
+  multilingualToolsService,
+  ToolWithTranslation,
+} from '@/src/lib/database/services/multilingual-tools';
 
 interface UseCasesPageProps {
   params: Promise<{ lang: SupportedLanguage }>;
@@ -63,9 +65,9 @@ export default async function UseCasesPage({ params }: UseCasesPageProps) {
   // Extract unique use cases
   const useCases = new Map<string, { name: string; count: number; slug: string }>();
 
-  tools.tools.forEach((tool: any) => {
-    if (tool.use_cases) {
-      const useCaseName = tool.use_cases.trim();
+  tools.tools.forEach((tool: ToolWithTranslation) => {
+    if (tool.useCases) {
+      const useCaseName = tool.useCases.trim();
       const slug = useCaseName.toLowerCase().replace(/\s+/g, '-');
 
       if (useCases.has(useCaseName)) {

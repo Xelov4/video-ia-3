@@ -10,7 +10,6 @@ import {
   DocumentDuplicateIcon,
   SparklesIcon,
   CheckIcon,
-  ExclamationTriangleIcon,
   ClockIcon,
   GlobeAltIcon,
 } from '@heroicons/react/24/outline';

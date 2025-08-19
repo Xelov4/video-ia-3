@@ -6,7 +6,7 @@
  */
 
 import React, { memo } from 'react';
-import { Filter, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/src/components/ui/Button';
 
 interface Filters {
@@ -34,7 +34,7 @@ interface Filters {
 
 interface AdvancedFiltersProps {
   filters: Filters;
-  onFilterChange: (key: keyof Filters, value: any) => void;
+  onFilterChange: (key: keyof Filters, value: unknown) => void;
   onReset: () => void;
   audiences: Array<{ name: string; count: number }>;
   useCases: Array<{ name: string; count: number }>;

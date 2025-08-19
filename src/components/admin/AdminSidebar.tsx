@@ -48,7 +48,7 @@ interface AdminSidebarProps {
   currentLang: string;
 }
 
-export const AdminSidebar = ({ currentLang }: AdminSidebarProps) => {
+export const AdminSidebar = ({ currentLang: _currentLang }: AdminSidebarProps) => {
   const pathname = usePathname();
   const { data: session } = useSession();
 

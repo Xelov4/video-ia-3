@@ -79,7 +79,7 @@ export function withPreloadedTranslations<P extends object>(
             setError(null);
 
             // Précharger toutes les traductions nécessaires
-            const translations = translationKeys.map(key => {
+            const _translations = translationKeys.map(key => {
               try {
                 return t(key);
               } catch (err) {

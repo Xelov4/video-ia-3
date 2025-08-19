@@ -9,17 +9,14 @@ import { useState, useEffect } from 'react';
 import {
   DocumentDuplicateIcon,
   SparklesIcon,
-  EyeIcon,
   CheckIcon,
   ExclamationTriangleIcon,
   ClockIcon,
   GlobeAltIcon,
 } from '@heroicons/react/24/outline';
 import type { Language } from './LanguageTabs';
-import { Button } from '@/src/components/ui/button';
 import { Input } from '@/src/components/ui/input';
 import { Switch } from '@/src/components/ui/switch';
-import { toast } from 'sonner';
 import { RichTextEditor } from './RichTextEditor';
 
 export interface ToolTranslation {

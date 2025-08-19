@@ -7,9 +7,11 @@
 
 import React, { memo } from 'react';
 import { Star, Eye, Calendar, Tag, ExternalLink } from 'lucide-react';
-import { Card, CardContent } from '@/src/components/ui/Card';
+import { Card, CardContent } from '@/src/components/ui/card'; // ✅ Correction de la casse
 import { ToolWithTranslation } from '@/src/lib/database/services/multilingual-tools';
 import { SafeImage } from '@/src/components/ui/SafeImage';
+// Phase 3.1: Import de l'adaptateur pour conversion des propriétés
+import { adaptToolResponse } from '@/src/types';
 
 interface ToolListProps {
   tools: ToolWithTranslation[];
@@ -17,6 +19,11 @@ interface ToolListProps {
 }
 
 const ToolList = memo(({ tools, lang }: ToolListProps) => {
+  // Phase 3.1: Application des adaptateurs pour chaque outil
+  const adaptedTools = tools.map(tool =>
+    adaptToolResponse(tool as unknown as Record<string, unknown>)
+  );
+
   // Optimisation : formatage des dates avec Intl
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
@@ -33,12 +40,14 @@ const ToolList = memo(({ tools, lang }: ToolListProps) => {
 
   return (
     <div className='space-y-4'>
-      {tools.map(tool => {
-        const qualityScore = tool.quality_score || 0;
+      {adaptedTools.map(tool => {
+        // ✅ Utiliser les outils adaptés
+        const qualityScore = tool.qualityScore || 0; // ✅ qualityScore
         const displayScore = (qualityScore / 2).toFixed(1);
-        const viewCount = tool.view_count || 0;
-        const hasImage = tool.image_url && tool.image_url.length > 0;
-        const hasVideo = tool.video_url && tool.video_url.length > 0;
+        const viewCount = tool.views || 0; // ✅ views
+        const hasImage = tool.imageUrl && tool.imageUrl.length > 0; // ✅ imageUrl
+        // Phase 3.1: Suppression de videoUrl qui n'existe pas dans l'interface Tool
+        const _hasVideo = false; // ✅ Désactivé car videoUrl n'existe pas
 
         return (
           <Card
@@ -51,13 +60,13 @@ const ToolList = memo(({ tools, lang }: ToolListProps) => {
                 {hasImage && (
                   <div className='relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100'>
                     <SafeImage
-                      src={tool.image_url}
-                      alt={tool.displayName || tool.name}
+                      src={tool.imageUrl || ''} // ✅ Gestion du type string | null
+                      alt={tool.displayName || tool.toolName} // ✅ toolName
                       fill
                       sizes='96px'
                       className='object-cover transition-transform duration-300 group-hover:scale-105'
                     />
-                    {hasVideo && (
+                    {_hasVideo && (
                       <div className='absolute right-1 top-1 rounded-full bg-red-500 px-1 py-0.5 text-xs text-white'>
                         <Tag className='h-2 w-2' />
                       </div>
@@ -70,15 +79,11 @@ const ToolList = memo(({ tools, lang }: ToolListProps) => {
                   <div className='mb-2 flex items-start justify-between'>
                     <div className='min-w-0 flex-1'>
                       <h3 className='line-clamp-1 text-lg font-semibold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white'>
-                        {tool.displayName || tool.name}
+                        {tool.displayName || tool.toolName}
                       </h3>
                       <p className='mt-1 text-sm text-gray-500 dark:text-gray-400'>
-                        {tool.category}
-                        {tool.audience && (
-                          <span className='ml-2 rounded bg-blue-100 px-2 py-1 text-xs text-blue-800'>
-                            {tool.audience}
-                          </span>
-                        )}
+                        {tool.toolCategory}
+                        {/* Phase 3.1: Suppression de targetAudience qui n'existe pas */}
                       </p>
                     </div>
 
@@ -93,7 +98,7 @@ const ToolList = memo(({ tools, lang }: ToolListProps) => {
 
                   {/* Description */}
                   <p className='mb-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-400'>
-                    {tool.displayOverview || tool.overview || tool.description}
+                    {tool.displayOverview || tool.overview || tool.toolDescription}
                   </p>
 
                   {/* Métadonnées et actions */}
@@ -106,30 +111,27 @@ const ToolList = memo(({ tools, lang }: ToolListProps) => {
                       </div>
 
                       {/* Date de mise à jour */}
-                      {tool.updated_at && (
+                      {tool.lastUpdated && (
                         <div className='flex items-center gap-1'>
                           <Calendar className='h-3 w-3' />
-                          <span>{formatDate(tool.updated_at)}</span>
+                          <span>{formatDate(tool.lastUpdated)}</span>
                         </div>
                       )}
 
                       {/* Tags */}
                       {tool.tags && tool.tags.length > 0 && (
                         <div className='flex items-center gap-1'>
-                          {tool.tags
-                            .split(',')
-                            .slice(0, 2)
-                            .map((tag, index) => (
-                              <span
-                                key={index}
-                                className='rounded bg-gray-100 px-2 py-1 text-xs text-gray-600'
-                              >
-                                {tag.trim()}
-                              </span>
-                            ))}
-                          {tool.tags.split(',').length > 2 && (
+                          {tool.tags.slice(0, 2).map((tag, index) => (
+                            <span
+                              key={index}
+                              className='rounded bg-gray-100 px-2 py-1 text-xs text-gray-600'
+                            >
+                              {typeof tag === 'string' ? tag.trim() : String(tag)}
+                            </span>
+                          ))}
+                          {tool.tags.length > 2 && (
                             <span className='text-xs text-gray-400'>
-                              +{tool.tags.split(',').length - 2}
+                              +{tool.tags.length - 2}
                             </span>
                           )}
                         </div>
@@ -138,9 +140,9 @@ const ToolList = memo(({ tools, lang }: ToolListProps) => {
 
                     {/* Actions */}
                     <div className='flex items-center gap-2'>
-                      {tool.tool_link && (
+                      {tool.toolLink && (
                         <a
-                          href={tool.tool_link}
+                          href={tool.toolLink}
                           target='_blank'
                           rel='noopener noreferrer'
                           className='inline-flex items-center gap-1 text-sm text-blue-600 transition-colors hover:text-blue-700'

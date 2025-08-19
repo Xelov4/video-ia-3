@@ -10,13 +10,11 @@ import { useForm } from 'react-hook-form';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/src/components/ui/card';
 import { Button } from '@/src/components/ui/button';
 import { Input } from '@/src/components/ui/input';
-import { Label } from '@/src/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -34,7 +32,7 @@ import {
   FormMessage,
 } from '@/src/components/ui/form';
 import { Badge } from '@/src/components/ui/badge';
-import { Filter, X, Search, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Filter, X, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -51,9 +49,9 @@ interface FilterOption {
 
 interface AdvancedFiltersProps {
   filters: FilterOption[];
-  onFiltersChange: (filters: Record<string, any>) => void;
+  onFiltersChange: (filters: Record<string, unknown>) => void;
   onReset: () => void;
-  defaultValues?: Record<string, any>;
+  defaultValues?: Record<string, unknown>;
   showCount?: number;
 }
 
@@ -66,13 +64,13 @@ export const AdvancedFilters = ({
 }: AdvancedFiltersProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeFilters, setActiveFilters] =
-    useState<Record<string, any>>(defaultValues);
+    useState<Record<string, unknown>>(defaultValues);
 
   const form = useForm({
     defaultValues,
   });
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: unknown) => {
     const newFilters = { ...activeFilters, [key]: value };
     if (!value || value === '' || (Array.isArray(value) && value.length === 0)) {
       delete newFilters[key];

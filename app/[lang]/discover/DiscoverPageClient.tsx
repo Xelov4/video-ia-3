@@ -7,19 +7,11 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import * as React from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import {
-  Search,
-  Filter,
-  Grid as GridIcon,
-  List,
-  Sparkles,
-  TrendingUp,
-  Star,
-  Users,
-} from 'lucide-react';
+import { Search, Filter, Grid as GridIcon, List, Star, Users } from 'lucide-react';
 import { SupportedLocale } from '@/middleware';
 
 import { Button } from '@/src/components/ui/button';
@@ -62,10 +54,9 @@ export default function DiscoverPageClient({
   audiences,
   useCases,
   categories,
-  stats,
+  stats: _stats,
 }: DiscoverPageClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // État des filtres
   const [filters, setFilters] = useState<Filters>({
@@ -96,13 +87,13 @@ export default function DiscoverPageClient({
         const result = await multilingualToolsService.searchTools({
           language: lang,
           query: newFilters.query || undefined,
-          audience: newFilters.audience || undefined,
-          useCase: newFilters.useCase || undefined,
           category: newFilters.category || undefined,
-          filters: {
-            minQualityScore:
-              newFilters.minQuality > 0 ? newFilters.minQuality : undefined,
-          },
+          tags:
+            newFilters.audience || newFilters.useCase
+              ? [newFilters.audience, newFilters.useCase].filter(Boolean)
+              : undefined,
+          minQualityScore:
+            newFilters.minQuality > 0 ? newFilters.minQuality : undefined,
           sortBy: newFilters.sortBy === 'relevance' ? undefined : newFilters.sortBy,
           sortOrder: newFilters.sortOrder,
           page,
@@ -164,7 +155,7 @@ export default function DiscoverPageClient({
   // Recherche initiale
   useEffect(() => {
     searchTools(filters, 1);
-  }, []); // Volontairement vide pour éviter loop
+  }, [filters, searchTools]);
 
   // Réinitialiser filtres
   const resetFilters = useCallback(() => {
@@ -486,10 +477,7 @@ export default function DiscoverPageClient({
                   {viewMode === 'grid' ? (
                     <Grid cols={1} responsive={{ md: 2, lg: 3 }} gap='md'>
                       {tools.map(tool => (
-                        <Card
-                          key={tool.id}
-                          className='group h-full cursor-pointer'
-                        >
+                        <Card key={tool.id} className='group h-full cursor-pointer'>
                           <a
                             href={getLocalizedHref(
                               `/t/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`
@@ -548,10 +536,7 @@ export default function DiscoverPageClient({
                     /* List Results */
                     <div className='space-y-4'>
                       {tools.map(tool => (
-                        <Card
-                          key={tool.id}
-                          className='group cursor-pointer'
-                        >
+                        <Card key={tool.id} className='group cursor-pointer'>
                           <a
                             href={getLocalizedHref(
                               `/t/${tool.slug || tool.toolName.toLowerCase().replace(/\s+/g, '-')}`

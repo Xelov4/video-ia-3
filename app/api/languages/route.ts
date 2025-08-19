@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
  * Admin endpoint to update language configuration.
  * Currently returns 501 - feature not implemented yet.
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   return NextResponse.json(
     {
       success: false,

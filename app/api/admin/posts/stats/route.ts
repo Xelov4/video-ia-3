@@ -9,13 +9,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { PostsService } from '@/src/lib/database/services/posts';
-import { authOptions } from '../../../auth/[...nextauth]/route';
+import { authOptions } from '@/src/lib/auth/auth-options';
 
 /**
  * GET /api/admin/posts/stats
  * Obtenir les statistiques des posts
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Vérification de l'authentification admin
     const session = await getServerSession(authOptions);

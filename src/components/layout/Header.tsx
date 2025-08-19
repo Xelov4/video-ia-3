@@ -60,7 +60,7 @@ export default function Header({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [featuredCategories, setFeaturedCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, _setIsLoading] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const router = useRouter();
