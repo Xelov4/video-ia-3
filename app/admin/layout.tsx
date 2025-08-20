@@ -5,6 +5,9 @@
 
 'use client'
 
+// Force dynamic rendering for all admin pages
+export const dynamic = 'force-dynamic'
+
 import { useEffect } from 'react'
 import { SidebarProvider, SidebarInset } from "@/src/components/ui/sidebar"
 import { AdminSidebar } from '@/src/components/admin/AdminSidebar'

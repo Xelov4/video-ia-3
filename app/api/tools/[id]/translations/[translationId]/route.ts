@@ -9,10 +9,10 @@ import { authOptions } from '@/src/lib/auth/auth-options'
 import { ToolsService } from '@/src/lib/database/services/tools'
 
 interface RouteContext {
-  params: { 
+  params: Promise<{ 
     id: string; 
     translationId: string 
-  }
+  }>
 }
 
 /**

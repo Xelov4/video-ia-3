@@ -26,8 +26,9 @@ const toolSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession()
     if (!session?.user) {
@@ -35,7 +36,7 @@ export async function GET(
     }
 
     const tool = await prisma.tool.findUnique({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       include: {
         translations: true
       }
@@ -58,8 +59,9 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession()
     if (!session?.user) {
@@ -70,7 +72,7 @@ export async function PUT(
     const validatedData = toolSchema.parse(body)
 
     const updatedTool = await prisma.tool.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       data: validatedData
     })
 

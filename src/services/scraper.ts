@@ -12,6 +12,21 @@ import {
 } from '@/src/lib/ai/enhancedAnalyzer';
 import { ToolAnalysis } from '@/src/types/analysis';
 
+export class ScraperService {
+  validateUrl(url: string): boolean {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async analyzeProfessionalTool(url: string): Promise<ToolAnalysis> {
+    return runFullAnalysis(url);
+  }
+}
+
 /**
  * Professional tool analysis workflow with enhanced AI processing
  */

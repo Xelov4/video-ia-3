@@ -138,7 +138,7 @@ export default async function CategoriesPage({ params, searchParams }: Categorie
     
     // Gestion compatible avec les deux formats de retour possibles
     const categories = Array.isArray(categoriesData) ? categoriesData : 
-                    (categoriesData && 'categories' in categoriesData) ? categoriesData.categories : []
+                    (categoriesData && 'categories' in categoriesData) ? (categoriesData as any).categories : []
     
     // Tri des catégories selon les paramètres
     const sortedCategories = [...categories].sort((a, b) => {

@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { PostsService } from '@/src/lib/database/services/posts'
-import { authOptions } from '../../../auth/[...nextauth]/route'
+import { authOptions } from '@/src/lib/auth/auth-options'
 
 /**
  * GET /api/admin/posts/stats

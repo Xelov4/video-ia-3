@@ -28,13 +28,13 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   }
 
   const descriptions = {
-    en: `Discover the best AI tools in the ${category.displayName} category. Browse ${category.tool_count} tools with reviews, ratings, and detailed information.`,
-    fr: `Découvrez les meilleurs outils IA dans la catégorie ${category.displayName}. Parcourez ${category.tool_count} outils avec avis, notes et informations détaillées.`,
-    es: `Descubre las mejores herramientas de IA en la categoría ${category.displayName}. Navega por ${category.tool_count} herramientas con reseñas, calificaciones e información detallada.`,
-    de: `Entdecken Sie die besten KI-Tools in der Kategorie ${category.displayName}. Durchsuchen Sie ${category.tool_count} Tools mit Bewertungen, Bewertungen und detaillierten Informationen.`,
-    it: `Scopri i migliori strumenti IA nella categoria ${category.displayName}. Sfoglia ${category.tool_count} strumenti con recensioni, valutazioni e informazioni dettagliate.`,
-    nl: `Ontdek de beste AI-tools in de categorie ${category.displayName}. Bekijk ${category.tool_count} tools met beoordelingen, beoordelingen en gedetailleerde informatie.`,
-    pt: `Descubra as melhores ferramentas de IA na categoria ${category.displayName}. Navegue por ${category.tool_count} ferramentas com avaliações, classificações e informações detalhadas.`
+    en: `Discover the best AI tools in the ${category.displayName} category. Browse ${category.toolCount} tools with reviews, ratings, and detailed information.`,
+    fr: `Découvrez les meilleurs outils IA dans la catégorie ${category.displayName}. Parcourez ${category.toolCount} outils avec avis, notes et informations détaillées.`,
+    es: `Descubre las mejores herramientas de IA en la categoría ${category.displayName}. Navega por ${category.toolCount} herramientas con reseñas, calificaciones e información detallada.`,
+    de: `Entdecken Sie die besten KI-Tools in der Kategorie ${category.displayName}. Durchsuchen Sie ${category.toolCount} Tools mit Bewertungen, Bewertungen und detaillierten Informationen.`,
+    it: `Scopri i migliori strumenti IA nella categoria ${category.displayName}. Sfoglia ${category.toolCount} strumenti con recensioni, valutazioni e informazioni dettagliate.`,
+    nl: `Ontdek de beste AI-tools in de categorie ${category.displayName}. Bekijk ${category.toolCount} tools met beoordelingen, beoordelingen en gedetailleerde informatie.`,
+    pt: `Descubra as melhores ferramentas de IA na categoria ${category.displayName}. Navegue por ${category.toolCount} ferramentas com avaliações, classificações e informações detalhadas.`
   }
 
   return {
@@ -92,7 +92,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
         {/* Tools Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {serializedTools.map((tool: Record<string, unknown>) => (
+          {serializedTools.map((tool: any) => (
             <div key={tool.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">

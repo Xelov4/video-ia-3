@@ -89,11 +89,11 @@ export default function DiscoverPageClient({
         filters: {
           minQualityScore: newFilters.minQuality > 0 ? newFilters.minQuality : undefined
         },
-        sortBy: newFilters.sortBy,
+        sortBy: newFilters.sortBy as any,
         sortOrder: newFilters.sortOrder,
         page,
         limit: ITEMS_PER_PAGE
-      })
+      } as any)
 
       if (page === 1) {
         setTools(result.tools)

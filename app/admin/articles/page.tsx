@@ -5,6 +5,9 @@
 
 'use client'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'

@@ -17,8 +17,9 @@ const translationSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
     const session = await getServerSession()
     if (!session?.user) {
@@ -26,7 +27,7 @@ export async function GET(
     }
 
     const translations = await prisma.toolTranslation.findMany({
-      where: { tool_id: parseInt(params.id) }
+      where: { tool_id: parseInt(resolvedParams.id) }
     })
 
     return NextResponse.json({ success: true, translations })
@@ -42,8 +43,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
     const session = await getServerSession()
     if (!session?.user) {
@@ -55,7 +57,7 @@ export async function POST(
 
     const translation = await prisma.toolTranslation.create({
       data: {
-        tool_id: parseInt(params.id),
+        tool_id: parseInt(resolvedParams.id),
         language_code: validatedData.languageCode,
         name: validatedData.name,
         overview: validatedData.overview,

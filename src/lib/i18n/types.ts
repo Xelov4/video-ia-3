@@ -8,6 +8,92 @@ export type SupportedLanguage = 'en' | 'fr' | 'it' | 'es' | 'de' | 'nl' | 'pt'
 export const SUPPORTED_LANGUAGES: SupportedLanguage[] = ['en', 'fr', 'it', 'es', 'de', 'nl', 'pt']
 export const DEFAULT_LANGUAGE: SupportedLanguage = 'en'
 
+export const ENABLED_LANGUAGES: SupportedLanguage[] = ['en', 'fr', 'it', 'es', 'de']
+
+export interface LanguageConfig {
+  code: SupportedLanguage
+  name: string
+  nativeName: string
+  enabled: boolean
+  isDefault: boolean
+  sortOrder: number
+  direction: 'ltr' | 'rtl'
+  flag: string
+}
+
+export const LANGUAGES_CONFIG: Record<SupportedLanguage, LanguageConfig> = {
+  en: {
+    code: 'en',
+    name: 'English',
+    nativeName: 'English',
+    enabled: true,
+    isDefault: true,
+    sortOrder: 1,
+    direction: 'ltr',
+    flag: '🇺🇸'
+  },
+  fr: {
+    code: 'fr',
+    name: 'French',
+    nativeName: 'Français',
+    enabled: true,
+    isDefault: false,
+    sortOrder: 2,
+    direction: 'ltr',
+    flag: '🇫🇷'
+  },
+  it: {
+    code: 'it',
+    name: 'Italian',
+    nativeName: 'Italiano',
+    enabled: true,
+    isDefault: false,
+    sortOrder: 3,
+    direction: 'ltr',
+    flag: '🇮🇹'
+  },
+  es: {
+    code: 'es',
+    name: 'Spanish',
+    nativeName: 'Español',
+    enabled: true,
+    isDefault: false,
+    sortOrder: 4,
+    direction: 'ltr',
+    flag: '🇪🇸'
+  },
+  de: {
+    code: 'de',
+    name: 'German',
+    nativeName: 'Deutsch',
+    enabled: true,
+    isDefault: false,
+    sortOrder: 5,
+    direction: 'ltr',
+    flag: '🇩🇪'
+  },
+  nl: {
+    code: 'nl',
+    name: 'Dutch',
+    nativeName: 'Nederlands',
+    enabled: false,
+    isDefault: false,
+    sortOrder: 6,
+    direction: 'ltr',
+    flag: '🇳🇱'
+  },
+  pt: {
+    code: 'pt',
+    name: 'Portuguese',
+    nativeName: 'Português',
+    enabled: false,
+    isDefault: false,
+    sortOrder: 7,
+    direction: 'ltr',
+    flag: '🇵🇹'
+  }
+}
+
 // Headers pour informations i18n
 export const I18N_HEADERS = {
   LANGUAGE: 'x-language',
