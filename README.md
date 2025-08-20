@@ -1,6 +1,7 @@
-# Video-IA.net Tool Scraper
+# 🐳 Video-IA.net - Dockerized AI Tools Directory
 
-Une application Next.js propre et élégante pour analyser les outils IA avec extraction automatique de données, analyse IA et base de données multilingue.
+Complete Next.js application with PostgreSQL database containing 16,000+ AI tools.
+**Now fully containerized with Docker for easy deployment and migration.**
 
 ## 🏗️ Structure du Projet
 
@@ -105,20 +106,29 @@ video-ia.net/
 - **Styles**: Tailwind CSS
 - **Tests**: À implémenter
 
-## 📦 Installation
+## 🚀 Quick Start with Docker
 
+### One-Command Deployment
 ```bash
-# Cloner le projet
-git clone [repository-url]
-cd video-ia.net
+# Complete deployment (recommended)
+./deploy-docker.sh
 
-# Installer les dépendances
+# Access application
+http://localhost:3000
+```
+
+### Manual Docker Setup
+```bash
+# Build and start
+docker compose up -d
+
+# Check status
+docker compose ps
+```
+
+### Traditional Development
+```bash
 npm install
-
-# Configurer les variables d'environnement
-cp .env.example .env.local
-
-# Lancer en développement
 npm run dev
 ```
 

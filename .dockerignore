@@ -1,0 +1,170 @@
+# ===================================================================
+# 🐳 DOCKERIGNORE - VIDEO-IA.NET
+# ===================================================================
+# Exclusions pour optimiser le build Docker et sécurité
+# ===================================================================
+
+# ===================================================================
+# NODE.JS & NPM
+# ===================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.yarn/
+package-lock.json.backup
+
+# ===================================================================
+# NEXT.JS BUILD & CACHE
+# ===================================================================
+.next/
+out/
+dist/
+.vercel/
+.turbo/
+
+# ===================================================================
+# ENVIRONNEMENT & SECRETS - CRITIQUE !
+# ===================================================================
+.env*
+!.env.docker
+!.env.example
+.env.local
+.env.production
+.env.development
+secrets/
+*.key
+*.pem
+*.p12
+
+# ===================================================================
+# DÉVELOPPEMENT
+# ===================================================================
+.git/
+.github/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ===================================================================
+# LOGS & MONITORING
+# ===================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+lerna-debug.log*
+.nyc_output/
+coverage/
+
+# ===================================================================
+# SAUVEGARDES & DUMPS
+# ===================================================================
+backups/
+*.sql
+*.dump
+*.backup
+data/backups/
+*.tar.gz
+*.zip
+
+# ===================================================================
+# DOCUMENTATION OPTIMISÉE
+# ===================================================================
+# Inclure seulement documentation essentielle
+docs/
+*.md
+!README.md
+!DOCKER.md
+
+# Fichiers de test et développement
+test-*.js
+test-*.ts
+*-test-*.json
+
+# ===================================================================
+# ASSETS DYNAMIQUES (générés par scraper)
+# ===================================================================
+public/images/tools/
+public/images/logos/
+public/images/screenshots/
+public/logos/
+public/screenshots/
+temp/
+tmp/
+cache/
+
+# ===================================================================
+# OUTILS DE DÉVELOPPEMENT
+# ===================================================================
+.eslintcache
+.stylelintcache
+.prettierignore
+jest.config.js
+tsconfig.tsbuildinfo
+.tsbuildinfo
+
+# ===================================================================
+# OS SPECIFIQUE
+# ===================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===================================================================
+# DOCKER & CI
+# ===================================================================
+Dockerfile.dev
+docker-compose.dev.yml
+docker-compose.override.yml
+.dockerignore.backup
+
+# ===================================================================
+# FICHIERS DE CONFIG SENSIBLES
+# ===================================================================
+config/database.yml
+config/secrets.yml
+config/credentials.yml.enc
+config/master.key
+
+# ===================================================================
+# TESTS & COVERAGE
+# ===================================================================
+__tests__/
+test/
+tests/
+spec/
+*.test.*
+*.spec.*
+coverage/
+.nyc_output/
+
+# ===================================================================
+# SCRIPTS SYSTÈME (inclusion sélective)
+# ===================================================================
+scripts/
+!scripts/README.md
+
+# ===================================================================
+# OPTIMISATION - FICHIERS LOURDS INUTILES
+# ===================================================================
+*.mov
+*.mp4
+*.avi
+*.mkv
+*.webm
+*.pdf
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z

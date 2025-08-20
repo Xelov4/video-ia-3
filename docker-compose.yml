@@ -1,0 +1,206 @@
+version: '3.8'
+
+# ===================================================================
+# 🐳 VIDEO-IA.NET - COMPLETE STACK DOCKER COMPOSE
+# ===================================================================
+# Configuration pour déploiement complet avec:
+# - Application Next.js avec PostgreSQL embarqué
+# - Auto-update system
+# - Monitoring et backups
+# - Volumes persistants pour migration facile
+# ===================================================================
+
+services:
+
+  # ===================================================================
+  # APPLICATION PRINCIPALE - ALL-IN-ONE CONTAINER
+  # ===================================================================
+  video-ia-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+    
+    container_name: ${CONTAINER_NAME:-video-ia-complete}
+    
+    ports:
+      - "${PORT:-3000}:3000"
+    
+    environment:
+      # Base configuration
+      - DATABASE_URL=${DATABASE_URL}
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000}
+      
+      # Authentication
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      
+      # AI Services
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      
+      # Monitoring
+      - SENTRY_DSN=${SENTRY_DSN}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+      # Scraper
+      - ENABLE_SCRAPER=${ENABLE_SCRAPER:-true}
+      - MAX_SCRAPER_CONCURRENT=${MAX_SCRAPER_CONCURRENT:-3}
+      
+      # Auto-update
+      - ENABLE_AUTO_UPDATE=${ENABLE_AUTO_UPDATE:-true}
+      - GIT_REPOSITORY_URL=${GIT_REPOSITORY_URL}
+      - GIT_BRANCH=${GIT_BRANCH:-main}
+      
+      # Performance
+      - ENABLE_CACHE=${ENABLE_CACHE:-true}
+      
+      # Container settings
+      - TZ=${TZ:-Europe/Paris}
+    
+    volumes:
+      # Persistance base de données PostgreSQL
+      - postgres_data:/var/lib/postgresql
+      
+      # Données application (backups, uploads, cache)
+      - app_data:/app/data
+      
+      # Logs système
+      - app_logs:/var/log/video-ia
+      
+      # Assets dynamiques (logos, screenshots)
+      - dynamic_assets:/app/public/images
+      
+      # Configuration personnalisée (optionnel)
+      - ./custom-config:/app/config/custom:ro
+    
+    restart: ${RESTART_POLICY:-unless-stopped}
+    
+    # Health check intégré
+    healthcheck:
+      test: ["CMD", "/app/scripts/health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    
+    # Ressources recommandées
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    
+    # Sécurité
+    security_opt:
+      - no-new-privileges:true
+    
+    # Capabilities pour Puppeteer
+    cap_add:
+      - SYS_ADMIN  # Requis pour Chromium sandboxing
+    
+    # Labels pour organisation
+    labels:
+      - "com.video-ia.service=main-app"
+      - "com.video-ia.version=1.0.0"
+      - "traefik.enable=true"
+      - "traefik.http.routers.video-ia.rule=Host(`your-domain.com`)"
+      - "traefik.http.services.video-ia.loadbalancer.server.port=3000"
+
+  # ===================================================================
+  # REDIS CACHE (OPTIONNEL) - Décommentez si besoin de cache externe
+  # ===================================================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: video-ia-redis
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+  #   command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # ===================================================================
+  # WATCHTOWER - AUTO-UPDATE DOCKER IMAGES (OPTIONNEL)
+  # ===================================================================
+  watchtower:
+    image: containrrr/watchtower
+    container_name: video-ia-watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=3600  # Check every hour
+      - WATCHTOWER_INCLUDE_STOPPED=true
+      - WATCHTOWER_REVIVE_STOPPED=true
+    restart: unless-stopped
+    command: --label-enable
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+# ===================================================================
+# VOLUMES NOMMÉS POUR PERSISTANCE
+# ===================================================================
+volumes:
+  # Base de données PostgreSQL - CRITIQUE à sauvegarder !
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgres
+  
+  # Données application (backups, uploads, etc.)
+  app_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind  
+      device: ./data/app
+  
+  # Logs système
+  app_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/logs
+  
+  # Assets dynamiques générés
+  dynamic_assets:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/assets
+
+  # Cache Redis (si activé)
+  # redis_data:
+  #   driver: local
+
+# ===================================================================
+# RÉSEAUX
+# ===================================================================
+networks:
+  default:
+    name: video-ia-network
+    driver: bridge
+    
+# ===================================================================
+# SECRETS DOCKER (PRODUCTION RECOMMANDÉE)
+# ===================================================================
+# Décommentez en production et utilisez docker secrets
+# secrets:
+#   db_password:
+#     file: ./secrets/db_password.txt
+#   gemini_api_key:
+#     file: ./secrets/gemini_key.txt
+#   nextauth_secret:
+#     file: ./secrets/nextauth_secret.txt
